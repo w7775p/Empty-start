@@ -21,7 +21,7 @@
 
 - BG-01～BG-08、BG-11 与 BG-14 核心任务已完成；BG-10 消费 RepeatPlan 并维护独立复读容量。INT-01 提供指定目标结束与场上清理入口，由 Sandbox 根据真实结算结果调用。
 - Repeat 的延迟队列调用接线由 10. Repeat 的 RP-06 提供；INT-01 在 Sandbox 组合 CombatStage、命中移除和复读请求。
-- BG-12 等待 8. CombatStage 的矛盾阶段入口和 12. ContradictionBreak 的真实矛盾数据接口；当前可见实现尚未提供这两项接口。
+- BG-12 已在隔离集成分支提供真假矛盾生成入口；CB-03 负责从当前关卡接入该入口，尚未合入 main。
 - INT-01 在普通战斗失败、完成与重开时调用场上清理和 `RepeatDelayQueue.clear_normal_queue()`，完成当前普通战斗阶段的清理接线。
 - 2. LevelConfiguration 已拆出关卡资料、词库、倾向比例和基础生成参数任务。
 - INT-01 已接入普通战斗的特性结果、攻击、结算、Tier与复读调度；矛盾阶段及其他尚缺真实接口的联调继续保留对应任务卡。
@@ -85,7 +85,13 @@ INT-01 已组合【4. BarrageTraits】和【6. HitResolution】的逐目标结�
 
 BG-10 等【10. Repeat】提供真实复读生成请求后再接。
 
-BG-12 等【8. CombatStage】和【12. ContradictionBreak】确定真实阶段入口与矛盾数据后再接。
+BG-12 使用 Sandbox 的满 PK 阶段入口与 `ContradictionBreakSystem` 当前关卡内容；由 CB-03 接线。
+
+## BG-12 矛盾生成接口
+
+`BarrageArea.start_contradiction_generation(level_profile, true_lines, false_lines, config)` 停止普通生成，轮换两组矛盾原句，按 Paradox 配置使用每批数量 ×2、生成频率 ×3、移动速度 ×2.5，以及 10 秒实例寿命，不沿用当前普通 Tier 倍率。每个实例保留稳定 `original_sentence_id` 和 `is_contradiction` 标识；真伪由 12 系统按照关卡列表判断，不在弹幕系统结算。`stop_contradiction_generation()` 只停止新批次，`clear_barrages()` 清理场上内容并同时停止两种生成模式。
+
+复读实例额外保存 `is_contradiction_repeat`，`has_visible_contradiction_repeats()` 只读取当前仍在场的矛盾复读视图；等待队列是否为空继续由 10 系统负责。
 
 INT-01 已组合场上清理与【10. Repeat】的等待队列清理；进入后续矛盾阶段时可复用这些入口。
 
