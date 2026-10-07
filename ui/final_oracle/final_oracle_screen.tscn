@@ -1,0 +1,85 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/final_oracle/final_oracle_screen.gd" id="1_screen"]
+
+[node name="FinalOracleScreen" type="CanvasLayer"]
+layer = 10
+script = ExtResource("1_screen")
+
+[node name="Overlay" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false
+mouse_filter = 0
+
+[node name="Dim" type="ColorRect" parent="Overlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.01, 0.015, 0.03, 0.82)
+
+[node name="CenterContainer" type="CenterContainer" parent="Overlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="Overlay/CenterContainer"]
+custom_minimum_size = Vector2(920, 0)
+layout_mode = 2
+theme_type_variation = &"DialogPanel"
+
+[node name="MarginContainer" type="MarginContainer" parent="Overlay/CenterContainer/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 28
+
+[node name="Content" type="VBoxContainer" parent="Overlay/CenterContainer/Panel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Title" type="Label" parent="Overlay/CenterContainer/Panel/MarginContainer/Content"]
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+text = "终结神谕"
+horizontal_alignment = 1
+
+[node name="Instruction" type="Label" parent="Overlay/CenterContainer/Panel/MarginContainer/Content"]
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "从本场命中的普通话语中选择一句"
+horizontal_alignment = 1
+
+[node name="Countdown" type="Label" parent="Overlay/CenterContainer/Panel/MarginContainer/Content"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "10.0"
+horizontal_alignment = 1
+
+[node name="CandidateList" type="VBoxContainer" parent="Overlay/CenterContainer/Panel/MarginContainer/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="EmptyHint" type="Label" parent="Overlay/CenterContainer/Panel/MarginContainer/Content"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "本场没有可选话语"
+horizontal_alignment = 1

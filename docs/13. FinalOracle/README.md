@@ -52,7 +52,7 @@ UI、10 秒计时器、战斗冻结、奖励系统和休息流程全部做实际
 
 ## 依赖顺序
 
-隔离集成分支新增 `FinalOracleSession.open_after_breakthrough(level_id, normal_hit_history, repeat_stats, confirmation_state)` 作为 FO-01 的最小真实接收入口：只接受一次击破完成事实，复用现有候选池并冻结展示快照；战斗冻结仍由调用方负责。`confirm_display_candidate(candidate)` 仅接受本次展示中的原句 ID，并调用周目级 FO-09 确认状态。当前没有神谕选择 UI，FO-07～12 仍待实现。
+隔离集成分支新增 `FinalOracleSession.open_after_breakthrough(level_id, normal_hit_history, repeat_stats, confirmation_state)` 作为 FO-01 的最小真实接收入口：只接受一次击破完成事实，复用现有候选池并冻结展示快照；战斗冻结仍由调用方负责。`confirm_display_candidate(candidate)` 仅接受本次展示中的原句 ID，并调用周目级 FO-09 确认状态。`ui/final_oracle/final_oracle_screen.tscn` 现由 Sandbox 的 `final_oracle_opened` 接线显示 FO-06 冻结候选；FO-07～09 的计时、超时和单次确认仍需接入该 UI。FO-10～12 继续等待对应奖励与休息系统。
 
 FO-01 等 12. ContradictionBreak 的成功与过渡完成事件。
 FO-02～05 在【6. HitResolution】HR-14 的本场普通命中历史与【10. Repeat】普通复读统计存在后完成纯候选逻辑。
@@ -83,6 +83,7 @@ FO-12 等 18. Rest。
 
 - 候选展示开放时调用 `snapshot_for_display(final_candidates)` 一次，并保留返回的深拷贝数组作为本次展示列表。
 - 选择期间继续显示该快照的原顺序和内容；后续命中或复读统计变化不会重建或重排当前列表。
+- Sandbox 在 `final_oracle_opened` 后调用 `FinalOracleScreen.present_session(session)`；界面从 Session 读取一次展示快照，最多显示三句。原句正文按稳定 ID 从当前 `LevelProfile.normal_speech_pool` 补入展示副本，不写回 HitResolution 的历史。
 
 ## FO-07 倒计时接口
 

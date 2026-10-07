@@ -6,6 +6,7 @@ signal rest_opened(session: RestSession)
 const SAMPLE_LEVEL_CATALOG: LevelCatalog = preload("res://data/level_configuration/level_catalog.tres")
 const SAMPLE_TIER_CATALOG: CombatStageTierCatalog = preload("res://data/combat_stage/tier_catalog.tres")
 const CONTRADICTION_WINDOW_CONFIG: ContradictionWindowConfig = preload("res://systems/contradiction_break/contradiction_window_config.tres")
+const FINAL_ORACLE_SCREEN_SCENE: PackedScene = preload("res://ui/final_oracle/final_oracle_screen.tscn")
 @export var battle_config: SandboxBattleConfig = preload("res://data/sandbox/playable_battle_config.tres")
 
 @onready var _barrage_area: BarrageArea = %BarrageArea
@@ -23,6 +24,7 @@ var _normal_combat_active: bool = false
 var _contradiction_stage_active: bool = false
 var _contradiction_break: ContradictionBreakSystem
 var _final_oracle_session: FinalOracleSession
+var _final_oracle_screen: CanvasLayer
 var _oracle_confirmation_state: FinalOracleConfirmationState
 var _rest_session: RestSession
 var _oracle_transition_timer: Timer
@@ -55,6 +57,12 @@ func _ready() -> void:
 	_oracle_transition_timer.process_mode = Node.PROCESS_MODE_PAUSABLE
 	_oracle_transition_timer.timeout.connect(_on_oracle_silence_finished)
 	add_child(_oracle_transition_timer)
+	_final_oracle_screen = FINAL_ORACLE_SCREEN_SCENE.instantiate() as CanvasLayer
+	if _final_oracle_screen == null:
+		push_error("Sandbox: 无法创建终结神谕界面。")
+	else:
+		add_child(_final_oracle_screen)
+		final_oracle_opened.connect(Callable(_final_oracle_screen, "present_session"))
 	%RestartButton.pressed.connect(restart_current_attempt)
 	%PauseMenu.restart_requested.connect(restart_current_attempt)
 	_debug_panel.call("bind_sandbox", self)
@@ -70,6 +78,8 @@ func restart_current_attempt() -> void:
 	_oracle_transition_started = false
 	_oracle_transition_timer.stop()
 	_final_oracle_session = null
+	if _final_oracle_screen != null:
+		_final_oracle_screen.call("close_screen")
 	_rest_session = null
 	if _contradiction_break != null:
 		remove_child(_contradiction_break)
@@ -239,7 +249,7 @@ func _on_oracle_silence_finished() -> void:
 	_final_oracle_session = FinalOracleSession.new()
 	if not _final_oracle_session.open_after_breakthrough(
 		current_level.level_id,
-		_hit_resolution.get_normal_hit_history(),
+		_get_oracle_history_with_sentence_text(current_level),
 		_repeat_queue.get_generation_stats(),
 		_oracle_confirmation_state
 	):
@@ -250,6 +260,21 @@ func _on_oracle_silence_finished() -> void:
 	_repeat_queue.clear_contradiction_queue()
 	_battle_hud.show_battle_state("终结神谕已开放")
 	final_oracle_opened.emit(_final_oracle_session)
+
+
+# 给展示快照补上静态关卡原句文本，不把展示字段写回 HitResolution 历史。
+func _get_oracle_history_with_sentence_text(current_level: LevelProfile) -> Array[Dictionary]:
+	var normal_hit_history: Array[Dictionary] = _hit_resolution.get_normal_hit_history()
+	var sentence_text_by_id: Dictionary = {}
+	if current_level != null:
+		for speech: LevelSpeech in current_level.normal_speech_pool:
+			if speech != null and not speech.original_sentence_id.is_empty():
+				sentence_text_by_id[speech.original_sentence_id] = speech.text
+
+	for history_entry: Dictionary in normal_hit_history:
+		var sentence_id: String = str(history_entry.get("original_sentence_id", ""))
+		history_entry["original_sentence_text"] = str(sentence_text_by_id.get(sentence_id, sentence_id))
+	return normal_hit_history
 
 
 # 成功分支等神谕最终候选确认后，才把本场普通历史并入当前周目。
