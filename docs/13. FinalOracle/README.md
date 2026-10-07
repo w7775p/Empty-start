@@ -52,6 +52,8 @@ UI、10 秒计时器、战斗冻结、奖励系统和休息流程全部做实际
 
 ## 依赖顺序
 
+隔离集成分支新增 `FinalOracleSession.open_after_breakthrough(level_id, normal_hit_history, repeat_stats, confirmation_state)` 作为 FO-01 的最小真实接收入口：只接受一次击破完成事实，复用现有候选池并冻结展示快照；战斗冻结仍由调用方负责。`confirm_display_candidate(candidate)` 仅接受本次展示中的原句 ID，并调用周目级 FO-09 确认状态。当前没有神谕选择 UI，FO-07～12 仍待实现。
+
 FO-01 等 12. ContradictionBreak 的成功与过渡完成事件。
 FO-02～05 在【6. HitResolution】HR-14 的本场普通命中历史与【10. Repeat】普通复读统计存在后完成纯候选逻辑。
 FO-06～09 完成神谕选择流程。
@@ -75,7 +77,7 @@ FO-12 等 18. Rest。
 ## FO-05 候选补位接口
 
 - `FinalOracleCandidatePool.fill_missing_tendency_candidates(candidates, repeat_stats)` 先保留各倾向领头候选，再从剩余普通命中候选补足，最多返回三句。
-- 补位顺序读取 HR-14 历史：`hit_count` 降序、`last_hit_order` 降序、`original_sentence_id` 升序。这里不使用复读数；若普通话语不足三句，则返回实际数量。
+- 补位顺序读取普通复读实际生成数降序、HR-14 的 `last_hit_order` 降序、`original_sentence_id` 升序；复读数由 `RepeatGenerationStats.get_normal_count()` 提供，矛盾复读不参与。若普通话语不足三句，则返回实际数量。
 
 ## FO-06 展示快照接口
 

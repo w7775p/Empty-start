@@ -15,16 +15,23 @@ func _init(maximum_pending_normal_count: int) -> void:
 	_random_generator.randomize()
 
 
-# 把普通复读计划拆成多条各自等待的单条生成请求。
+# 把普通或矛盾复读计划拆成各自等待的单条请求；普通等待容量独立限制。
 func enqueue_plan(plan: RepeatPlan) -> int:
-	if plan == null or plan.repeat_type != RepeatPlan.RepeatType.NORMAL or plan.planned_repeat_count <= 0:
+	if plan == null or plan.planned_repeat_count <= 0:
+		return 0
+	if plan.repeat_type != RepeatPlan.RepeatType.NORMAL and plan.repeat_type != RepeatPlan.RepeatType.CONTRADICTION:
 		return 0
 	if DELAY_CONFIG.minimum_delay_seconds < 0.0 or DELAY_CONFIG.maximum_delay_seconds < DELAY_CONFIG.minimum_delay_seconds:
 		push_error("RepeatDelayQueue: configured delay range is invalid.")
 		return 0
 
-	var available_capacity: int = maxi(_maximum_pending_normal_count - _pending_items.size(), 0)
-	var accepted_count: int = mini(plan.planned_repeat_count, available_capacity)
+	var accepted_count: int = plan.planned_repeat_count
+	if plan.repeat_type == RepeatPlan.RepeatType.NORMAL:
+		var pending_normal_count: int = 0
+		for pending_item: Dictionary in _pending_items:
+			if (pending_item["plan"] as RepeatPlan).repeat_type == RepeatPlan.RepeatType.NORMAL:
+				pending_normal_count += 1
+		accepted_count = mini(accepted_count, maxi(_maximum_pending_normal_count - pending_normal_count, 0))
 	var wait_offsets: PackedFloat32Array = PackedFloat32Array()
 	for _index in range(accepted_count):
 		var delay_seconds: float = _random_generator.randf_range(
@@ -87,6 +94,34 @@ func get_generation_stats() -> RepeatGenerationStats:
 
 # 转入矛盾阶段时清空尚未到期的普通复读，避免阶段结束后迟到。
 func clear_normal_queue() -> int:
-	var cleared_count: int = _pending_items.size()
-	_pending_items.clear()
+	var cleared_count: int = 0
+	var retained_items: Array[Dictionary] = []
+	for pending_item: Dictionary in _pending_items:
+		if (pending_item["plan"] as RepeatPlan).repeat_type == RepeatPlan.RepeatType.NORMAL:
+			cleared_count += 1
+		else:
+			retained_items.append(pending_item)
+	_pending_items = retained_items
 	return cleared_count
+
+
+# 未击破直接进入休息时撤销尚未展示的矛盾复读，避免休息阶段继续出弹幕。
+func clear_contradiction_queue() -> int:
+	var cleared_count: int = 0
+	var retained_items: Array[Dictionary] = []
+	for pending_item: Dictionary in _pending_items:
+		if (pending_item["plan"] as RepeatPlan).repeat_type == RepeatPlan.RepeatType.CONTRADICTION:
+			cleared_count += 1
+		else:
+			retained_items.append(pending_item)
+	_pending_items = retained_items
+	return cleared_count
+
+
+# 神谕过渡只等待本次矛盾复读；普通队列不参与完成条件。
+func get_pending_contradiction_count() -> int:
+	var count: int = 0
+	for pending_item: Dictionary in _pending_items:
+		if (pending_item["plan"] as RepeatPlan).repeat_type == RepeatPlan.RepeatType.CONTRADICTION:
+			count += 1
+	return count

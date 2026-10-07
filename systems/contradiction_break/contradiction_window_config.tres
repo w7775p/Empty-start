@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ContradictionWindowConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://systems/contradiction_break/contradiction_window_config.gd" id="1_config"]
+
+[resource]
+script = ExtResource("1_config")
+duration_seconds = 10.0
+max_shots = 1
+generation_count_multiplier = 2.0
+generation_frequency_multiplier = 3.0
+movement_speed_multiplier = 2.5

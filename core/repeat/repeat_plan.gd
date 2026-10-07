@@ -35,6 +35,24 @@ static func create_normal_hit_plan(
 	return plan
 
 
+# 矛盾复读固定命中时的原句和独立数量 / 寿命配置，不与普通候选统计混用。
+static func create_contradiction_hit_plan(
+		original_line_id: StringName,
+		original_line_text: String,
+		settled_tier: int,
+		configured_repeat_count: int,
+		configured_lifetime_seconds: float
+	) -> RepeatPlan:
+	var plan := RepeatPlan.new()
+	plan.original_line_id = original_line_id
+	plan.original_line_text = original_line_text
+	plan.repeat_type = RepeatType.CONTRADICTION
+	plan.planned_repeat_count = configured_repeat_count
+	plan.generation_tier = settled_tier
+	plan.lifetime_seconds = configured_lifetime_seconds
+	return plan
+
+
 # 将原句填入策划模板并保存显示文本，计划始终保留原句 ID。
 func apply_display_template(template: String) -> String:
 	if not template.contains(ORIGINAL_LINE_PLACEHOLDER):

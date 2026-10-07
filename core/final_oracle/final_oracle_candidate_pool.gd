@@ -96,7 +96,7 @@ func _is_better_repeat_ranked_candidate(
 	)
 
 
-# 倾向领头候选不足三句时，按普通命中次数、最近命中顺序和原句 ID 补位。
+# 倾向领头候选不足三句时，按普通复读次数、最近命中顺序和原句 ID 补位。
 func fill_missing_tendency_candidates(
 		candidates: Array[Dictionary], repeat_stats: RepeatGenerationStats
 	) -> Array[Dictionary]:
@@ -109,6 +109,7 @@ func fill_missing_tendency_candidates(
 
 	while final_candidates.size() < _MAX_CANDIDATE_COUNT:
 		var best_fallback_candidate: Dictionary = {}
+		var best_repeat_count: int = -1
 		for candidate: Dictionary in candidates:
 			var original_sentence_id: Variant = candidate.get("original_sentence_id")
 			var tendency_id: String = str(candidate.get("tendency", ""))
@@ -117,11 +118,13 @@ func fill_missing_tendency_candidates(
 			var stable_sentence_id: String = str(original_sentence_id)
 			if stable_sentence_id.is_empty() or selected_sentence_ids.has(stable_sentence_id):
 				continue
+			var repeat_count: int = repeat_stats.get_normal_count(StringName(stable_sentence_id))
 			if (
 				best_fallback_candidate.is_empty()
-				or _is_better_fallback_candidate(candidate, best_fallback_candidate)
+				or _is_better_repeat_ranked_candidate(candidate, repeat_count, best_fallback_candidate, best_repeat_count)
 			):
 				best_fallback_candidate = candidate
+				best_repeat_count = repeat_count
 		if best_fallback_candidate.is_empty():
 			break
 
@@ -139,19 +142,3 @@ func snapshot_for_display(candidates: Array[Dictionary]) -> Array[Dictionary]:
 	for candidate: Dictionary in candidates:
 		display_snapshot.append(candidate.duplicate(true))
 	return display_snapshot
-
-
-# 补位按普通命中次数降序、最近命中降序、原句 ID 升序比较。
-func _is_better_fallback_candidate(candidate: Dictionary, current_best: Dictionary) -> bool:
-	var candidate_hit_count: int = int(candidate.get("hit_count", 0))
-	var current_hit_count: int = int(current_best.get("hit_count", 0))
-	if candidate_hit_count != current_hit_count:
-		return candidate_hit_count > current_hit_count
-
-	var candidate_last_hit_order: int = int(candidate.get("last_hit_order", 0))
-	var current_last_hit_order: int = int(current_best.get("last_hit_order", 0))
-	if candidate_last_hit_order != current_last_hit_order:
-		return candidate_last_hit_order > current_last_hit_order
-	return str(candidate.get("original_sentence_id", "")) < str(
-		current_best.get("original_sentence_id", "")
-	)

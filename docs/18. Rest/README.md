@@ -45,3 +45,5 @@ RS-05～06 等 15/16。
 RS-07 等 17. ThreeTendencies。
 RS-09 等 2. LevelConfiguration。
 RS-10 等 19. DivineDescent。
+
+RS-01 已增加 `RestSession.open_result(result_snapshot)` 作为本场结果入口。快照包含来源 `level_id` 与 `result_kind`（`pk_win_unbroken` 或 `breakthrough_oracle_complete`）；会话只接受首次打开，读取方使用 `get_result_snapshot()` 获得深拷贝。展示与继续入口留给后续任务。

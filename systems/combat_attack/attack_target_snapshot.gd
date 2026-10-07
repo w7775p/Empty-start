@@ -2,6 +2,7 @@ class_name AttackTargetSnapshot
 extends RefCounted
 
 var _target_instance_ids: Array[int] = []
+var _contradiction_facts: Array[Dictionary] = []
 
 
 # 在释放时复制候选实例 ID 并去重；之后候选列表的变化不会加入本发。
@@ -19,6 +20,15 @@ static func capture_at_release(current_candidates: Array[Node]) -> AttackTargetS
 
 		seen_instance_ids[instance_id] = true
 		snapshot._target_instance_ids.append(instance_id)
+		# Paradox 在释放同一帧使用这份文本事实，之后实例移动或离树都不能改变判定。
+		if target is BarrageView:
+			var view := target as BarrageView
+			if view.runtime_record != null and view.runtime_record.is_contradiction:
+				snapshot._contradiction_facts.append({
+					"target_instance_id": instance_id,
+					"original_sentence_id": view.runtime_record.original_sentence_id,
+					"original_sentence_text": view.runtime_record.original_sentence_text,
+				})
 
 	return snapshot
 
@@ -26,6 +36,14 @@ static func capture_at_release(current_candidates: Array[Node]) -> AttackTargetS
 # 返回 ID 副本，调用方不能修改已经冻结的本发目标集合。
 func get_target_instance_ids() -> Array[int]:
 	return _target_instance_ids.duplicate()
+
+
+# 返回释放瞬间的矛盾原句副本；命中判定不依赖飞行后实例是否仍在场。
+func get_contradiction_facts() -> Array[Dictionary]:
+	var facts: Array[Dictionary] = []
+	for fact: Dictionary in _contradiction_facts:
+		facts.append(fact.duplicate(true))
+	return facts
 
 
 # 到达时按 BarrageGeneration 的真实实例状态复核；目标移动不重新检查原准心。

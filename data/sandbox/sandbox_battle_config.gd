@@ -9,6 +9,9 @@ extends Resource
 @export var base_pullback_speed: float = 0.001
 @export var normal_lifetime_seconds: float = 10.0
 @export var repeat_lifetime_seconds: float = 6.0
+## 原始系统案写明每条矛盾命中产生 120 条复读；寿命暂用 Sandbox 运行配置。
+@export var contradiction_repeat_count: int = 120
+@export var contradiction_repeat_lifetime_seconds: float = 6.0
 @export var maximum_pending_repeat_count: int = 96
 @export var repeat_screen_cap: int = 24
 @export var repeat_display_template: String = "复读 · {原句}"

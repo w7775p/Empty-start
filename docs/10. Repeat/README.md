@@ -29,7 +29,9 @@
 - `RepeatDelayQueue.clear_normal_queue()` 丢弃所有尚未到期的普通复读；进入矛盾阶段时由阶段流程调用，已返回生成请求的弹幕不属于此等待队列。
 - 原计划的 `wait_offsets_seconds` 保存每条复读的相对等待时间；队列不创建或管理屏幕上的弹幕实例。
 - `RepeatGenerationStats.record_generated(plan, actual_generated_count)` 仅根据计划类型把弹幕生成系统确认的实际生成数量按 `original_line_id` 累计；`get_normal_count(id)` 与 `get_contradiction_count(id)` 分别读取两类统计。
-- INT-01 Sandbox 在攻击整发提交后读取结算后 Tier 和复读数量，创建普通复读计划并逐帧调度。成功复读进入场上，可被真实攻击选中；命中沿用 HitResolution 的有效零收益结果，不创建后续复读或普通命中历史。失败 / 满值清理等待队列，重开创建新的队列和实际生成统计。矛盾复读与跨关历史提交继续等待后续流程。
+- INT-01 Sandbox 在攻击整发提交后读取结算后 Tier 和复读数量，创建普通复读计划并逐帧调度。成功复读进入场上，可被真实攻击选中；命中沿用 HitResolution 的有效零收益结果，不创建后续复读或普通命中历史。失败 / 满值清理普通等待队列，重开创建新的队列和实际生成统计。RP-08 已在隔离分支补齐矛盾复读计划、调度和显示状态读取；CB-08 负责命中后调用。
+
+矛盾计划由 `RepeatPlan.create_contradiction_hit_plan()` 固定原句、类型、数量和寿命；`RepeatDelayQueue.enqueue_plan()` 接收两类计划，普通待生成上限只约束普通类型。`get_pending_contradiction_count()` 与 `BarrageArea.has_visible_contradiction_repeats()` 供击破成功后的展示完成判定，实际生成后统计仍由 `RepeatGenerationStats` 分类记录。当前 Sandbox 的矛盾复读数量按原始系统案暂配 120 条/命中，寿命暂配 6 秒；正式数值表到位后替换资源来源。
 
 ## 任务顺序
 

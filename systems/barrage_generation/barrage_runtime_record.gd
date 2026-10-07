@@ -11,6 +11,12 @@ var original_sentence_text: String = ""
 ## 由生成入口标明复读身份，供攻击结算选择零收益规则。
 var is_repeat: bool = false
 
+## 矛盾阶段生成的原句；真假仍按当前关卡列表中的稳定 ID 判断。
+var is_contradiction: bool = false
+
+## 复读中的矛盾来源独立标记，供完成展示后进入神谕的流程读取。
+var is_contradiction_repeat: bool = false
+
 ## 提供这条内容的来源稳定 ID，例如主播 ID。
 var source_id: String = ""
 

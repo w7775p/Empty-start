@@ -206,8 +206,8 @@ func _test_fill_candidates_to_three() -> bool:
 	var selected_ids: Array[String] = []
 	for candidate: Dictionary in final_candidates:
 		selected_ids.append(str(candidate.get("original_sentence_id", "")))
-	if selected_ids != ["line-main", "line-a", "line-b"]:
-		push_error("FO-05 补位应按命中次数、最近命中时间、原句 ID 排序")
+	if selected_ids != ["line-main", "line-low-hit-new", "line-a"]:
+		push_error("FO-05 补位应按普通复读次数、最近命中时间、原句 ID 排序")
 		return false
 
 	var short_history: Array[Dictionary] = [
