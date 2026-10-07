@@ -16,7 +16,9 @@
 - `AssimilationData` 是吞并系统的数据 Resource，由当前周目的 `SaveData.assimilation_data` 持有。
 - `completed_streamer_ids` 与 `defeated_streamer_ids` 分别保存已通关主播 ID 和真正击败主播 ID。
 - `inherited_word_weights` 以稳定词库 ID 为键、出现权重为值；`inherited_trait_ids` 保存可继承特性 ID。
-- 本卡只定义可保存 / 读取的长期成果字段；击败登记、去重、词库 / 特性实际写入及跨系统读取由后续任务实现。
+- `defeated_level_ids` 保存当前周目已经提交真正击败结果的稳定关卡 ID；与主播集合共同阻止同场重复提交和同主播重复奖励。
+- `register_defeated_streamer(level_id, streamer_id, contradiction_broken, oracle_confirmed)` 只在两项事实同时成立时登记，首次返回 `true`，重复返回 `false`。击破事实来自 CB 的 `Outcome.BREAKTHROUGH`，确认事实来自同周目同关的 `confirmation_committed` 或 `get_confirmed_selection(level_id)`。
+- 词库 / 特性实际写入及跨系统接线由后续任务实现；奖励入口应消费当前关稳定 ID，保持 `SaveData.assimilation_data` 为成果拥有者。
 
 ## 任务顺序
 
