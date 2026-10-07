@@ -15,7 +15,10 @@ func _initialize() -> void:
 	if not _test_streamer_is_granted_once_per_run():
 		quit(1)
 		return
-	print("PASS LoserCard: 3 cases (LCARD-02..LCARD-03)")
+	if not _test_pk_only_preserves_existing_cards():
+		quit(1)
+		return
+	print("PASS LoserCard: 4 cases (LCARD-02..LCARD-04)")
 	quit(0)
 
 
@@ -68,6 +71,30 @@ func _test_streamer_is_granted_once_per_run() -> bool:
 		return false
 	if data.acquired_streamer_ids != [&"streamer_a"] or data.rewarded_level_ids != [&"level_001"]:
 		push_error("LCARD-03 重复发卡改变了已获集合")
+		return false
+	return true
+
+
+# 使用未击破休息结果的公开字段，PK 胜利只保留历史卡片。
+func _test_pk_only_preserves_existing_cards() -> bool:
+	var data = CARD_DATA.new()
+	var catalog = _make_catalog()
+	var next_profile = CARD_PROFILE.new()
+	next_profile.streamer_id = &"streamer_b"
+	catalog.profiles.append(next_profile)
+	data.grant_on_true_defeat(&"previous_level", &"streamer_a", true, true, catalog)
+	var pk_only_result: Dictionary = {
+		"level_id": "level_001", "result_kind": "pk_win_unbroken",
+		"pk_won": true, "contradiction_broken": false,
+	}
+	if data.grant_on_true_defeat(
+		StringName(pk_only_result["level_id"]), &"streamer_b",
+		pk_only_result["contradiction_broken"], false, catalog
+	):
+		push_error("LCARD-04 未击破 PK 胜利新增了败者卡")
+		return false
+	if data.acquired_streamer_ids != [&"streamer_a"] or data.rewarded_level_ids != [&"previous_level"]:
+		push_error("LCARD-04 未击破分支改变了既有卡片")
 		return false
 	return true
 
