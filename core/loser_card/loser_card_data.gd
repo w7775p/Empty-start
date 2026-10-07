@@ -15,7 +15,7 @@ func grant_on_true_defeat(
 		return false
 	if not contradiction_broken or not oracle_confirmed or catalog.find_profile(streamer_id) == null:
 		return false
-	if rewarded_level_ids.has(level_id):
+	if rewarded_level_ids.has(level_id) or acquired_streamer_ids.has(streamer_id):
 		return false
 	rewarded_level_ids.append(level_id)
 	acquired_streamer_ids.append(streamer_id)

@@ -12,7 +12,10 @@ func _initialize() -> void:
 	if not _test_incomplete_defeat_does_not_grant():
 		quit(1)
 		return
-	print("PASS LoserCard: 2 cases (LCARD-02)")
+	if not _test_streamer_is_granted_once_per_run():
+		quit(1)
+		return
+	print("PASS LoserCard: 3 cases (LCARD-02..LCARD-03)")
 	quit(0)
 
 
@@ -46,6 +49,25 @@ func _test_incomplete_defeat_does_not_grant() -> bool:
 		return false
 	if not data.acquired_streamer_ids.is_empty() or not data.rewarded_level_ids.is_empty():
 		push_error("LCARD-02 不满足条件仍改变获卡集合")
+		return false
+	return true
+
+
+# 同主播重复确认或来自另一关，当前周目仍只保留一张卡。
+func _test_streamer_is_granted_once_per_run() -> bool:
+	var data = CARD_DATA.new()
+	var catalog = _make_catalog()
+	if not data.grant_on_true_defeat(&"level_001", &"streamer_a", true, true, catalog):
+		push_error("LCARD-03 首次发卡失败")
+		return false
+	if (
+		data.grant_on_true_defeat(&"level_001", &"streamer_a", true, true, catalog)
+		or data.grant_on_true_defeat(&"level_002", &"streamer_a", true, true, catalog)
+	):
+		push_error("LCARD-03 同周目重复主播再次获得卡片")
+		return false
+	if data.acquired_streamer_ids != [&"streamer_a"] or data.rewarded_level_ids != [&"level_001"]:
+		push_error("LCARD-03 重复发卡改变了已获集合")
 		return false
 	return true
 
