@@ -27,7 +27,6 @@
 - CA-06 在到达时按真实 `BarrageRuntimeRecord` / `BarrageView` 状态过滤已释放目标；目标移动后仍保留资格，到期、离开 BarrageArea、脱离所属区域、排队删除或已释放的目标均失效，不再检查原准心范围。
 - CA-07 提供可注入 `AttackTimingConfig` 和普通攻击阶段计时：快照释放后进入飞行，到达时复核并发出结果，再进入硬直；硬直期间不推进蓄力。`tests/fixtures/combat_attack/ca07_short_attack_timing.tres` 只用于计时逻辑验证；INT-01 为 Sandbox 注入独立运行配置。
 - CA-11 让 AttackChargeInput 在全局暂停时冻结蓄力处理，并让飞行 / 硬直 Timer 使用可暂停模式；恢复后沿用暂停前的进度。
-- DBG-01 增加 `AttackChargeInput.is_charge_held()`，供调试面板读取真实按住状态并显示“蓄力中”；阶段和蓄力比例仍由 `get_attack_phase()`、`get_charge_progress()` 提供。
 - CA-08 为每条 `BarrageRuntimeRecord` 装配独立 `BarrageTraitSet`；释放扫描调用 `is_selectable()`，到达复核调用 `get_hit_result()`，并通过 `shot_arrival_resolved` 传递目标 ID、目标节点和原始 `BarrageTraitResult`。
 - 当前生成记录的特性集合默认为空；如何把 `LevelProfile.special_trait_ids` 分配到具体弹幕实例尚无已定规则，本卡不猜分配方式。
 - CA-09 通过注入的 `HitResolution` 调用正常收益、整发落空 / 异常优先级、单次 `resolve_shot_results()` 和普通命中历史接口；HitResolution 持有唯一 PK。INT-01 Sandbox 从独立运行配置读取初始 PK（当前0.5），并把最终 PK 信号接给 CombatStage。
@@ -37,9 +36,13 @@
 
 `AttackChargeInput.set_combat_active(active: bool)` 供场景协调战斗停止与重开。传入 `false` 会禁用攻击输入、清零蓄力、取消飞行 / 硬直和 Timer，并恢复阶段为 READY；传入 `true` 后可开始下一发。暂停继续通过 SceneTree 控制，保留当前蓄力与剩余计时。
 
+矛盾阶段由 Sandbox 调用 `set_contradiction_mode(true)`；满蓄释放的 `shot_snapshot_created` 携带当帧冻结的矛盾原句事实，由 12 系统立即判定并消耗机会。飞行计时只保留演出，不再复核目标或发送到达结算；结果锁定后 `lock_new_attacks()` 禁止下一发而保留当前飞行。进入 Rest / FinalOracle 时停止攻击；重开普通战斗时调用 `set_contradiction_mode(false)`。
+
 `HitResolution.resolve_shot_results()` 同步发送最终 PK，回调可能在满值或失败时停止攻击。到达处理在回调后检查本发仍有效，保证已停止的战斗不会再次启动硬直 Timer。当前这一发成功结算的提交事实仍会发送，供协调方处理命中与倾向。
 
 `submission.hit_resolution_result.target_results` 每个目标除 `target_instance_id`、`target`、`trait_result` 外，携带 `original_sentence_id`、`original_sentence_text`、`source_id`、`is_repeat`、`tendency_id`、`tendency_delta`、`is_valid_hit`。内容事实在提交前从运行时记录复制，协调方无需回读可能已结束的弹幕节点。正常普通话语取得 HitResolution 计算的奖励并记录普通命中历史；复读调用 `calculate_repeat_hit_result()`，有效命中、PK 与倾向增量为零，且不会记录普通命中历史。整发在 PK 下限作废时，HitResolution 返回空目标结果。
+
+- DBG-01 增加 `AttackChargeInput.is_charge_held()`，供调试面板读取真实按住状态并显示“蓄力中”；阶段和蓄力比例仍由 `get_attack_phase()`、`get_charge_progress()` 提供。
 
 ## 任务顺序
 
