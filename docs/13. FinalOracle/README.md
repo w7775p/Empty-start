@@ -90,6 +90,7 @@ FO-12 等 18. Rest。
 - 候选列表可操作时调用 `FinalOracleSelectionTimer.start()`，从 10 秒开始计时。
 - 每帧调用 `advance(delta_seconds, is_globally_paused)`；当前暂停菜单通过 `get_tree().paused` 管理全局暂停，暂停期间将该值传入，倒计时保持不变。
 - `remaining_time_changed(seconds_remaining)` 可驱动倒计时显示；到期时发出 `expired`，由 FO-08 接入自动选择。
+- `FinalOracleScreen.present_session(session)` 在非空候选展示时启动计时器；页面使用 `PROCESS_MODE_ALWAYS` 读取全局暂停状态，并将剩余秒数更新到倒计时标签。
 
 ## FO-08 超时自动选择接口
 
