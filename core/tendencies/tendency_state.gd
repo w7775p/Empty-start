@@ -47,11 +47,21 @@ func rollback_attempt_tendency() -> void:
 	attempt_absurd_total = 0
 
 
+# 本关最终 PK 胜利才提交本场普通话语倾向；清空暂存使重复结果不能重复累计。
 func set_attempt_tendencies_for_debug(orthodox: int, heretical: int, absurd: int) -> void:
 	# 调试入口只改本场暂存值，周目累计值仍由正式胜负结算拥有。
 	attempt_orthodox_total = maxi(orthodox, 0)
 	attempt_heretical_total = maxi(heretical, 0)
 	attempt_absurd_total = maxi(absurd, 0)
+
+
+# 返回最高分主导倾向；并列时先看开局参照，再按固定倾向顺序裁决。
+
+func commit_attempt_tendency() -> void:
+	orthodox_total += attempt_orthodox_total
+	heretical_total += attempt_heretical_total
+	absurd_total += attempt_absurd_total
+	rollback_attempt_tendency()
 
 
 # 返回最高分主导倾向；并列时先看开局参照，再按固定倾向顺序裁决。
