@@ -18,7 +18,8 @@
 - `inherited_word_weights` 以稳定词库 ID 为键、出现权重为值；`inherited_trait_ids` 保存可继承特性 ID。
 - `defeated_level_ids` 保存当前周目已经提交真正击败结果的稳定关卡 ID；与主播集合共同阻止同场重复提交和同主播重复奖励。
 - `register_defeated_streamer(level_id, streamer_id, contradiction_broken, oracle_confirmed)` 只在两项事实同时成立时登记，首次返回 `true`，重复返回 `false`。击破事实来自 CB 的 `Outcome.BREAKTHROUGH`，确认事实来自同周目同关的 `confirmation_committed` 或 `get_confirmed_selection(level_id)`。
-- 词库 / 特性实际写入及跨系统接线由后续任务实现；奖励入口应消费当前关稳定 ID，保持 `SaveData.assimilation_data` 为成果拥有者。
+- `register_inherited_word_pool(level_id, pool_id, appearance_weight, can_inherit, is_contradiction_pool)` 只允许已登记真正击败关卡的可继承普通词库；稳定 pool_id 只保存首次权重，矛盾专属池和禁止继承的池被排除。
+- 当前 `LevelProfile` 尚无稳定 pool_id、继承权重及允许继承标记；此 API 接收配置方显式提供的值，配置与实际生成接线留 AS-06 / FO-11。特性实际写入由后续任务实现。
 
 ## 任务顺序
 

@@ -27,3 +27,16 @@ func register_defeated_streamer(
 	defeated_level_ids.append(level_id)
 	defeated_streamer_ids.append(streamer_id)
 	return true
+
+
+# 仅登记已真正击败关卡允许继承的普通词库；稳定 pool_id 保留首次权重。
+func register_inherited_word_pool(
+		level_id: StringName, pool_id: StringName, appearance_weight: float,
+		can_inherit: bool, is_contradiction_pool: bool
+	) -> bool:
+	if not defeated_level_ids.has(level_id) or pool_id.is_empty() or appearance_weight < 0.0:
+		return false
+	if not can_inherit or is_contradiction_pool or inherited_word_weights.has(pool_id):
+		return false
+	inherited_word_weights[pool_id] = appearance_weight
+	return true
