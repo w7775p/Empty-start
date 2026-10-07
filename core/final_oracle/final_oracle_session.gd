@@ -46,6 +46,13 @@ func get_display_candidates() -> Array[Dictionary]:
 	return result
 
 
+# 读取同一周目、同一关卡已有的首次确认，避免重开后重新开放选择。
+func get_confirmed_selection() -> Dictionary:
+	if not _open or _confirmation_state == null:
+		return {}
+	return _confirmation_state.get_confirmed_selection(_level_id)
+
+
 # 超时只从本次冻结的候选中按普通复读统计选择，不重新构造或排序展示列表。
 func select_timeout_candidate() -> Dictionary:
 	if not _open or _repeat_stats == null:
