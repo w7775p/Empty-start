@@ -3,6 +3,7 @@ extends SceneTree
 const CARD_DATA = preload("res://core/loser_card/loser_card_data.gd")
 const CARD_CATALOG = preload("res://core/loser_card/loser_card_catalog.gd")
 const CARD_PROFILE = preload("res://core/loser_card/loser_card_profile.gd")
+const SAVE_MANAGER = preload("res://core/autoload/save_manager.gd")
 
 
 func _initialize() -> void:
@@ -18,7 +19,10 @@ func _initialize() -> void:
 	if not _test_pk_only_preserves_existing_cards():
 		quit(1)
 		return
-	print("PASS LoserCard: 4 cases (LCARD-02..LCARD-04)")
+	if not _test_new_game_starts_with_empty_cards():
+		quit(1)
+		return
+	print("PASS LoserCard: 5 cases (LCARD-02..LCARD-06)")
 	quit(0)
 
 
@@ -95,6 +99,31 @@ func _test_pk_only_preserves_existing_cards() -> bool:
 		return false
 	if data.acquired_streamer_ids != [&"streamer_a"] or data.rewarded_level_ids != [&"previous_level"]:
 		push_error("LCARD-04 未击破分支改变了既有卡片")
+		return false
+	return true
+
+
+# 复用真实新周目入口创建独立 SaveData；获卡与提交 ID 清空，静态资料继续存在。
+func _test_new_game_starts_with_empty_cards() -> bool:
+	var manager = SAVE_MANAGER.new()
+	var catalog = _make_catalog()
+	var static_profile = catalog.find_profile(&"streamer_a")
+	manager.new_game()
+	var previous_run = manager.data
+	var previous_cards = previous_run.loser_card_data
+	previous_cards.grant_on_true_defeat(&"level_001", &"streamer_a", true, true, catalog)
+	manager.new_game()
+	var passed: bool = (
+		manager.data != previous_run
+		and manager.data.loser_card_data != previous_cards
+		and manager.data.loser_card_data.acquired_streamer_ids.is_empty()
+		and manager.data.loser_card_data.rewarded_level_ids.is_empty()
+		and previous_cards.acquired_streamer_ids == [&"streamer_a"]
+		and catalog.find_profile(&"streamer_a") == static_profile
+	)
+	manager.free()
+	if not passed:
+		push_error("LCARD-06 新周目混入旧卡片或改写了静态资料")
 		return false
 	return true
 

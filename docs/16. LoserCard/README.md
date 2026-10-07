@@ -16,6 +16,7 @@
 - `pk_win_unbroken` 分支的 `contradiction_broken=false` 不满足发卡入口；PK 胜利不会替代击破或神谕确认，已有卡片及提交记录保持原值。
 - `SaveData.loser_card_data` 持有当前周目的获卡 Resource，现有 SaveManager 保存 / 加载整个 SaveData 时自动包含已获主播及已提交关卡。缺少新字段的旧存档默认得到空 Resource，版本仍为 1。
 - 后续失败只回滚本次战斗暂存，获卡 Resource 作为已提交周目成果保留；实际奖励接线与休息展示留后续联调。调用方需核对真实结果的当前周目与 level_id。
+- 新周目复用 `SaveManager.new_game()` 创建新的 SaveData，默认建立独立空 LoserCardData，旧获卡和已提交关卡 ID 不带入；静态 Catalog 继续保留。
 
 ## 任务顺序
 
