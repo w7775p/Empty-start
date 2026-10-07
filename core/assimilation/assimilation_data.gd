@@ -40,3 +40,13 @@ func register_inherited_word_pool(
 		return false
 	inherited_word_weights[pool_id] = appearance_weight
 	return true
+
+
+# 只登记当前击败关卡允许继承的稳定特性 ID；不同来源共享同一去重集合。
+func register_inherited_trait(level_id: StringName, trait_id: StringName, can_inherit: bool) -> bool:
+	if not defeated_level_ids.has(level_id) or trait_id.is_empty() or not can_inherit:
+		return false
+	if inherited_trait_ids.has(trait_id):
+		return false
+	inherited_trait_ids.append(trait_id)
+	return true

@@ -16,7 +16,13 @@ func _initialize() -> void:
 	if not _test_inherited_pool_id_is_deduplicated():
 		quit(1)
 		return
-	print("PASS Assimilation: 4 cases (AS-02..AS-03)")
+	if not _test_first_inherited_trait_registers():
+		quit(1)
+		return
+	if not _test_inherited_trait_is_deduplicated_across_sources():
+		quit(1)
+		return
+	print("PASS Assimilation: 6 cases (AS-02..AS-04)")
 	quit(0)
 
 
@@ -88,5 +94,39 @@ func _test_inherited_pool_id_is_deduplicated() -> bool:
 		return false
 	if data.inherited_word_weights.size() != 1 or data.inherited_word_weights.get(&"pool_a") != 2.5:
 		push_error("AS-03 重复登记改变了首次词库权重")
+		return false
+	return true
+
+
+# 首次继承必须来自已真正击败的关卡及允许继承的特性清单。
+func _test_first_inherited_trait_registers() -> bool:
+	var data = ASSIMILATION_DATA.new()
+	if data.register_inherited_trait(&"level_001", &"split", true):
+		push_error("AS-04 未真正击败不能继承特性")
+		return false
+	data.register_defeated_streamer(&"level_001", &"streamer_a", true, true)
+	if data.register_inherited_trait(&"level_001", &"reflect", false):
+		push_error("AS-04 禁止继承的特性被登记")
+		return false
+	if not data.register_inherited_trait(&"level_001", &"split", true):
+		push_error("AS-04 首次合格特性没有登记")
+		return false
+	if data.inherited_trait_ids != [&"split"]:
+		push_error("AS-04 稳定特性 ID 保存错误")
+		return false
+	return true
+
+
+# 同一特性来自不同真正击败主播时仍只保留一次。
+func _test_inherited_trait_is_deduplicated_across_sources() -> bool:
+	var data = ASSIMILATION_DATA.new()
+	data.register_defeated_streamer(&"level_001", &"streamer_a", true, true)
+	data.register_defeated_streamer(&"level_002", &"streamer_b", true, true)
+	data.register_inherited_trait(&"level_001", &"split", true)
+	if data.register_inherited_trait(&"level_002", &"split", true):
+		push_error("AS-04 不同来源重复登记了同一特性")
+		return false
+	if data.inherited_trait_ids != [&"split"]:
+		push_error("AS-04 特性去重集合发生变化")
 		return false
 	return true
