@@ -19,6 +19,9 @@ const CURRENT_VERSION: int = 1
 # 吞并系统保存当前周目累计的主播、词库权重和特性成果。
 @export var assimilation_data: AssimilationData = AssimilationData.new()
 
+# 败者卡系统保存本周目已获得的稳定主播 ID 与发卡提交身份。
+@export var loser_card_data: LoserCardData = LoserCardData.new()
+
 # 圣典系统持有当前周目已保存及待写入的经文记录。
 @export var scripture_data: ScriptureData = ScriptureData.new()
 
