@@ -17,6 +17,8 @@ var _phase_timer: Timer
 var _active_snapshot: AttackTargetSnapshot
 var _attack_held: bool = false
 var _combat_active: bool = true
+var _contradiction_mode: bool = false
+var _new_attacks_locked: bool = false
 
 
 # 按住输入且没有暂停或飞行 / 硬直时才推进蓄力。
@@ -68,6 +70,19 @@ func configure_target_query(aim_reticle: AimReticle, barrage_area: BarrageArea) 
 	_aim_reticle = aim_reticle
 	_barrage_area = barrage_area
 
+
+# 矛盾阶段在释放时交付快照；飞行不再复核目标或提交普通收益。
+func set_contradiction_mode(active: bool) -> void:
+	_contradiction_mode = active
+	if not active:
+		_new_attacks_locked = false
+
+
+# 结果在释放时已固定；只封锁下一发，保留当前飞行计时作为演出。
+func lock_new_attacks() -> void:
+	_new_attacks_locked = true
+	_attack_held = false
+
 ## 战斗生命周期由场景协调；停止时本组件取消整发和计时，重开可直接回到 READY。
 func set_combat_active(active: bool) -> void:
 	_combat_active = active
@@ -84,7 +99,7 @@ func set_combat_active(active: bool) -> void:
 
 # 在鼠标松开输入事件上冻结当前候选，之后进入准心的弹幕不加入本发。
 func _input(event: InputEvent) -> void:
-	if not _combat_active or not event is InputEventMouseButton:
+	if not _combat_active or _new_attacks_locked or not event is InputEventMouseButton:
 		return
 	var mouse_event := event as InputEventMouseButton
 	if mouse_event.button_index != MOUSE_BUTTON_LEFT:
@@ -122,12 +137,13 @@ func _on_attack_phase_timer_timeout() -> void:
 		return
 	if _attack_phase == AttackPhase.PROJECTILE_FLIGHT:
 		var completed_snapshot: AttackTargetSnapshot = _active_snapshot
-		var valid_targets: Array[Node] = completed_snapshot.resolve_present_targets(_barrage_area)
-		var target_results: Array[Dictionary] = _build_target_trait_results(valid_targets)
-		shot_arrival_resolved.emit(completed_snapshot, target_results)
-		if not _combat_active or _active_snapshot != completed_snapshot:
-			return
-		_submit_arrival_to_hit_resolution(completed_snapshot, target_results)
+		if not _contradiction_mode:
+			var valid_targets: Array[Node] = completed_snapshot.resolve_present_targets(_barrage_area)
+			var target_results: Array[Dictionary] = _build_target_trait_results(valid_targets)
+			shot_arrival_resolved.emit(completed_snapshot, target_results)
+			if not _combat_active or _active_snapshot != completed_snapshot:
+				return
+			_submit_arrival_to_hit_resolution(completed_snapshot, target_results)
 		# PK 更新和整发提交同步发信号；满值 / 失败可能已经停止本发，不能重新启动硬直。
 		if not _combat_active or _active_snapshot != completed_snapshot:
 			return
@@ -289,11 +305,13 @@ func get_attack_phase() -> AttackPhase:
 	return _attack_phase
 
 
+# 蓄力配置有效且未处于飞行或硬直时才能开始下一发。
 func is_charge_held() -> bool:
 	# 调试状态读取真实鼠标蓄力输入，不从进度或界面文字反推按住状态。
 	return _attack_held
 
 
 # 蓄力配置有效且未处于飞行或硬直时才能开始下一发。
+
 func can_start_charging() -> bool:
-	return _combat_active and _charge_progress != null and _attack_phase == AttackPhase.READY and not get_tree().paused
+	return _combat_active and not _new_attacks_locked and _charge_progress != null and _attack_phase == AttackPhase.READY and not get_tree().paused
