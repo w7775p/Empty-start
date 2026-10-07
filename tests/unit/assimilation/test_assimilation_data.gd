@@ -22,7 +22,10 @@ func _initialize() -> void:
 	if not _test_inherited_trait_is_deduplicated_across_sources():
 		quit(1)
 		return
-	print("PASS Assimilation: 6 cases (AS-02..AS-04)")
+	if not _test_clear_only_never_creates_defeat_rewards():
+		quit(1)
+		return
+	print("PASS Assimilation: 7 cases (AS-02..AS-05)")
 	quit(0)
 
 
@@ -128,5 +131,41 @@ func _test_inherited_trait_is_deduplicated_across_sources() -> bool:
 		return false
 	if data.inherited_trait_ids != [&"split"]:
 		push_error("AS-04 特性去重集合发生变化")
+		return false
+	return true
+
+
+# 未击破 PK 胜利只新增通关，保留既有成果；正式确认击败则同时记录两类结果。
+func _test_clear_only_never_creates_defeat_rewards() -> bool:
+	var data = ASSIMILATION_DATA.new()
+	data.register_defeated_streamer(&"previous_level", &"previous_streamer", true, true)
+	data.register_inherited_word_pool(&"previous_level", &"previous_pool", 2.0, true, false)
+	data.register_inherited_trait(&"previous_level", &"split", true)
+	var changes: Dictionary = data.register_level_result(&"level_001", &"streamer_a", true, false, false)
+	if not changes["completed_added"] or changes["defeated_added"]:
+		push_error("AS-05 未击破结果应只新增通关")
+		return false
+	if not data.completed_streamer_ids.has(&"streamer_a") or data.defeated_streamer_ids.has(&"streamer_a"):
+		push_error("AS-05 通关与真正击败没有区分")
+		return false
+	if (
+		data.register_inherited_word_pool(&"level_001", &"new_pool", 3.0, true, false)
+		or data.register_inherited_trait(&"level_001", &"reflect", true)
+		or data.inherited_word_weights != {&"previous_pool": 2.0}
+		or data.inherited_trait_ids != [&"split"]
+	):
+		push_error("AS-05 仅通关产生了击败奖励或改变既有成果")
+		return false
+	var duplicate: Dictionary = data.register_level_result(&"level_001", &"streamer_a", true, false, false)
+	if duplicate["completed_added"] or duplicate["defeated_added"]:
+		push_error("AS-05 相同通关重复新增了结果")
+		return false
+	var defeated: Dictionary = data.register_level_result(&"level_002", &"streamer_b", true, true, true)
+	if (
+		not defeated["completed_added"] or not defeated["defeated_added"]
+		or not data.completed_streamer_ids.has(&"streamer_b")
+		or not data.defeated_streamer_ids.has(&"streamer_b")
+	):
+		push_error("AS-05 真正击败应同时登记通关与击败")
 		return false
 	return true
