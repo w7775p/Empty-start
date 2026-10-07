@@ -36,6 +36,8 @@ HR-09 由 `apply_player_pk_delta()` 在 clamp 后发出一次 `final_player_pk_u
 
 HR-14 由 `record_normal_word_hit(original_sentence_id, tendency)` 记录有效普通命中。历史按原句 ID 归并，保留倾向、命中次数、首次顺序和最近顺序；`get_normal_hit_history()` 返回深拷贝快照。复读与矛盾文本不写入此历史。
 
+HR-15 由 `HitResolution.commit_normal_hit_history(SaveData)` 在最终 PK 胜利结果提交本场普通命中一次。`SaveData.committed_normal_hit_history` 按原句累计次数，用 `first_committed_hit_order` 保存第一次正式提交的跨关顺序；再次命中旧句不改变该顺序。失败或手动重开调用 `discard_uncommitted_normal_hit_history()` 丢弃本场暂存，之前已提交的周目历史保持不变。读取方使用 `SaveData.get_committed_normal_hit_history()` 的深拷贝。
+
 HR-06 的 `select_shot_anomaly(has_bounce, has_obstruction, is_miss)` 每发只选择一个异常，顺序为 `BOUNCE > OBSTRUCTION > MISS`；没有异常时返回 `NONE`。调用方把同一反弹目标的重复报告合并为 `has_bounce` 后调用。
 
 HR-07 的 `is_shot_fully_missed(target_validity)` 仅在没有任何有效目标时返回 true。只要有一个有效目标，其余失效目标不会增加落空异常；全失效或空目标列表仍可交给 HR-06 判断落空。
@@ -83,4 +85,4 @@ HR-09 等 8. CombatStage。
 HR-10 / HR-11 已由 INT-01 组合真实整发结果、本场倾向和普通复读计划。
 HR-12 的普通命中 / 陷阱表现增量继续等待 9. LiveDataPresentation 的数值规则；生成评论已接通。
 HR-13 等 12. ContradictionBreak。
-HR-15 等本场 PK 胜利 / 失败结果。
+HR-15 的失败回滚已接 Sandbox 重开与失败事件；胜利提交入口已提供，实际调用由 CB-12 按未击破或神谕确认后的最终结果接入。
