@@ -11,7 +11,8 @@
 - `LoserCardProfile` Resource 以稳定 `streamer_id` 标识主播，提供 `streamer_name`、`card_art` 和 `card_text` 展示入口。
 - `LoserCardCatalog` 保存资料列表，并通过 `find_profile(streamer_id)` 查找卡片。
 - 当前目录中的 `data/loser_card/loser_card_catalog.tres` 是空资料库；正式主播 ID、卡面素材和文案尚未提供。
-- 本卡只建立静态卡片资料和查找能力；真正击败判定、周目获卡记录与休息展示由后续任务实现。
+- `LoserCardData` Resource 保存周目获卡主播 ID 和已发卡关卡 ID；`grant_on_true_defeat(level_id, streamer_id, contradiction_broken, oracle_confirmed, catalog)` 同时要求 CB 击破成功和同关 FinalOracle 正式确认，并通过 Catalog 查到对应资料。同场重复不发，资料缺失不合成卡片。
+- 当前只有纯数据奖励入口；周目存档纳入、同主播跨关去重和休息展示由后续任务卡完成。调用方需核对真实结果的当前周目与 level_id。
 
 ## 任务顺序
 
