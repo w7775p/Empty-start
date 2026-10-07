@@ -96,6 +96,7 @@ FO-12 等 18. Rest。
 
 - 计时器 `expired` 后，调用 `select_auto_pick_from_display(display_snapshot, repeat_stats)` 从冻结展示列表选择一条候选。
 - 正式排序为普通复读实际数量降序、最近命中顺序降序、稳定原句 ID 升序；空展示列表返回空 Dictionary。
+- 页面计时到期后调用 `FinalOracleSession.select_timeout_candidate()`，从 Session 持有的冻结展示快照和 Repeat 统计中选句，再发出 `selection_requested(candidate)` 交给 FO-09。
 
 ## FO-09 单次确认接口
 

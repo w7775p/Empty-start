@@ -7,6 +7,7 @@ var _level_id: String = ""
 var _display_candidates: Array[Dictionary] = []
 var _open: bool = false
 var _confirmation_state: FinalOracleConfirmationState
+var _repeat_stats: RepeatGenerationStats
 
 
 # 只接收已完成矛盾过渡的本场事实，使用现有候选池冻结一次展示列表。
@@ -24,6 +25,7 @@ func open_after_breakthrough(
 	_display_candidates = pool.snapshot_for_display(candidates)
 	_level_id = level_id
 	_confirmation_state = confirmation_state
+	_repeat_stats = repeat_stats
 	_open = true
 	opened.emit(_level_id, get_display_candidates())
 	return true
@@ -42,6 +44,14 @@ func get_display_candidates() -> Array[Dictionary]:
 	for candidate: Dictionary in _display_candidates:
 		result.append(candidate.duplicate(true))
 	return result
+
+
+# 超时只从本次冻结的候选中按普通复读统计选择，不重新构造或排序展示列表。
+func select_timeout_candidate() -> Dictionary:
+	if not _open or _repeat_stats == null:
+		return {}
+	var pool := FinalOracleCandidatePool.new()
+	return pool.select_auto_pick_from_display(_display_candidates, _repeat_stats)
 
 
 # 手动或超时选择只允许提交冻结展示列表中的一句，并复用 FO-09 的单次确认入口。

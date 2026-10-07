@@ -1,5 +1,7 @@
 extends CanvasLayer
 
+signal selection_requested(candidate: Dictionary)
+
 const MAX_DISPLAYED_CANDIDATES: int = 3
 
 @onready var _overlay: Control = %Overlay
@@ -38,6 +40,7 @@ func present_session(session: FinalOracleSession) -> void:
 	if not _display_snapshot.is_empty():
 		_selection_timer = FinalOracleSelectionTimer.new()
 		_selection_timer.remaining_time_changed.connect(_on_selection_time_changed)
+		_selection_timer.expired.connect(_on_selection_timer_expired)
 		_countdown.show()
 		_selection_timer.start()
 
@@ -95,6 +98,17 @@ func _clear_candidate_list() -> void:
 # 把纯逻辑计时器广播的剩余秒数显示给玩家。
 func _on_selection_time_changed(seconds_remaining: float) -> void:
 	_countdown.text = "%.1f 秒" % seconds_remaining
+
+
+# 超时只产生一个候选选择请求，后续确认由 FO-09 共用入口处理。
+func _on_selection_timer_expired() -> void:
+	if _session == null:
+		return
+	var candidate: Dictionary = _session.select_timeout_candidate()
+	if candidate.is_empty():
+		return
+	_countdown.text = "已自动选择"
+	selection_requested.emit(candidate)
 
 
 func _get_tendency_label(tendency_id: String) -> String:
