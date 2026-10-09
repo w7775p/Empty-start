@@ -33,6 +33,8 @@
 - CA-09 通过注入的 `HitResolution` 调用正常收益、整发落空 / 异常优先级、单次 `resolve_shot_results()` 和普通命中历史接口；HitResolution 持有唯一 PK。INT-01 Sandbox 从独立运行配置读取初始 PK（当前0.5），并把最终 PK 信号接给 CombatStage。
 - `shot_hit_resolution_submitted` 同发包含目标有效性、`ShotAnomaly`、逐目标 `BarrageTraitResult` / 奖励字典及 HitResolution 返回值。异常惩罚映射等待 HR-03；INT-01 由 Sandbox 据逐目标结果连接普通复读与本场倾向暂存。
 - FO-13 增加临时选择目标接口 `set_selection_targets(targets: Array[Control])` / `clear_selection_targets()`。目标模式仍复用同一准心、蓄力、发射和飞行流程；到达时按释放快照的准心中心裁决最近 Control，并发出 `selection_target_hit(target)`，绕过 HitResolution。
+- CA-10（2026-10-09）已用现有 TEST_ONLY Sandbox 实际核验接线：满蓄释放的 `shot_snapshot_created` 经 Sandbox 合并冻结原句 ID，依次调用 12 的 `register_launched_shot()` / `resolve_shot_hit_ids()`；真、假命中均创建 10 的矛盾复读计划。未蓄满释放没有快照，当前单发机会保持为 1；正式释放后机会为 0，结果锁定禁止第二发。当前运行代码已满足这些接口验收，本卡仅更新文档。
+- CA-10 展示交接给 Lane A：最后一发假矛盾的复读计划已入队，但 `_open_rest_after_unbroken()` 同步清空矛盾队列，实际生成数为 0；成功分支能实际生成复读。若要求假矛盾展示完再进入 Rest，由 Sandbox 所有者调整未击破过渡，具体位置见 CA-10 日志。
 
 ### INT-01 战斗生命周期与结算事实
 
@@ -82,5 +84,5 @@ UI、飞行表现、硬直、暂停、触摸和跨系统传递全部用最小运
 ## 依赖顺序
 
 CA-01～09、CA-11 已完成。
-CA-10 等 12. ContradictionBreak 和 10. Repeat 有真实接口。
-CA-12 放到 Android 输入适配阶段。
+CA-10 接线已在 e3558b4 基线实际验收；假矛盾复读展示保留 Lane A 交接项。
+CA-12 #83 仍开放，由 Android 输入适配任务处理；CA-10 未修改其 `attack_charge_input.gd`，Android 导出尚未验证。
