@@ -3,13 +3,13 @@
 > **派工入口**：[2026-10-09 当前任务卡整合与依赖顺序](../开发计划_2026-10-09_任务卡依赖整合.md)。本系统的已完成旧卡保留作功能实现依据；下方历史讨论章节的旧数值以现行派工入口覆盖。
 
 
-## 2026-10-09 现行实现核对与任务状态
+## 2026-10-10 现行实现核对与任务状态
 
-**现行生成规则：** 前景普通话语与挂特性的特殊话语共用 T0～T5 各档少量容量，当前确认 T1=10/T2=13/T3=16，T4=19/T5=22 为当前递增规划，T0 待填。批次计时、随机抽词、实例容量和命中移除已存在；CS-24 已提供当前 Tier 名额数据与 BarrageArea 读取接口，普通容量接线由 BG-16 完成。复读另占独立容量，在中央战斗区随机静止生成、按寿命渐隐并固定底层；遮挡特性话语在战斗区随机静止生成且固定最高层。普通前景采用可读的多运动方式。Paradox 阶段按 CB-13 读取一真五假六句。
+**现行生成规则：** 前景普通话语与挂特性的特殊话语共用 T0～T5 各档少量容量，T1=10、T2=13、T3=16、T4=19、T5=22。T0 的 0 表示未填，普通阶段沿用 `LevelProfile.normal_barrage_screen_cap`。BG-16 已接入 CS-24 的 Tier 名额；普通话语与带特性话语共用同一账本，实例离树释放容量。Paradox 继续采用关卡上限，复读保留独立容量。复读在中央战斗区随机静止生成、按寿命渐隐并固定底层；遮挡特性话语在战斗区随机静止生成且固定最高层。普通前景采用可读的多运动方式。Paradox 阶段按 CB-13 读取一真五假六句。
 
 | 卡片 | 按实际代码核对后的唯一功能 | 状态 |
 | --- | --- | --- |
-| [BG-16](tasks/BG-16_high-density-cap.md) | 按 Tier 读取前景容量 | 待实施（CS-24 数据与接口已就绪） |
+| [BG-16](tasks/BG-16_high-density-cap.md) | 按 Tier 读取前景容量 | 本地实现与 CLI 验收完成；提交/PR 受 Git 元数据权限阻塞 |
 | [BG-17](tasks/BG-17_pc-android-performance.md) | 分层性能与可读性验收 | 待组合实测 |
 | [BG-42](tasks/BG-42_static-random-placement.md) | 复读和遮挡共用的中央区域随机静止落点 | 待开发 |
 | [BG-24](tasks/BG-24_overlap-pass-through.md) | 实例出生与运动允许重叠 | 待开发 |
@@ -182,7 +182,11 @@ BarrageArea 暴露可编辑的 `base_lifetime_seconds` 临时基础值（默认 
 
 ### BG-07 普通弹幕共享同屏上限
 
-BarrageArea 从 `LevelProfile.normal_barrage_screen_cap` 读取普通上限。普通话语创建时自动登记，节点离开场景树时自动释放；陷阱等普通容量占用者通过 `try_register_normal_capacity_occupant()` 和 `release_normal_capacity_occupant()` 复用同一账本。达到上限时普通批次 Timer 暂停，释放容量后恢复；Timer 已运行时保留当前剩余时间，普通命中或无位置撤销不会重设正在运行的周期。BG-07 不实现弹幕特性规则；到期和离屏移除仍由 BG-08 负责。
+BarrageArea 的普通容量在 Tier 名额大于 0 时采用当前 Tier 值；T0 的 0 沿用 `LevelProfile.normal_barrage_screen_cap`。普通话语与带特性话语由同一入口登记，陷阱等普通占用者通过 `try_register_normal_capacity_occupant()` 和 `release_normal_capacity_occupant()` 复用同一账本。实例离树自动释放；容量满时普通批次 Timer 暂停，释放后恢复。Paradox 继续使用关卡上限，复读继续使用独立账本。BG-07 管理共享账本与生命周期；Tier 名额接线由 BG-16 完成。
+
+### BG-16 按当前 Tier 控制前景容量
+
+`CombatStageTierConfig.foreground_slot_count` 通过 `CombatStage.bind_barrage_area()` 发布给 `BarrageArea.set_foreground_slot_count()`。普通阶段 T1～T5 分别使用 10、13、16、19、22 个前景名额；T0 的 0 继续回退到 `LevelProfile.normal_barrage_screen_cap`。普通话语、带兼容特性的普通话语及外部普通容量占用者共享这些名额，节点离树后释放。矛盾阶段保持原关卡容量，复读仍由独立容量账本控制。
 
 ### BG-08 到期与离开区域自然移除
 

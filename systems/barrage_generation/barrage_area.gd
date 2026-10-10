@@ -117,12 +117,21 @@ func set_lifetime_multiplier(lifetime_multiplier: float) -> void:
 func set_neutral_weight_multiplier(multiplier: float) -> void:
 	_neutral_weight_multiplier = maxf(multiplier, 0.0)
 
-## 接收 CombatStage 发布的当前 Tier 前景名额；此接口只保存配置，不改变现有容量规则。
+## 接收 CombatStage 发布的当前 Tier 名额；配额变化后重算因容量暂停的批次 Timer。
 func set_foreground_slot_count(slot_count: int) -> void:
 	_foreground_slot_count = slot_count
+	_restart_spawn_timer()
 
 ## 为后续前景容量逻辑提供当前 Tier 名额；0 表示 T0 数值尚未确定。
 func get_foreground_slot_count() -> int:
+	return _foreground_slot_count
+
+## T0 尚未填表时沿用关卡正式上限；Paradox 保持原阶段容量规则。
+func _get_foreground_capacity_limit(level_profile: LevelProfile) -> int:
+	if level_profile == null:
+		return 0
+	if _contradiction_generation_enabled or _foreground_slot_count == 0:
+		return level_profile.normal_barrage_screen_cap
 	return _foreground_slot_count
 
 ## 申请普通弹幕共享容量；未设置当前关卡或容量满时返回 false。
@@ -130,7 +139,7 @@ func try_register_normal_capacity_occupant(occupant: Object) -> bool:
 	# 普通话语由内部入口登记；终局拒绝外部陷阱共享占位请求。
 	if _terminal_presentation_only or _current_level_profile == null:
 		return false
-	return _try_register_normal_capacity_occupant(occupant, _current_level_profile.normal_barrage_screen_cap)
+	return _try_register_normal_capacity_occupant(occupant, _get_foreground_capacity_limit(_current_level_profile))
 
 ## 释放占位对象；普通弹幕节点离树时会自动调用此入口。
 func release_normal_capacity_occupant(occupant: Object) -> bool:
@@ -289,7 +298,8 @@ func spawn_normal_barrage(
 		push_error("BarrageArea: 未配置弹幕表现 Scene。")
 		return null
 
-	if not _normal_capacity_ledger.has_capacity(level_profile.normal_barrage_screen_cap):
+	var capacity_limit: int = _get_foreground_capacity_limit(level_profile)
+	if not _normal_capacity_ledger.has_capacity(capacity_limit):
 		_pause_normal_generation_timer()
 		return null
 
@@ -314,7 +324,7 @@ func spawn_normal_barrage(
 	view.setup(barrage_record, effective_move_speed, self)
 	if _terminal_presentation_only:
 		view.apply_terminal_trait_presentation(_terminal_trait_ids, _terminal_trait_colors)
-	if not _try_register_normal_capacity_occupant(view, level_profile.normal_barrage_screen_cap):
+	if not _try_register_normal_capacity_occupant(view, capacity_limit):
 		view.free()
 		return null
 	add_child(view)
@@ -489,9 +499,9 @@ func _spawn_contradiction_batch() -> void:
 			return
 		_next_contradiction_index = (_next_contradiction_index + 1) % _contradiction_lines.size()
 
-## 按传入关卡的上限判断普通话语与陷阱的共享容量。
+## 按当前 Tier 名额或 T0 关卡 fallback 判断普通容量；Paradox 继续沿用关卡上限。
 func _has_normal_capacity_for(level_profile: LevelProfile) -> bool:
-	return level_profile != null and _normal_capacity_ledger.has_capacity(level_profile.normal_barrage_screen_cap)
+	return level_profile != null and _normal_capacity_ledger.has_capacity(_get_foreground_capacity_limit(level_profile))
 
 ## 根据当前频率倍率更新时间间隔；零频率时保留已开启状态并暂停 Timer。
 func _restart_spawn_timer() -> void:

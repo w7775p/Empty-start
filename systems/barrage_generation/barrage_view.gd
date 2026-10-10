@@ -28,6 +28,7 @@ var _visual_bbcode: String = ""
 func _ready() -> void:
 	if runtime_record != null:
 		_fit_visual_to_sentence(runtime_record.text)
+		_apply_special_text_layout()
 
 
 # 终局原有特性表现入口，仍按冻结的颜色优先级覆盖文字而不改变弹幕事实。
@@ -76,11 +77,16 @@ func setup(barrage_record: BarrageRuntimeRecord, move_speed_pixels_per_second: f
 	_visual_bbcode = ""
 	_set_visual_material()
 	_fit_visual_to_sentence(barrage_record.text)
+	# PA-05 只读取现有实例 TraitSet，选择外观不改变战斗结算或命中对象。
+	var special: BarrageSpecialSurface = get_glass_surface() as BarrageSpecialSurface
+	if special != null and barrage_record.trait_set != null and not barrage_record.is_repeat:
+		special.configure_traits(barrage_record.trait_set.get_trait_ids(), barrage_record.text, get_theme_font("font"))
+	_apply_special_text_layout()
 
 
 # 独立视觉富文本接口。由 BG-28 的正式局部样式数据接入时调用，复读保留纯文本。
 func set_visual_bbcode(bbcode: String) -> bool:
-	if runtime_record == null or runtime_record.is_repeat:
+	if runtime_record == null or runtime_record.is_repeat or _uses_fake_repeat_appearance() or get_special_material() == &"retaliation_copy":
 		return false
 	var rich: RichTextLabel = get_node_or_null("RichBody") as RichTextLabel
 	if rich == null:
@@ -99,6 +105,50 @@ func get_visual_plain_text() -> String:
 	return runtime_record.text if runtime_record != null else text
 
 
+# 单个实例的材质选择，可供 PA-06 命中演出读取，无需重算 TraitSet。
+func get_special_material() -> StringName:
+	var special: BarrageSpecialSurface = get_glass_surface() as BarrageSpecialSurface
+	return special.get_main_material() if special != null else &"glass"
+
+
+# 透明字形依靠 Godot Label 的描边字形层，复制板内部小字由同一个 GlassSurface 绘制。
+# 真假复读共用一套排版与颜色；假复读的 TraitSet/前景判定仍独立。
+func _uses_fake_repeat_appearance() -> bool:
+	if runtime_record == null or runtime_record.trait_set == null or runtime_record.is_repeat:
+		return false
+	var traits: BarrageTraitSet = runtime_record.trait_set
+	return traits.has_trait(BarrageTraitSet.FAKE_CARD) \
+		and not traits.has_trait(BarrageTraitSet.REFLECT) \
+		and not traits.has_trait(BarrageTraitSet.OCCLUSION)
+
+
+func _apply_special_text_layout() -> void:
+	if runtime_record == null or runtime_record.trait_set == null or runtime_record.is_repeat:
+		return
+	if runtime_record.trait_set.has_trait(BarrageTraitSet.UNSELECTABLE):
+		# 文字内芯保持接近透明，扩大笔画轮廓的可辨认面积并增加暗色投影。
+		add_theme_font_size_override("font_size", visual_font_size + 4)
+		add_theme_color_override("font_color", Color(0.96, 0.985, 1.0, 0.08))
+		add_theme_color_override("font_outline_color", Color("#F5F9FF"))
+		add_theme_constant_override("outline_size", 3)
+		add_theme_color_override("font_shadow_color", Color(0.0, 0.04, 0.09, 0.96))
+		add_theme_constant_override("shadow_offset_x", 1)
+		add_theme_constant_override("shadow_offset_y", 1)
+		_fit_visual_to_sentence(runtime_record.text)
+	if get_special_material() == &"reflect":
+		# 软胶有实体厚度，特性弹幕的显示/命中区域同步增高，文字仍保持居中稳定。
+		custom_minimum_size = Vector2(maxf(size.x, 188.0), maxf(size.y, 78.0))
+		reset_size()
+	if get_special_material() == &"retaliation_copy":
+		# 一个整体 Panel 对应同一条 BarrageView，扩大的 rect 继续由现有攻击命中几何使用。
+		custom_minimum_size = Vector2(maxf(size.x, 460.0), 144.0)
+		reset_size()
+		text = ""
+		var rich: RichTextLabel = get_node_or_null("RichBody") as RichTextLabel
+		if rich != null:
+			rich.visible = false
+
+
 # 演示和集成验收读取材质参数，不承担玩法计算。
 func get_glass_surface() -> BarrageGlassSurface:
 	return get_node_or_null("GlassSurface") as BarrageGlassSurface
@@ -106,10 +156,10 @@ func get_glass_surface() -> BarrageGlassSurface:
 
 # 用对应文字类型配置默认填充、阴影、描边与 RichTextLabel 可选覆盖层。
 func _set_visual_material() -> void:
-	var repeat: bool = runtime_record != null and runtime_record.is_repeat
+	var repeat: bool = runtime_record != null and (runtime_record.is_repeat or _uses_fake_repeat_appearance())
 	var surface: BarrageGlassSurface = get_glass_surface()
 	if surface != null and runtime_record != null:
-		surface.configure(runtime_record.tendency_id, roundi(runtime_record.strength), repeat)
+		surface.configure(runtime_record.tendency_id, 1 if repeat else roundi(runtime_record.strength), repeat)
 	_set_visual_font_color(repeat_font_color if repeat else foreground_font_color)
 	add_theme_color_override("font_outline_color", Color.TRANSPARENT if repeat else outline_color)
 	var strong: bool = not repeat and runtime_record != null and roundi(runtime_record.strength) >= 3
@@ -153,8 +203,10 @@ func _set_visual_font_color(color: Color) -> void:
 func _fit_visual_to_sentence(sentence: String) -> void:
 	var font: Font = get_theme_font("font")
 	var font_size: int = visual_font_size
-	if runtime_record != null and runtime_record.is_repeat:
+	if runtime_record != null and (runtime_record.is_repeat or _uses_fake_repeat_appearance()):
 		font_size = maxi(14, visual_font_size - 3)
+	elif runtime_record != null and runtime_record.trait_set != null and runtime_record.trait_set.has_trait(BarrageTraitSet.UNSELECTABLE):
+		font_size = visual_font_size + 4
 	var font_width: float = font.get_string_size(sentence, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 	var content_width: float = clampf(font_width + 4.0, 100.0, max_glass_width - float(horizontal_padding) * 2.0)
 	var multi_size: Vector2 = font.get_multiline_string_size(sentence, HORIZONTAL_ALIGNMENT_LEFT, content_width, font_size)

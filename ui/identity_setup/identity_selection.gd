@@ -11,6 +11,7 @@ var _revealed_ids: Dictionary[StringName, bool] = {}
 @onready var _grid: GridContainer = %IdentityCards
 @onready var _scroll: ScrollContainer = %CardScroll
 @onready var _status: Label = %SelectionStatus
+@onready var _reveal_all: Button = %RevealAllButton
 @onready var _next: Button = %NextButton
 @onready var _margins: MarginContainer = $Margins
 
@@ -51,6 +52,7 @@ func _ready() -> void:
 		button.pressed.connect(_on_card_pressed.bind(option, button))
 		button.focus_entered.connect(_scroll_to_card.bind(button))
 		_buttons.append(button)
+	_reveal_all.pressed.connect(_reveal_all_cards)
 	_next.pressed.connect(_request_next)
 	_wire_focus()
 	_refresh_selection()
@@ -107,6 +109,16 @@ func _present_card_face(button: Button, revealed: bool) -> void:
 	button.get_node("CardFace/Front").visible = revealed
 	button.get_node("CardFace/Back").visible = not revealed
 
+# 一次把全部翻开请求交给现有牌面表现入口，不改变当前选择。
+func _reveal_all_cards() -> void:
+	if _locked:
+		return
+	for index in range(IdentityOptions.CARDS.size()):
+		var option := IdentityOptions.CARDS[index]
+		_revealed_ids[option.identity_id] = true
+		_present_card_face(_buttons[index], true)
+	_refresh_selection()
+
 # 玩家点选可反复切换，已确认周目由调用方传入锁定状态。
 func _select_card(option: IdentityOption) -> void:
 	if _locked:
@@ -144,9 +156,12 @@ func focus_selection() -> void:
 
 # 同一套样式显示选择，未知已存身份锁住页面以保留存档事实。
 func _refresh_selection() -> void:
+	var all_revealed := _revealed_ids.size() == IdentityOptions.CARDS.size()
 	for index in range(_buttons.size()):
 		_buttons[index].set_pressed_no_signal(_selected_option == IdentityOptions.CARDS[index])
 		_buttons[index].disabled = _locked
+	_reveal_all.disabled = _locked or all_revealed
+	_reveal_all.text = "已全部翻开" if all_revealed else "一键翻开"
 	_next.disabled = _selected_option == null
 	if _selected_option != null:
 		_status.text = "已选择：%s" % _selected_option.display_name if IdentityOptions.CARDS.has(_selected_option) else "沿用本周目已确认身份"
