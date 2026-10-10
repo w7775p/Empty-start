@@ -14,7 +14,9 @@
 - `docs/Shared/PresentationAssets/tasks/PA-11_stage-transition-visuals.md`
 
 ## 已经实现的功能
-- 本卡原文所列的战斗 HUD、主播立绘、正式资产与阶段信号作为复用基础；以开工时真实资源/场景和最新日志核验。
+- 现有 `OpponentPKBar` 和 `Sandbox._on_attempt_failed()` 提供正式 PK0 战败事实；`scenes/sandbox/sandbox_battle_hud.gd` 有 `show_failure()`、`reset_for_attempt()`、`%FailureOverlay` 和 `%RestartButton`。
+- `SandboxBattleHud.refresh_pk()` 从唯一 PK 值刷新 `%PlayerShare`；`PlayerPortraitArt` 和 `OpponentPortraitArt` 是左右直播画面槽。
+- `pk_indicator_01.png`、`pk_indicator_02.png` 为 PA-13 的正式仓鼠球素材；PA-13 和 PA-11 的待实施动效为本卡实际需要接入的上游。
 
 ## 本次任务
 

@@ -22,7 +22,9 @@
 - 已确认原型中的三条静态候选与按钮点击是演示占位。正式阶段展示现有六句矛盾弹幕及环形准星；视觉图形、节奏和幕布按本卡分镜执行。
 
 ## 已经实现的功能
-- 本卡原文所列的战斗 HUD、主播立绘、正式资产与阶段信号作为复用基础；以开工时真实资源/场景和最新日志核验。
+- `scenes/sandbox/sandbox.tscn`、`sandbox.gd` 已组合 `%BarrageArea`、`%BattleHud`、`%AimReticle`、战斗阶段与矛盾击破流程；`SandboxBattleHud` 提供中央战斗区及左右主播容器。
+- 现有 `CombatStage`、`ContradictionBreakSystem` 和 `systems/contradiction_break/contradiction_window_config.tres` 提供 Paradox 状态与判定基础。
+- 漫画斜切、标题弹出、揭幕和演出完成通知由本卡实现；CB-13/14 的六句布局与缓动按实际合并情况衔接。
 
 ## 本次任务
 

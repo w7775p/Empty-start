@@ -27,7 +27,9 @@
 `{opponent}` 按当前关的外星人 `alien`、Kiwi `kiwi`、狐狸 `fox` 等稳定角色类型选择。美术文件名里的 `tier_01` 是变化版本 1，并非战斗 T1。
 
 ## 已经实现的功能
-- 本卡原文所列的战斗 HUD、主播立绘、正式资产与阶段信号作为复用基础；以开工时真实资源/场景和最新日志核验。
+- `scenes/sandbox/sandbox_battle_hud.gd` 已有 `OpponentPortraitArt`、`configure_streamer_assets()`、`set_opponent_portrait_connected()` 与 `refresh_pk(player_pk,current_tier)`；`CombatStage.tier_state_changed` 是正式阶段事件。
+- PA-14（PR #109 已合并）的 `systems/presentation/streamer_portrait_motion.gd` 与 `opponent_portrait_motion` 提供可复用整图动画容器。
+- 正式对手 PNG 位于 `assets/characters/opponents/{alien,kiwi,fox}/`；T2 汗滴与跨阶段翻面属于本卡待实施能力，并与 PA-11、#115 的阶段数据接线衔接。
 
 ## 本次任务
 ### 1. T2 漫画流汗

@@ -9,7 +9,9 @@
 - 关联基础：ID-10 的逐卡已翻开状态和现有身份单选入口。
 
 ## 已经实现的功能
-- 现有 Identity 负责身份选择、名字、保存与开局流程；具体完成状态按仓库现行实现及系统日志核对。
+- ID-08 提供 12 张正式 `IdentityOption` 和 `IdentityOptions.CARDS`；`ui/identity_setup/identity_selection.tscn` 提供卡片网格。
+- ID-10（PR #108 已合并）在 `identity_selection.gd` 新增 `_revealed_ids` 与 `_present_card_face()`；首次点击只翻开本卡，二次点击才选中，`restore_selection()` 保留选中与翻开状态。
+- 现有 `selection_changed`、`next_requested` 为单选和继续入口；本卡负责补充一次翻开剩余卡片的交互入口。
 
 ## 本次任务
 一键翻开全部身份卡。

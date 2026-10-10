@@ -9,7 +9,9 @@
 - 关联基础：已完成的 ID-02、ID-07、ID-08、ID-09、RS-12；ID-10、ID-11、ID-12。
 
 ## 已经实现的功能
-- 现有 Identity 负责身份选择、名字、保存与开局流程；具体完成状态按仓库现行实现及系统日志核对。
+- ID-09 已有 `ui/identity_setup/identity_setup.gd/.tscn` 三步输入、`_show_step()`、`_advance_streamer()`、`_advance_identity()`、`_confirm_opening()` 和 `opening_saved(run_data)`。
+- `SaveManager.confirm_opening_identity()` 负责一次性确认，ID-08 提供正式身份资源；ID-10（PR #108）已实现 `identity_selection.gd` 的逐张翻开。
+- ID-11 一键翻开、ID-12 分镜计时和 RS-12 开局房间是本卡需要核对其实际进度的关联入口；本卡负责重新排列流程和协调演出完成事件。
 
 ## 本次任务
 将既有身份步骤接入开场漫画流程。

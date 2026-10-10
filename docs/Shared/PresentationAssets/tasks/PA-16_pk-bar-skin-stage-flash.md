@@ -19,7 +19,9 @@
 - **显示优先级已确定**：玩家 PK **低于 40%** 时优先显示负向变体，覆盖对应普通 Tier 底板；玩家 PK **大于或等于 40%** 时显示当前正式阶段图。普通 Tier 的真实状态继续由 CombatStage 提供，负向图只改变 PK 条外观。
 
 ## 已经实现的功能
-- 本卡原文所列的战斗 HUD、主播立绘、正式资产与阶段信号作为复用基础；以开工时真实资源/场景和最新日志核验。
+- `scenes/sandbox/sandbox_battle_hud.gd` 的 `refresh_pk(player_pk: float, current_tier: int)` 已接收唯一 PK 与 Tier，`%PlayerShare`、`%PlayerPK`、`%Tier` 和对手 PK 标签为现有数据显示入口。
+- `assets/ui/combat/pk_bar/` 内已提供 `pk_bar_pos_01.png`～`pk_bar_pos_06.png` 和 `pk_bar_neg_01.png`～`pk_bar_neg_04.png`；0 号底板补交状态以资产清单为准。
+- `CombatStage.tier_state_changed` 是阶段通知；PA-13 仓鼠球属协同的待实施视觉层，本卡新增底板选择、闪烁和切图。
 
 ## 本次任务
 - **每次阶段底图发生变化**，先在 PK 条上播放短促明暗闪烁、颜色偏移 / 色相变化，再将原图替换为目标阶段底图，最后迅速恢复正常明度与配色。

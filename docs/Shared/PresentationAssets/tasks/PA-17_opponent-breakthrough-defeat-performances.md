@@ -15,7 +15,9 @@
 - `docs/Shared/PresentationAssets/tasks/PA-15_opponent-tier-portrait-flip-and-sweat.md`
 
 ## 已经实现的功能
-- 本卡原文所列的战斗 HUD、主播立绘、正式资产与阶段信号作为复用基础；以开工时真实资源/场景和最新日志核验。
+- `Sandbox._on_contradiction_outcome_locked()` 接收现有 `ContradictionBreakSystem.outcome_locked`，进入已实现的成功神谕分支或未击破休息分支。
+- `scenes/sandbox/sandbox_battle_hud.gd` 已有 `OpponentPortraitArt`、`set_opponent_portrait_connected()`；PA-14 的 `opponent_portrait_motion` 为动效容器。
+- 外星人融化图、狐狸花瓣雨图、Kiwi 击败图及位置在本卡已有资源清单中；PA-12、PA-15 的过场和阶段贴图要求须按其实际开发状态接入。
 
 ## 本次任务
 

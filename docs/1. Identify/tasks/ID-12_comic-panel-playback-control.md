@@ -9,7 +9,9 @@
 - 关联基础：当前开场流程持有者 ID-09；美术分镜素材的展示接口由其自身实现。
 
 ## 已经实现的功能
-- 现有 Identity 负责身份选择、名字、保存与开局流程；具体完成状态按仓库现行实现及系统日志核对。
+- ID-09 已建立 `ui/identity_setup/identity_setup.gd/.tscn` 的主播名、十二身份卡和粉丝团名三步流程；`_show_step()` 调整当前步骤，`opening_saved(run_data)` 通知保存成功。
+- `ui/identity_setup/identity_selection.tscn` 已有身份展示控件；`SaveManager.confirm_opening_identity()` 提供三项身份字段的最终确认。
+- 仓鼠动机漫画的逐格计时、点击推进、暂停恢复和最终结束事件是本卡计划新增的能力，需对接现有开局流程与美术分镜。
 
 ## 本次任务
 漫画分镜的自动计时与点击推进。

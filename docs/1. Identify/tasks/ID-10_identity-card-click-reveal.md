@@ -1,6 +1,6 @@
 # ID-10 玩家点击单张身份卡翻开
 
-**状态：待开发 · 开场程序流程**
+**状态：已完成 · PR #108 已合并 · 2026-10-10 · [完成日志](../身份系统_ID-10_2026-10-10_log.md)**
 
 ## 开始前先阅读以下文档
 - docs/Original/任务卡模板.md、known_traps.md
@@ -9,7 +9,9 @@
 - 关联基础：现有 ID-08 的十二张身份卡、IdentityOption、selection_changed 和 next_requested。
 
 ## 已经实现的功能
-- 现有 Identity 负责身份选择、名字、保存与开局流程；具体完成状态按仓库现行实现及系统日志核对。
+- ID-08 已有 12 张正式 `IdentityOption` 及稳定 `identity_id`；`IdentityOptions.CARDS` 保存身份顺序、标题和描述。
+- `ui/identity_setup/identity_selection.gd/.tscn` 提供 `%IdentityCards` 网格、`_buttons`、`_select_card()`、`selection_changed` 与 `next_requested`，已能单选身份并继续现有流程。
+- `ui/identity_setup/identity_setup.gd` 组合身份与姓名步骤；`SaveManager.confirm_opening_identity()` 负责最终保存。本卡新增的是逐张翻面的临时交互。
 
 ## 本次任务
 玩家点击单张身份卡翻开。
@@ -25,6 +27,10 @@
 
 ## 本卡专项交付说明
 提交与本功能有关的程序逻辑、Godot 运行验收及对应日期日志，更新身份系统 README。
+
+## 本卡完成结果（2026-10-10）
+- [PR #108](https://github.com/w7775p/Empty-start/pull/108) 已合并；`identity_selection.gd` 已实现 `_revealed_ids` 和 `_present_card_face()` 的逐卡翻面及选择恢复。
+- [完成日志](../身份系统_ID-10_2026-10-10_log.md) 记录 Godot 真实运行；正式卡背与翻面动画仍使用可替换占位，ID-11/12/13 属后续任务。
 
 ## Godot 开发环境
 - Godot 版本：4.7.2（开工核对 `project.godot`）

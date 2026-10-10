@@ -1,5 +1,7 @@
 # INT-04 使用 TEST_ONLY 配置完成整局主流程联调
 
+**状态：已实施指定基线 Windows TEST_ONLY 联调 · 2026-10-09 · [完成日志](../INT-04_2026-10-09_log.md)；旧日志标明当时最新 main 兼容复验存在未解决项**
+
 ## 开始前先阅读以下文档
 - AGENTS.md、known_traps.md、project.godot
 - docs/Original/任务卡模板.md

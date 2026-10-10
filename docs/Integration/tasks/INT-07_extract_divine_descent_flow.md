@@ -1,6 +1,6 @@
 # INT-07 提取神降临与结局转场流程
 
-**状态：待开发 · Sandbox 架构重构第 1 张卡**  
+**状态：已完成 · PR #110 已合并 · 2026-10-10 · [完成日志](../Sandbox重构_INT-07_2026-10-10_log.md)**
 **Owner：Lane A / Sandbox 集成**  
 **前置：INT-04 Windows TEST_ONLY 整局联调通过**  
 **后续：INT-08 → INT-09 → INT-10**
@@ -36,6 +36,10 @@
 3. 神降临输入强化维持现有表现，终局期间的 PK、Tier、倾向、奖励与冻结快照保持 INT-04 已验收的结果。
 4. 顶层场景切换后，神降临计时、生成和输入组件完成生命周期清理。
 5. `INT-04` 两条路线、场景真实启动、存盘读回和现有神降临定向测试通过；记录 Godot 真实进程退出码、关键结果及相关 Output。
+
+## 本卡完成结果（2026-10-10）
+- [PR #110](https://github.com/w7775p/Empty-start/pull/110) 已合并，`core/divine_descent/divine_descent_flow.gd` 承载神降临流程、扩散与 Ending 接收；`Sandbox` 保留路由与持久化协调。
+- [完成日志](../Sandbox重构_INT-07_2026-10-10_log.md) 列出了正式接口与 INT-08 接线入口。
 
 ## Godot 开发环境
 - Godot 版本：4.7.2

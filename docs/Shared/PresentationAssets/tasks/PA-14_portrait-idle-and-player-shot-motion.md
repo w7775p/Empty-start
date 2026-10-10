@@ -1,6 +1,6 @@
 # PA-14 主播立绘基础动效与主角射击反馈
 
-> 状态：需求已确认，待实施
+> 状态：已完成 · PR #109 已合并 · 2026-10-10 · [完成日志](../表现资产_PA-14_2026-10-10_log.md)
 > 类型：程序美术 / PresentationAssets
 > 依赖：PA-03 已接入的双主播立绘、CombatAttack 正式发射通知
 
@@ -16,7 +16,9 @@
 - 主角正式发射言弹时，主播立绘配合做一个短促射击动作；玩家实际言弹仍由 PA-07 从准星中心飞出。
 
 ## 已经实现的功能
-- 本卡原文所列的战斗 HUD、主播立绘、正式资产与阶段信号作为复用基础；以开工时真实资源/场景和最新日志核验。
+- PA-03 已接入 `scenes/sandbox/sandbox_battle_hud.gd/.tscn` 的 `PlayerPortraitArt`、`OpponentPortraitArt` 两个正式 PNG 槽；`configure_streamer_assets()` 和 `set_opponent_portrait_connected()` 是贴图与连线可见性入口。
+- `AttackChargeInput.shot_snapshot_created` 是满蓄正式发射时的事件来源；玩家图为 `assets/characters/player/hamster_idle.png`，对手素材位于 `assets/characters/opponents/{alien,kiwi,fox}/`。
+- 本卡交付的动效层及真实 HUD 接线另列在完成结果中，区别于开工时的基础。
 
 ## 本次任务
 ### 1. 通用待机
@@ -40,6 +42,10 @@
 
 ## 本卡专项交付说明
 新增 `docs/Shared/PresentationAssets/表现资产_PA-14_YYYY-MM-DD_log.md`，记录表现入口、参数和真实画面验证。
+
+## 本卡完成结果（2026-10-10）
+- [PR #109](https://github.com/w7775p/Empty-start/pull/109) 已合并；新增 `systems/presentation/streamer_portrait_motion.gd` 和 HUD 的 `bind_portrait_attack()`、`play_player_shot()`、`configure_portrait_character()`。
+- [完成日志](../表现资产_PA-14_2026-10-10_log.md) 包含独立 HUD 动效验证；整局战斗接线仍待集成验证，不把局部测试扩展为整局已过。
 
 ## Godot 开发环境
 - Godot 版本：4.7.2（开工核对 `project.godot`）

@@ -20,7 +20,9 @@
 - 两条路径都进入**同一个已有的战后休息结算界面**，用真实 `RestSession` 结果、成果和既有继续逻辑显示。本卡向现有展示方提供视觉播放完成信号。
 
 ## 已经实现的功能
-- 本卡原文所列的战斗 HUD、主播立绘、正式资产与阶段信号作为复用基础；以开工时真实资源/场景和最新日志核验。
+- `Sandbox._open_rest_after_oracle()` 与 `_open_rest_after_unbroken()` 是神谕确认 / 未击破进入 Rest 的现有业务入口，交给同一个 `RestSession` 结果展示流程。
+- `ui/rest/rest_result_view.gd/.tscn` 提供 `RestResultView.show_result()`、`finish_result_performance()`、`continue_requested`；`ui/rest/rest_room_environment.gd/.tscn` 提供 `apply_tendency()` 和正式房间背景 `assets/environment/rooms/player_room_01.png`。
+- `scenes/sandbox/sandbox_battle_hud.gd/.tscn` 提供左右视频区域；PA-11/12/17 的 CRT、Paradox、失败演出按任务实际进度衔接，本卡新增整屏翻页和回房间的表现序列。
 
 ## 本次任务
 ### 1. 直播画面 CRT 关机
