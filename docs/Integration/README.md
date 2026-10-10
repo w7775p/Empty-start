@@ -5,6 +5,22 @@
 
 Lane A 持有 Sandbox 与顶层路由接线。系统规则、倾向、历史、奖励及结局显示继续归各系统所有者。
 
+## INT-08 矛盾 / 神谕与 Rest 交接（2026-10-10）
+
+`Sandbox` 组合运行时子节点 `ContradictionOracleFlow`，持有本次 `ContradictionBreakSystem`、静音过渡 Timer、`FinalOracleSession`、选择计时和准备好的 `RestSession`。同周目确认状态由流程复用；正常重开、换关与终局均显式 `stop()`，离树作最终清理。没有增加 Autoload 或修改生产 Scene / Resource。
+
+- `Sandbox.get_contradiction_oracle_flow()`：INT-09 的阶段组合入口。普通 PK 满值后沿用 Sandbox 的粉丝及普通复读提交，再调用流程 `start(run_data, catalog, current_level, hit_resolution, combat_stage, area, opponent_pk_bar, attack_input, repeat_queue, candidate_display, battle_config, loser_card_catalog, window_config, audio_manager) -> bool`。注入真实本场组件，所有关卡及配置保持原值。
+- `advance(delta)`：仅在矛盾阶段推进本场复读队列，在候选阶段推进原十秒选择计时；暂停不推进。释放快照同步消耗一次正式机会并立即判定，飞行只保留演出。真、假矛盾均等候队列及可见复读离场；真击破再执行原 0.5 秒静音 Timer。
+- `entered(system)`、`outcome_resolved(outcome)`、`oracle_opened(session)` 是阶段事实；`state_text_changed(text)` 驱动既有 HUD。Sandbox 继续转发原 `final_oracle_opened(session)`。
+- `get_contradiction_system()`、`get_oracle_session()`、`get_selection_timer()`、`get_confirmation_state()` 提供同一业务对象；`is_contradiction_active()` 和 `get_result()` 用于阶段及结果读取。Rest 后保留本次神谕 Session 供核对，停止尝试时清空。
+- `rest_ready(result: RestSession)` 交付已打开的同一结果对象，一次尝试通知一次。真击破结果为 `breakthrough_oracle_complete`，未击破为 `pk_win_unbroken`。Sandbox 仅调用 `RestResultView.show_result()`、转发 `rest_opened` 并保留 Continue / 下一关 / 末关神降临路由。Rest 继续从各数据所有者读取成果，查看历史和返回不发奖。
+
+确认仍复用 `FinalOracleConfirmationState` 与 `ScriptureData.bind_confirmation_state()`：圣典先同步接收，流程核对实际经文，再依次提交普通历史、倾向、败者卡、真正击败、可继承普通池及特性白名单。返回 false 时查询接收方保存的去重事实；正式空卡目录仍沿用无新卡规则，禁止继承和矛盾池继续跳过。`HitResolution.has_committed_normal_hit_history()` 只读原提交标记。
+
+中途写入失败发出 `commit_failed(reason)`，`get_commit_error()` 保留原因，后续奖励和 Rest 交接停止，此前合法成果保持。修复来源配置后可显式 `commit_confirmed_rewards() -> bool` 补齐当前已确认结果；重试读取原数据所有者的去重事实。成功后使用 `call_deferred()` 等同步确认和攻击回调结束再交接 Rest；同帧重开会取消旧交接。已确认同关重开沿用首次候选并核验成果后进入新 Rest。
+
+Windows Godot 4.7.2 运行证据、准确退出码、测试入口适配及限制见 [INT-08 日志](Sandbox重构_INT-08_2026-10-10_log.md)。本次只执行 INT-08。
+
 ## INT-07 神降临流程抽取（2026-10-10）
 
 `Sandbox` 组合运行时子节点 `DivineDescentFlow`。流程统一持有本次冻结 `DivineDescentSession`、`DivineDescentCombatMode`、子节点 `DivineDescentSpread` 及已接收的 `EndingSession`。原 DD / Ending 规则和生产配置沿用当前实现；没有新增 Autoload 或修改场景资源。

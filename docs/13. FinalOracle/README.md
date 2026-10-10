@@ -1,5 +1,11 @@
 # 13. FinalOracle 终结神谕系统任务拆分
 
+## INT-08 当前组合入口（2026-10-10）
+
+`ContradictionOracleFlow` 持有神谕 Session、选择计时与同周目确认状态，并绑定 Scripture 的既有正式确认接收链。手动攻击与超时选择共用 `confirm_candidate(candidate) -> bool`；true 表示首次确认被接受，成果完成由 `rest_ready(result: RestSession)` 通知。流程通过原所有者接口按圣典、普通历史、倾向、败者卡、真正击败、可继承普通池与白名单特性的顺序提交和核验；写入失败停止后续提交及 Rest，已保存成果保留，显式 `commit_confirmed_rewards()` 可在来源修复后补齐。
+
+成果去重继续由确认状态及 14/15/16 保存事实负责。缺卡资料、禁止继承和矛盾池沿用原无新增规则；同关已确认重开复用首次候选并核验已有成果。成功的 Rest 在同步确认与攻击回调结束后延迟交付，重开取消旧交接；Sandbox 只展示 Rest 并保持下一关与终局路由。旧接线章节中的 Sandbox 内部协调已迁入流程，公开接口、实际回归和限制见 [Integration README](../Integration/README.md) 与 INT-08 日志。
+
 ## 系统目标
 
 终结神谕系统只在矛盾击破成功后出现。

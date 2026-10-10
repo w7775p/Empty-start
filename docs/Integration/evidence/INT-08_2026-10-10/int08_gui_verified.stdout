@@ -1,0 +1,29 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: AMD - AMD Radeon(TM) Graphics
+
+INT08 OK: 公开入口启动矛盾一发窗口
+INT08 OK: 真实静音 Timer 后进入神谕
+INT08 EXPECTED FAILURE BEGIN: 普通词库继承提交失败
+INT08 OK: 正式确认只接受一次
+INT08 OK: 流程报告实际写入拒绝
+INT08 OK: 失败未交付假 Rest 结果
+INT08 OK: 失败保留此前合法提交成果
+INT08 OK: 历史和倾向已经且仅提交一次
+INT08 OK: 失败停止后续特性写入
+INT08 OK: 失败后重复确认仍拒绝
+INT08 EXPECTED FAILURE END
+INT08 OK: 修复配置后显式补齐奖励
+INT08 OK: 帧尾交接等待中重复提交拒绝
+INT08 OK: 交付一次同一 RestSession
+INT08 OK: Rest 只读全部已保存奖励
+INT08 OK: 补齐保留历史、倾向、圣典及卡片数量
+INT08 OK: 继承池和白名单特性补齐一次
+INT08 OK: 同关重开复用首次确认并交付本次结果
+INT08 OK: 重开已确认关未重复成果
+INT08 OK: 十秒窗口到期交付未击破 Rest
+INT08 OK: 超时未击破无新增奖励
+INT08 OK: 第二关确认准备帧尾交接
+INT08 OK: 同帧重开隔离旧 Rest 交接
+INT08 OK: 重开保留已合法提交成果
+INT08 OK: 场景离树销毁流程
+PASS INT-08 flow checks=23 rest_ready=3 expected_failures=1

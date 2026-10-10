@@ -1,0 +1,6 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+PASS: true in one shot breaks
+PASS: false only consumes and continues
+PASS: empty hit consumes and continues
+CB-05: 3 cases passed
