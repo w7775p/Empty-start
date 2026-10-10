@@ -108,6 +108,17 @@ func cancel_lifecycle() -> void:
 		_lifetime_tween.kill()
 
 
+# 普通命中满额或剧情抢占时沿用既有淡出时长提前结束，不改绘制和动画参数。
+func finish_early() -> void:
+	if _finished:
+		return
+	if is_instance_valid(_lifetime_tween) and _lifetime_tween.is_running():
+		_lifetime_tween.kill()
+	_lifetime_tween = create_tween()
+	_lifetime_tween.tween_property(self, "modulate:a", 0.0, maxf(fade_duration_seconds, 0.01))
+	_lifetime_tween.tween_callback(_emit_expired)
+
+
 # 椭圆描边在尾巴根部留出开口，再补两条边线形成朝主播指向的漫画尾巴。
 func _draw() -> void:
 	var body_left: float = tail_length if tail_direction == TailDirection.LEFT else 0.0

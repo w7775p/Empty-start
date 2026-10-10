@@ -31,13 +31,13 @@ func _ready() -> void:
 
 
 # 保持到达顺序：先来的对白在上方，新对白从下方加入并允许并排叠显。
-func show_bubble(entry: BubbleDialogueEntry) -> void:
+func show_bubble(entry: BubbleDialogueEntry) -> StreamerBubbleView:
 	if entry == null or entry.text.strip_edges().is_empty():
-		return
+		return null
 	var bubble: StreamerBubbleView = BubbleScene.instantiate() as StreamerBubbleView
 	if bubble == null:
 		push_error("StreamerBubbleStack: 无法实例化主播对白气泡。")
-		return
+		return null
 	_configure_bubble(bubble)
 	add_child(bubble)
 	bubble.configure(entry.text, entry.display_duration_seconds)
@@ -45,6 +45,7 @@ func show_bubble(entry: BubbleDialogueEntry) -> void:
 	_active_bubbles.append(bubble)
 	_layout_active_bubbles()
 	bubble.start_lifecycle()
+	return bubble
 
 
 # 新一局或对手离线时由拥有 HUD 的组合方显式清空本侧显示。
