@@ -67,6 +67,12 @@ custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 text = "返回主播取名"
 
+[node name="RevealAllButton" type="Button" parent="Margins/Content/Navigation"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 64)
+layout_mode = 2
+text = "一键翻开"
+
 [node name="NextButton" type="Button" parent="Margins/Content/Navigation"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 64)

@@ -56,6 +56,7 @@
 | ID-08 | 十二身份卡片选择与开局三倾向映射（独立步骤已实现） | 1 个 CSV/映射回归用例、原锁定测试、真实图形 UI smoke 通过 |
 | ID-09 | 三步开局流程：主播取名 → 12 身份卡 → 粉丝团取名，最终提交已实现，房间接入 BLOCKED_RS12 | 复用原有存档测试与真实流程 smoke；RS-12 负责开局房间入口 |
 | ID-10 | 单张身份卡独立翻开，二次点击选择，回退保留本轮状态（已实现） | Godot 4.7.2 Windows GUI / headless 事件 smoke，既有身份回归通过 |
+| ID-11 | 一键翻开十二张身份卡，保留选择并继续现有保存流程（已实现） | Godot 4.7.2 Windows GUI 合成事件 smoke、身份映射回归通过 |
 
 ## ID-08 可复用身份步骤（2026-10-09）
 
@@ -131,3 +132,10 @@ ID-07 完成后，本周目的主播名、粉丝团名和身份使用稳定数�
 - 键盘聚焦仅滚动到卡片，Enter 与鼠标采用相同的两次操作。十二份资源、名称、正文、顺序、稳定 ID、SaveData 与既有信号签名保持原样。
 - Windows Godot `4.7.2.stable.steam.ed1daf0bf` 的实际 GUI 和 headless smoke 各通过 115 项检查，退出码均为 0；1920×1080 与 960×540 截图已核对。自动事件注入覆盖逐卡两次点击、选择保留、两个步骤回退、键盘和小窗口下一步。既有映射、名称和锁定测试退出码均为 0。
 - 未进行人工物理键鼠、Android 实机、最终保存或房间路由复验；详细命令、失败修正与证据位置见 [ID-10 日志](身份系统_ID-10_2026-10-10_log.md)。ID-11～ID-13 继续由各自任务卡负责。
+
+## ID-11 一键翻开身份卡（2026-10-10）
+
+- `identity_selection.tscn` 在现有导航行加入 `RevealAllButton`。新页面十二张牌从背面开始；点击“一键翻开”会遍历正式 `IdentityOptions.CARDS`，逐张复用 `_present_card_face()`，并保存到页面现有的 `_revealed_ids`。
+- 全部翻开后按钮显示“已全部翻开”并禁用。流程不改当前选中身份、不额外发出 `selection_changed`；下一步继续使用原有 `next_requested` 和 `identity_setup.gd` 接线。身份资源、SaveData、SaveManager 与 SceneRouter 均未改动。
+- Windows Godot `4.7.2.stable.steam.ed1daf0bf`、D3D12 / Forward+ 的 GUI smoke 通过，真实运行退出码为 0：从十二张背面一键翻开；再从主播名页进入身份页，先翻三张、选择第三张、执行一键翻开；验证选择保持、十二张正面、下一步显示所选身份、保存到磁盘并进入现有开局房间。
+- 自动操作使用 `Viewport.push_input()` 注入合成鼠标事件。实体键鼠、Android 触控未验收。截图和运行日志保存在忽略目录 `.godot/id11/`；详细结果与 MCP/导入边界见 [ID-11 日志](身份系统_ID-11_2026-10-10_log.md)。
