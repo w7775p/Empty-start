@@ -80,7 +80,3 @@ func _draw() -> void:
 	var bottom: Color = tint.darkened(0.30)
 	bottom.a = 0.20 if _is_repeat else 0.32 + strength_factor * 0.15
 	draw_line(Vector2(corner_radius + 2.0, size.y - 5.0), Vector2(size.x - corner_radius - 2.0, size.y - 5.0), bottom, 1.5, true)
-	if not _is_repeat and _strength >= 3:
-		var flash: Color = tint.lightened(0.65)
-		flash.a = 0.65
-		draw_line(Vector2(14.0, 11.0), Vector2(14.0, size.y - 12.0), flash, 2.0, true)
