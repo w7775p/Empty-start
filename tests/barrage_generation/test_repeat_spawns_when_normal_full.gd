@@ -11,11 +11,13 @@ func _run_component_test() -> void:
 	profile.base_batch_count = 0
 	profile.base_spawn_interval_seconds = 60.0
 	profile.base_move_speed_pixels_per_second = 0.0
-	profile.normal_barrage_screen_cap = 1
+	profile.normal_barrage_screen_cap = 2
 
 	var barrage_area: BarrageArea = BARRAGE_AREA_SCENE.instantiate() as BarrageArea
 	root.add_child(barrage_area)
 	barrage_area.start_normal_generation(profile)
+	# Tier 前景名额比关卡 fallback 小；复读仍走独立容量账本。
+	barrage_area.set_foreground_slot_count(1)
 
 	var normal_speech: LevelSpeech = LevelSpeech.new()
 	normal_speech.original_sentence_id = "bg10_normal_sentence"
