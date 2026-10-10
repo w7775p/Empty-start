@@ -247,6 +247,12 @@
 - **条件**：受限 Windows 隐藏 GUI 中，`get_global_mouse_position()` 返回异常大值；左键按下调用恢复方法重新读取该值。旧 CA-12 探针用按下后补 MouseMotion 掩盖过此问题。异常系统读数的底层原因、真实硬件鼠标行为尚未确认。
 - **处理**：真实按下将事件 Viewport 坐标传给 `restore_mouse_aim(viewport_position)`，沿用画布逆变换恢复 PC 尺寸与中心；首发验证不添加补定位事件。2026-10-09 同一 INT-04 隔离副本修复前 exit 1、修复后完整两路线 exit 0。
 
+### KT-40：headless 位移测速要累计引擎帧时间
+
+- **现象**：BG-40 首轮 headless 位移测试用 `Time.get_ticks_usec()` 作为分母，测得 T1 速度 7756.8 px/s、Repeat 243.7 px/s、Paradox 305.2 px/s；改为累计节点 `_process(delta)` 后，T1/T5、Repeat 与 Paradox 均与各自配置速度相符。
+- **条件**：本机 Godot 4.7.2 `--headless --script` 运行中，`SceneTreeTimer` 累计的引擎处理时间与墙钟时间不同步；用墙钟除位置变化会错误报告速度。
+- **处理**：测试节点在 `_process(delta)` 中累加模拟秒数，并用位置变化除以同一引擎时间；保留 `SceneTreeTimer` 作为等待条件。
+
 ## 六、自查入口
 遇到问题优先按类别检查：
 - UI 不响应 / 空引用：KT-02、KT-04、KT-05。
@@ -256,6 +262,7 @@
 - 重构后编译或引用异常：KT-21～KT-23。
 - 新 worktree 首次 headless 启动出现全局类缺失：KT-27。
 - Godot MCP 连接 / 端口占用：KT-28。
+- headless 位移速度与计时验证：KT-40。
 
 ## 附录 A：Godot 生命周期提醒
 

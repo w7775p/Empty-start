@@ -10,6 +10,8 @@ signal barrage_generated(view: BarrageView)
 @export var base_lifetime_seconds: float = 10.0
 ## 临时复读同屏上限，正式数值表接入前可在 Inspector 调整。
 @export var repeat_barrage_screen_cap: int = 24
+## 普通移动前景的最高速度；默认沿用现有关卡基础速度，避免 Tier 倍率让短句快速掠过。
+@export var maximum_foreground_move_speed_pixels_per_second: float = 100.0
 @onready var _spawn_timer: Timer = $SpawnTimer
 
 var _speech_selector: NormalSpeechSelector = NormalSpeechSelector.new()
@@ -109,6 +111,15 @@ func set_generation_multipliers(generation_count_multiplier: float, generation_f
 	_frequency_multiplier = generation_frequency_multiplier
 	_movement_speed_multiplier = movement_speed_multiplier
 	_restart_spawn_timer()
+
+## 唯一普通前景速度入口：读取关卡基础速度与当前 Tier 倍率后应用可调上限。
+func get_foreground_move_speed_pixels_per_second(level_profile: LevelProfile) -> float:
+	if level_profile == null:
+		return 0.0
+	var base_speed: float = maxf(level_profile.base_move_speed_pixels_per_second, 0.0)
+	var tier_multiplier: float = maxf(_movement_speed_multiplier, 0.0)
+	var speed_ceiling: float = maxf(maximum_foreground_move_speed_pixels_per_second, 0.0)
+	return minf(base_speed * tier_multiplier, speed_ceiling)
 
 ## 保存当前寿命倍率；它只参与之后新建弹幕的截止时间计算。
 func set_lifetime_multiplier(lifetime_multiplier: float) -> void:
@@ -324,7 +335,8 @@ func spawn_normal_barrage(
 	if view == null:
 		push_error("BarrageArea: 弹幕表现 Scene 根节点需要 BarrageView。")
 		return null
-	var effective_move_speed: float = level_profile.base_move_speed_pixels_per_second * _movement_speed_multiplier
+	# BG-42 静止请求直接保持零速度；普通移动实例统一经本系统的限速入口。
+	var effective_move_speed: float = 0.0 if random_static_placement else get_foreground_move_speed_pixels_per_second(level_profile)
 	view.setup(barrage_record, effective_move_speed, self, random_static_placement)
 	if _terminal_presentation_only:
 		view.apply_terminal_trait_presentation(_terminal_trait_ids, _terminal_trait_colors)
