@@ -14,15 +14,6 @@ var _failures: Array[String] = []
 # 用真实 Sandbox、鼠标事件和复读调度验收 neutral 的一条完整普通战斗链。
 func _ready() -> void:
 	SaveManager.new_game()
-	_sandbox = SANDBOX_SCENE.instantiate() as Control
-	add_child(_sandbox)
-	await get_tree().process_frame
-	await get_tree().process_frame
-	_area = _sandbox.get_node("%BarrageArea") as BarrageArea
-	_aim = _sandbox.get_node("%AimReticle") as AimReticle
-	_attack = _sandbox.get_node("%AttackChargeInput") as AttackChargeInput
-	_attack.shot_hit_resolution_submitted.connect(func(_snapshot: AttackTargetSnapshot, submission: Dictionary) -> void: _submission = submission)
-
 	var speech: LevelSpeech = LevelSpeech.new()
 	speech.original_sentence_id = "tt13-neutral-live"
 	speech.text = "今天聊聊生活"
@@ -39,9 +30,15 @@ func _ready() -> void:
 	level.base_move_speed_pixels_per_second = 0.0
 	var catalog: LevelCatalog = LevelCatalog.new()
 	catalog.profiles = [level]
-	_sandbox.set("_run_state", LevelRunState.new(catalog))
-	_sandbox.restart_current_attempt()
+	_sandbox = SANDBOX_SCENE.instantiate() as Control
+	_sandbox.set("level_catalog", catalog)
+	add_child(_sandbox)
 	await get_tree().process_frame
+	await get_tree().process_frame
+	_area = _sandbox.get_node("%BarrageArea") as BarrageArea
+	_aim = _sandbox.get_node("%AimReticle") as AimReticle
+	_attack = _sandbox.get_node("%AttackChargeInput") as AttackChargeInput
+	_attack.shot_hit_resolution_submitted.connect(func(_snapshot: AttackTargetSnapshot, submission: Dictionary) -> void: _submission = submission)
 
 	# 此入口负责跨系统命中链；选择器配置的纯逻辑由所属系统测试负责。
 	var view: BarrageView = _area.spawn_normal_barrage(level, speech)
@@ -55,14 +52,14 @@ func _ready() -> void:
 		_mouse_button(false)
 		await get_tree().create_timer(0.2).timeout
 
-	var hit: HitResolution = _sandbox.get("_hit_resolution") as HitResolution
+	var hit: HitResolution = _sandbox.get_battle_attempt_flow().get_hit_resolution()
 	var history: Array[Dictionary] = hit.get_normal_hit_history()
 	var results: Array = _submission.get("hit_resolution_result", {}).get("target_results", [])
 	_check(hit.get_player_pk() > 0.5 and history.size() == 1 and str(history[0].get("tendency", "")) == "neutral", "neutral 命中增加 PK 并进入普通历史")
 	_check(results.size() == 1 and str(results[0].get("tendency_id", "")) == "neutral" and int(results[0].get("tendency_delta", -1)) == 0, "neutral 结算事实保留类别且倾向增量为零")
 	var state: TendencyState = SaveManager.data.tendency_state
 	_check(state.attempt_orthodox_total == 0 and state.attempt_heretical_total == 0 and state.attempt_absurd_total == 0 and state.has_no_effective_behavior(), "只命中 neutral 保持三项全零")
-	var queue: RepeatDelayQueue = _sandbox.get("_repeat_queue") as RepeatDelayQueue
+	var queue: RepeatDelayQueue = _sandbox.get_battle_attempt_flow().get_repeat_queue()
 	var comments_before_repeat: int = SaveManager.data.live_session.comment_count
 	queue.advance_and_dispatch(3.1, _area)
 	var neutral_repeat_found: bool = false
