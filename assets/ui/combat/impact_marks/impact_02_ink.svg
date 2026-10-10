@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><title>Rough Ink Slash</title>
+<path d="M25 180 Q59 151 105 98 L200 15 L178 88 L222 62 L150 126 L229 121 L146 146 L198 225 L117 165 L69 238 L85 160Z" fill="#111526" stroke="#111526" stroke-width="14" stroke-linejoin="round"/>
+<path d="M29 177 L104 110 L188 24 L159 93 L201 79 L132 139 L196 129 L126 146 L170 203 L112 149 L73 218 L92 148Z" fill="#FFF3DE" stroke="#111526" stroke-width="6" stroke-linejoin="round"/>
+<path d="M38 182 Q86 148 148 103" fill="none" stroke="#101323" stroke-width="23"/>
+<path d="M53 190 Q109 150 187 76" fill="none" stroke="#FB685A" stroke-width="10"/>
+<path d="M22 92 L82 121 M48 46 L97 92 M131 210 L139 245" stroke="#111526" stroke-width="16"/>
+<path d="M16 86 L64 110 M52 45 L90 86 M138 213 L143 230" stroke="#FFF5DE" stroke-width="7"/>
+<path d="M215 33 L226 48 L207 60 M216 182 L238 180 L224 199" stroke="#111526" stroke-width="8" fill="none"/>
+<path d="M212 31 L221 47 L212 57 M216 187 L227 185 L219 194" stroke="#FA7968" stroke-width="4" fill="none"/>
+<path d="M28 215 L44 207 M207 225 L222 240 M22 150 L12 164" stroke="#111526" stroke-width="7" stroke-linecap="round"/>
+</svg>
