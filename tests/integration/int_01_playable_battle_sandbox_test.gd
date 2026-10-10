@@ -78,7 +78,7 @@ func _verify_layout_and_generation() -> void:
 	var first_view: BarrageView = opening_views[0]
 	var opening_x: float = first_view.position.x
 	var opening_pk: float = _hit().get_player_pk()
-	await _wait(1.08)
+	await _wait(1.50)
 	_check(is_instance_valid(first_view) and first_view.position.x < opening_x, "普通弹幕持续移动")
 	_check(_views(false).size() > opening_views.size(), "普通弹幕持续生成")
 	_check(_hit().get_player_pk() < opening_pk, "真实回拉按帧降低 PK")

@@ -45,3 +45,9 @@ INT-04 实际截图保存在 `evidence/INT-09_2026-10-10/`，并已查看普通 
 `git diff --check` 在最终提交前执行。工作树的 `.git` 文件指向 `D:/Godot/Empty-start/.git/worktrees/Empty-start90`，该目录位于本会话唯一可写根目录之外。尝试把分支快进到 `origin/main` 时，Git 创建 `rebase-merge` 目录收到 `Permission denied`；清理导入换行差异时，`git restore` 创建 `index.lock` 被拒。最终 `git add` 也以 exit 128 失败，准确报错为 `Unable to create 'D:/Godot/Empty-start/.git/worktrees/Empty-start90/index.lock': Permission denied`。分支仍为 `codex/lane-a-int09-1010`、HEAD `001d3f5`，相对本地跟踪的 `origin/main 41d2e41` 落后 2 笔；没有 commit、push 或 PR。代码、README、任务日志和证据完整留在目标 worktree，未用其他工作树代替。
 
 `known_traps.md` 未更新：沿用 KT-25、KT-27、KT-34、KT-36；Godot 导入提示属于已记录环境限制。本次更新 Integration README，没有改 `docs/Original/`。INT-10 接手从本 README 和本日志开始，使用 `Sandbox.get_battle_attempt_flow()` 订阅尝试、整发、Tier、失败、重开及矛盾进入事件；现有 `get_contradiction_oracle_flow()` 与 `get_divine_descent_flow()` 保持原接线。需先获得当前 worktree Git 元数据目录的写权限，再基于最新 `origin/main` rebase、复跑两条 GUI 回归并提交/推送/开 PR。
+
+## 2026-10-10 总控复测补充
+
+- Windows Godot 4.7.2 隔离 GUI INT-04 再次通过 96 checks、10 routes。
+- INT-01 首次复测为 84/85，唯一失败位于普通弹幕持续生成的固定 1.08 秒等待边界；同一隔离工程重跑则 85/85 通过。
+- 该检查的正式关卡间隔为 1.0 秒，等待余量 0.08 秒容易遇到帧调度误差。本 PR 仅将这一条测试等待改为 1.50 秒，保留继续生成功能断言。
