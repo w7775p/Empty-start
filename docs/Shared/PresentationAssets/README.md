@@ -127,7 +127,7 @@ PA-02 负责把正式美术资产导入工程并接到对应 Resource；PA-03 �
 
 ## PA-05 六种特殊弹幕视觉组件（2026-10-10）
 
-继承 PA-04 的 `BarrageGlassSurface`，由 `BarrageSpecialSurface` 依据 `BarrageView.runtime_record.trait_set.get_trait_ids()` 选择唯一主材质：`reflect → occlusion → fake_card → retaliation_copy → split → glass`，`unselectable` 叠加空心字。正式入口沿用 `systems/barrage_generation/barrage_view.tscn`，`setup()` 自动接线，不新建战斗状态与可命中对象；通过 `get_special_material()` 查询表现类型。铁质、预裂玻璃、持续 Q 弹果冻、透明内芯描边字、鲜艳椭圆假复读与单实例多处小字水军板均在 Godot 4.7.2 实际绘制；果冻最多约 24Hz 重绘。普通复读继续使用灰色圆角玻璃与零描边；分裂子句进入普通无特性视图时自动使用小尺寸普通玻璃。可调颜色、裂痕、果冻幅度、刷屏字号集中在 `barrage_special_surface.gd` 的 Inspector。
+继承 PA-04 的 `BarrageGlassSurface`，由 `BarrageSpecialSurface` 依据 `BarrageView.runtime_record.trait_set.get_trait_ids()` 选择唯一主材质：`reflect → occlusion → fake_card → retaliation_copy → split → glass`，`unselectable` 叠加空心字。正式入口沿用 `systems/barrage_generation/barrage_view.tscn`，`setup()` 自动接线，不新建战斗状态与可命中对象；通过 `get_special_material()` 查询表现类型。铁质、预裂玻璃、有厚度且持续微动的凝胶、放大增强轮廓的镂空字、与真复读同色同透明度的椭圆假复读与单实例多处小字水军板均在 Godot 4.7.2 实际绘制；果冻最多约 24Hz 重绘。普通复读继续使用灰色圆角玻璃与零描边；分裂子句进入普通无特性视图时自动使用小尺寸普通玻璃。可调颜色、裂痕、果冻幅度、刷屏字号集中在 `barrage_special_surface.gd` 的 Inspector。
 
 独立演示：`res://scenes/demos/pa05_special_barrage_demo.tscn`；全高清截图入口：`res://scenes/demos/pa05_capture_1920.tscn -- --capture-pa05`；画面与日志见 `docs/Shared/PresentationAssets/previews/pa05_*.jpg` 和 [PA-05 完成日志](表现资产_PA-05_2026-10-10_log.md)。PA-06 继续负责命中碎裂、回弹和硬质碰撞的事件演出；此处只有常态材质与果冻微动。
 
@@ -137,4 +137,4 @@ PA-02 负责把正式美术资产导入工程并接到对应 Resource；PA-03 �
 
 ## 最新任务卡分工口径（2026-10-09）
 
-普通前景话语和携带 `fake_card` 等特性的特殊实例使用有描边的清晰文字；普通复读以灰字、零文字描边和背景层级呈现。**普通复读为圆角气泡、假复读为更鲜艳的椭圆气泡**，假复读属于带特性的前景话语。PA-04 负责视觉材质与文字风格，BG-28/BG-37 负责普通前景文本能力，RP-19～RP-21 负责复读字色、描边与层级；PA-06 表现遮挡撞击时遵循 CA-15 的整发落空结算。
+普通前景话语保留清晰文字及描边；真正复读以灰字、零文字描边和背景层级呈现。**假复读与真复读的底色、透明度、字号、字色及文字描边一致，只有外框分别为椭圆、圆角**；假复读继续是携带 `fake_card` 特性的可命中前景话语。PA-04 负责视觉材质与文字风格，BG-28/BG-37 负责普通前景文本能力，RP-19～RP-21 负责复读字色、描边与层级；PA-06 表现遮挡撞击时遵循 CA-15 的整发落空结算。
