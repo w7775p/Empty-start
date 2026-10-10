@@ -22,7 +22,7 @@
 | [BG-33](tasks/BG-33_impact-motion-wave.md) | 命中后的短时局部运动扰动 | 可选试玩后实施 |
 | [BG-34](tasks/BG-34_frequency-based-refill.md) | 既有定时批次按 Tier 名额补位 | T2=13 组件级计时回归通过；Sandbox 布局待联调 |
 | [BG-35](tasks/BG-35_special-instance-cap.md) | 特殊实例占用独立容量 | 待开发 |
-| [BG-36](tasks/BG-36_downgrade-count-grace.md) | 降档超额自然回落 | 待开发 |
+| [BG-36](tasks/BG-36_downgrade-count-grace.md) | 降档超额自然回落 | T3→T2 自然回落与计时补位实测通过 |
 | [BG-37](tasks/BG-37_foreground-text-outline.md) | 非复读文字描边 | 待开发 |
 | [BG-38](tasks/BG-38_effective-area-clear.md) | 现有命中结束目标接线回归 | 已有链路 |
 | [BG-39](tasks/BG-39_tier-motion-proportions.md) | 四种运动类型随 Tier 权重变化 | 待开发 |
@@ -32,6 +32,10 @@
 **BG-34（2026-10-10）** `CombatStage` 将 T2=13 发布给 `BarrageArea`。满槽后移除 4 条，现场数量回到 9；容量释放恢复现有 `SpawnTimer`，下一次批次经 `NormalSpeechSelector` 补到 13，额外普通生成由现有上限拦截。复读继续走独立账本。本卡确认现有 BG-16 接线已满足频率补位规则，并新增真实组件回归。
 
 `test_bg34_t2_timed_refill.gd` 使用当前 `BarrageArea` Scene、`CombatStage` 和 Tier Catalog。测试区为 1024×1200，为当前单列放置提供 13 个位置；1024×1008 实测可放 12 条。Sandbox 当前 BarrageArea 高 760px，完整同屏容量需在布局任务完成后实场复验。本卡未修改 Sandbox 或 PA 资产。
+
+**BG-36（2026-10-10）** `CombatStage` 从 T3 降到 T2 后，`BarrageArea` 发布 13 个新名额；已有 16 条 `BarrageView` 保持原实例、移动和生成时保存的寿命。共享账本仍满于新名额时暂停普通生成；数量降到 13 时继续停表，四条较早生成的测试视图自然到期至 12 后，现有 `SpawnTimer` 才恢复并按 T2 间隔补到 13。此行为复用 BG-16 / BG-34 的容量和 Timer 逻辑，无需改动生产脚本。
+
+`test_bg36_tier_downgrade_grace.gd` 使用真实 `CombatStage`、`BarrageArea`、`BarrageView` 与 `SpawnTimer`，逐项检查原实例 ID、绝对寿命截止值、运动、超额时停表、降到 12 后等待 timeout 再新增一条视图，以及补到 13 后停表。测试用 `LevelProfile` 和 `LevelSpeech` 均为脚本内构造的 TEST_ONLY 数据；这项组件级验证不代表 Sandbox 正式玩法验收。
 
 本节是当前派工依据；历史章节中的旧默认值与旧任务说明保留用来追溯已有系统演变。开发时以单卡现行版和本节为准。
 
@@ -265,7 +269,7 @@ INT-02 采用静态 Scene 方案：`sandbox.tscn` 保存所有区域 Rect，编�
 | --- | --- | --- |
 | [BG-34](tasks/BG-34_frequency-based-refill.md) | 按生成频率补足前景话语 | 待实施 |
 | [BG-35](tasks/BG-35_special-instance-cap.md) | 限制携带特性的前景实例数量 | 待实施 |
-| [BG-36](tasks/BG-36_downgrade-count-grace.md) | 降档后让超额前景实例自然回落 | 待实施 |
+| [BG-36](tasks/BG-36_downgrade-count-grace.md) | 降档后让超额前景实例自然回落 | 已实施（2026-10-10） |
 | [BG-37](tasks/BG-37_foreground-text-outline.md) | 所有非复读话语文字描边 | 待实施 |
 | [BG-38](tasks/BG-38_effective-area-clear.md) | 有效攻击后清除命中区域全部话语 | 待实施 |
 | [BG-39](tasks/BG-39_tier-motion-proportions.md) | 按 Tier 改变前景运动类型权重 | 待实施 |
