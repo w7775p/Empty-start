@@ -13,7 +13,7 @@
 ## 已经实现的功能
 - SD-01已经提供 `BubbleDialogueEntry`、`BubbleDialogueConfig`、`find_by_sentence()`、`find_by_event()` 与玩家命中复述入口。
 - 02表已确定四关的 `story_config_id`：`story_level_001`～`story_level_004`。
-- 20表已有发言方、主播ID、事件类型/触发键、原句ID、对白正文、优先级、时长、定时节点和启用状态；新增 `story_config_id` 与 `line_order`。
+- 20表已有发言方、主播ID、事件类型/触发键、原句ID、对白正文、优先级、时长、定时节点和启用状态；已增加 `story_config_id`、`line_order`，新增 `trigger_type=random_idle` 与 `random_weight` 支持双方独立随机闲聊（消费方为SD-09）。
 - SD-03任务卡负责请求队列与关键剧情逐句完整播放；SD-05、SD-06、SD-07任务卡分别负责命中原句、战斗状态和定时事件的消费，实现状态按最新main和完成日志核对。
 
 ## 本次任务
@@ -24,17 +24,18 @@
 ### 预期行为
 本卡交付02与20表的 story_config_id、streamer_id 双重校验、trigger_type/trigger_key/source_word_id/trigger_time_s及line_order有序映射、SD-01 BubbleDialogueConfig和本场查询接口。SD-03接收有序配置后执行剧情逐句播放及完成通知；SD-05/06/07分别接收命中、状态与定时的静态事件映射。
 
-1. 读取当前 `LevelProfile` 对应的02.`story_config_id` 与02.`streamer_id`，筛选20表中 `story_config_id` 匹配、`enabled` 为真的本场对白；同时核对20.`streamer_id` 的主播归属，保证当前关只读取本场剧情。
+1. 读取当前 `LevelProfile` 对应的02.`story_config_id` 与02.`streamer_id`，筛选20表中 `story_config_id` 匹配、`enabled` 为真的本场对白；同时核对20.`streamer_id` 的本场对手归属，保证当前关只读取本场剧情。`streamer_id` 始终是关卡对手ID，玩家侧台词通过 `speaker_side=player` 表达，不以该字段改写为 `player`。
 2. 将20.`speaker_side`、`text`、`source_word_id`、`priority`、`display_duration_s` 对应到已有 `BubbleDialogueEntry`；将 `trigger_type + trigger_key` 映射为稳定的SD-01 `event_id`，同时为SD-07提供 `trigger_time_s`。
 3. 同一剧情配置、同一触发事件下，按正整数 line_order 升序提供连续对白查询结果和稳定排序列表，供SD-03顺序播放；队列完成通知由SD-03按其任务卡提供给CS-23。
-4. 提供事件映射表及查询接口：hit_word关联source_word_id，供SD-05匹配实际命中；connect、tier_up、tier_down、win、lose供SD-06根据战斗状态查询；timed及trigger_time_s供SD-07的可暂停计时消费。
-5. 当前关开播、重开、进入下一关时按新的 `story_config_id` 读取本场对白；与现有 `LevelProfile`、Sandbox和SD-01资源接口协调，使用同一静态配置供SD-03～07消费。
+4. 提供事件映射表及查询接口：hit_word关联source_word_id，供SD-05匹配实际命中；connect、tier_up、tier_down、win、lose供SD-06根据战斗状态查询；timed及trigger_time_s供SD-07的可暂停计时消费；random_idle及可选random_weight（留空按1）作为当前关双方随机闲聊候选供SD-09使用。
+5. 当前关开播、重开、进入下一关时按新的 `story_config_id` 读取本场对白；与现有 `LevelProfile`、Sandbox和SD-01资源接口协调，使用同一静态配置供SD-03～07和SD-09消费。
 
 ### 验收条件
 - 四关读取对应剧情配置ID；有条目的关卡按本场ID和主播筛选，未填写正式对白的关卡可进入正常战斗。
 - connect 的同事件多句配置按line_order升序读取，并可交给SD-03；SD-03的实际显示及向CS-23发送队列完成通知由其任务卡进行后续验收。
 - hit_word、升降Tier、胜负与timed的event_id和相关配置可被各自的SD-05/06/07消费者按稳定键检索；实际触发与优先级显示按对应任务卡联调验收。
 - 重开与切关重新选择剧情配置；不同关卡的同名事件读取各自台词。
+- 随机闲聊按story_config_id、streamer_id、speaker_side分别筛出player/opponent两侧候选及正权重；由SD-09按权重实际随机触发。
 - Godot 4.7.2完成导表、Resource加载、按主播查询与切关配置隔离的实际验收；后续剧情逐句表现及真实事件联动按SD-03～07独立验收。
 
 ## Godot 开发环境
