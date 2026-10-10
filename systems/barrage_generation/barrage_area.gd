@@ -24,6 +24,7 @@ var _frequency_multiplier: float = 1.0
 var _movement_speed_multiplier: float = 1.0
 var _lifetime_multiplier: float = 1.0
 var _neutral_weight_multiplier: float = 1.0
+var _foreground_slot_count: int = 0
 ## 普通话语与陷阱共用的容量账本。
 var _normal_capacity_ledger: BarrageCapacityLedger = BarrageCapacityLedger.new()
 var _repeat_capacity_ledger: BarrageCapacityLedger = BarrageCapacityLedger.new()
@@ -115,6 +116,14 @@ func set_lifetime_multiplier(lifetime_multiplier: float) -> void:
 ## 当前 Tier 的 Neutral 权重只影响之后新生成的普通话语。
 func set_neutral_weight_multiplier(multiplier: float) -> void:
 	_neutral_weight_multiplier = maxf(multiplier, 0.0)
+
+## 接收 CombatStage 发布的当前 Tier 前景名额；此接口只保存配置，不改变现有容量规则。
+func set_foreground_slot_count(slot_count: int) -> void:
+	_foreground_slot_count = slot_count
+
+## 为后续前景容量逻辑提供当前 Tier 名额；0 表示 T0 数值尚未确定。
+func get_foreground_slot_count() -> int:
+	return _foreground_slot_count
 
 ## 申请普通弹幕共享容量；未设置当前关卡或容量满时返回 false。
 func try_register_normal_capacity_occupant(occupant: Object) -> bool:

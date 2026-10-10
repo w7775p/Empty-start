@@ -61,7 +61,7 @@ func _initialize() -> void:
     var numeric_fields: Array[String] = [
         "upgrade_threshold", "downgrade_threshold", "generation_count_multiplier",
         "generation_frequency_multiplier", "movement_speed_multiplier", "lifetime_multiplier",
-        "neutral_weight_multiplier", "opponent_pullback_multiplier",
+        "neutral_weight_multiplier", "opponent_pullback_multiplier", "foreground_slot_count",
     ]
     for idx: int in range(6):
         var generated_tier: CombatStageTierConfig = tiers.get_tier_config(idx)

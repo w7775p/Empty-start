@@ -10,4 +10,6 @@ extends Resource
 @export var neutral_weight_multiplier: float = 1.0
 @export var opponent_pullback_multiplier: float = 1.0
 @export var repeat_count_per_hit: int = 0
+# 0 表示本档前景名额尚未由策划填写。
+@export var foreground_slot_count: int = 0
 @export var opponent_portrait_state_id: StringName = &""
