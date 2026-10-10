@@ -26,8 +26,9 @@ func _run() -> void:
 	var outline: BarrageView = _spawn(area, "不能打中我", [&"unselectable"])
 	if not _check(outline.get_special_material() == &"glass"
 		and not outline.runtime_record.trait_set.is_selectable()
-		and outline.get_theme_color("font_color").a < 0.01
-		and outline.get_theme_constant("outline_size") > 0, "outline text on original glass"):
+		and outline.get_theme_color("font_color").a < 0.12
+		and outline.get_theme_constant("outline_size") == 3
+		and outline.get_theme_font_size("font_size") == outline.visual_font_size + 4, "outline text on original glass"):
 		return
 
 	# 一条水军实例含多处小字，只有 BarrageView 这一份 Rect 和运行 ID。
@@ -40,14 +41,20 @@ func _run() -> void:
 		return
 
 	# 假复读是有描边前景；分裂后的子句及真正复读保持 PA-04 外观。
-	var fake: BarrageView = _spawn(area, "快来关注", [&"fake_card"])
+	var fake: BarrageView = _spawn(area, "神说：大家好", [&"fake_card"], false, 3)
 	var child: BarrageView = _spawn(area, "子话语", [])
-	var repeat: BarrageView = _spawn(area, "灰色复读", [], true)
+	var repeat: BarrageView = _spawn(area, "神说：大家好", [], true, 1)
+	var fake_surface: BarrageSpecialSurface = fake.get_glass_surface() as BarrageSpecialSurface
+	var repeat_surface: BarrageSpecialSurface = repeat.get_glass_surface() as BarrageSpecialSurface
 	if not _check(fake.get_special_material() == &"fake_card"
-		and fake.z_index > repeat.z_index and fake.get_theme_constant("outline_size") > 0
+		and fake.z_index > repeat.z_index
+		and fake.get_theme_constant("outline_size") == repeat.get_theme_constant("outline_size")
+		and fake.get_theme_font_size("font_size") == repeat.get_theme_font_size("font_size")
+		and fake.get_theme_color("font_color").is_equal_approx(repeat.get_theme_color("font_color"))
+		and fake_surface._glass_style.bg_color.is_equal_approx(repeat_surface._glass_style.bg_color)
+		and fake_surface._glass_style.border_color.is_equal_approx(repeat_surface._glass_style.border_color)
 		and child.get_special_material() == &"glass"
-		and repeat.get_special_material() == &"glass"
-		and repeat.get_theme_constant("outline_size") == 0, "fake, child and genuine repeat"):
+		and repeat.get_special_material() == &"glass", "fake uses genuine repeat palette and text, only frame changes"):
 		return
 
 	print("PA05_SMOKE_PASS: 4 external behavior scenarios")
@@ -55,13 +62,13 @@ func _run() -> void:
 
 
 # 真正生成 BarrageRuntimeRecord 和一份正式 BarrageView。
-func _spawn(area: Control, line: String, traits: Array[StringName], repeat: bool = false) -> BarrageView:
+func _spawn(area: Control, line: String, traits: Array[StringName], repeat: bool = false, strength: int = 2) -> BarrageView:
 	var record := BarrageRuntimeRecord.new()
 	record.text = line
 	record.original_sentence_text = line
 	record.original_sentence_id = "pa05_" + line
 	record.tendency_id = "orthodox"
-	record.strength = 2.0
+	record.strength = float(strength)
 	record.is_repeat = repeat
 	record.expires_at_msec = Time.get_ticks_msec() + 60000
 	for id in traits:

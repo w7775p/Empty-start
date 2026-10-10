@@ -25,11 +25,11 @@ func _spawn_all() -> void:
 	_spawn("crack", "真理正在分裂", [&"split"], Vector2(1300, 254), 2)
 	_spawn("jelly", "弹回去！", [&"reflect"], Vector2(96, 505), 2)
 	_spawn("outline", "你碰不到我", [&"unselectable"], Vector2(690, 505), 2)
-	_spawn("fake", "大家快来关注！", [&"fake_card"], Vector2(1290, 505), 3)
+	_spawn("fake", "神说：大家好", [&"fake_card"], Vector2(1290, 505), 3)
 	_spawn("copy", "神正在看着你", [&"retaliation_copy"], Vector2(96, 748), 2)
 	_spawn("combo", "反弹遮挡组合", [&"occlusion", &"reflect"], Vector2(690, 748), 3)
 	_spawn("child", "分裂出的短句", [], Vector2(1310, 790), 1)
-	_spawn("repeat", "神说：大家好", [], Vector2(1335, 900), 1, true)
+	_spawn("repeat", "神说：大家好", [], Vector2(1290, 614), 1, true)
 
 
 # 稳定记录和特性输入来自 4 系统；一张视图只对应一个运行对象。
@@ -66,7 +66,7 @@ func _build_labels() -> void:
 		var col: int = i % 3
 		var row: int = i / 3
 		_label(names[i], Vector2(95 + col * 600, 206 + row * 249), 23, Color("#D1DBE8"))
-	_label("GRAY REPEAT  /  普通灰色复读", Vector2(1320, 859), 18, Color("#98A5B4"))
+	_label("TRUE REPEAT  /  同色同透明度", Vector2(1290, 573), 18, Color("#98A5B4"))
 	_label("R : RESET   ·   SPACE : PAUSE / RESUME   ·   ALL ARE ONE BARRAGE INSTANCE EACH", Vector2(70, 1014), 18, Color("#A9BCCF"))
 	if not _capturing:
 		var reset := Button.new()

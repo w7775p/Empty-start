@@ -10,10 +10,6 @@ extends "res://systems/barrage_generation/barrage_glass_surface.gd"
 @export var crack_color: Color = Color(0.92, 0.96, 1.0, 0.77)
 @export_range(0.5, 4.0, 0.5) var crack_line_width: float = 1.5
 
-@export_group("假复读 / 椭圆")
-@export var fake_rim_color: Color = Color("#FFE1BC")
-@export_range(0.2, 1.0, 0.05) var fake_saturation: float = 0.82
-
 @export_group("水军反击 / 单块刷屏")
 @export var retaliation_base: Color = Color("#2B3143")
 @export var retaliation_edge: Color = Color("#E8A6A1")
@@ -21,10 +17,10 @@ extends "res://systems/barrage_generation/barrage_glass_surface.gd"
 @export_range(0.0, 14.0, 0.5) var retaliation_notch: float = 8.0
 
 @export_group("反弹 / 果冻")
-@export_range(0.0, 8.0, 0.5) var jelly_wobble: float = 3.0
-@export_range(0.0, 9.0, 0.1) var jelly_frequency: float = 3.5
-@export_range(0.0, 1.0, 0.05) var jelly_opacity: float = 0.84
-@export var jelly_shine: Color = Color(1.0, 1.0, 1.0, 0.45)
+@export_range(0.0, 8.0, 0.5) var jelly_wobble: float = 3.5
+@export_range(0.0, 9.0, 0.1) var jelly_frequency: float = 2.8
+@export_range(0.0, 1.0, 0.05) var jelly_opacity: float = 0.76
+@export var jelly_shine: Color = Color(1.0, 1.0, 1.0, 0.68)
 
 var _main_material: StringName = &"glass"
 var _phase: float = 0.0
@@ -124,51 +120,84 @@ func _draw_cracked_glass() -> void:
 	draw_line(Vector2(w - 32, h - 12), Vector2(w - 24, h - 3), crack_color, 1.0, true)
 
 
-# 果冻边缘随时间起伏，湿润反射沿边缘移动；正文文字保持稳定可读。
+# 参考凝胶软糖：圆角方形外轮廓、内部透光胶体、顶部弧形湿润反光。
+# 高分辨率轮廓以连续轮廓点绘制，小幅缓慢变形由已有 PA-04 24Hz 刷新驱动。
 func _draw_jelly() -> void:
-	var middle: Vector2 = size * 0.5
-	var rx: float = size.x * 0.5
-	var ry: float = size.y * 0.5
-	var points: PackedVector2Array = PackedVector2Array()
-	for i in range(49):
-		var a: float = TAU * float(i) / 48.0
-		var wave: float = sin(a * 3.0 + _phase) * jelly_wobble
-		var px: float = middle.x + cos(a) * (rx - 2.0 + wave)
-		var py: float = middle.y + sin(a) * (ry - 1.0 + wave * 0.35)
-		points.append(Vector2(px, py))
+	var center: Vector2 = size * 0.5
+	var radius: Vector2 = size * 0.5 - Vector2(3.0, 3.0)
+	var hull: PackedVector2Array = PackedVector2Array()
+	var core: PackedVector2Array = PackedVector2Array()
+	for i in range(65):
+		var angle: float = TAU * float(i) / 64.0
+		var cx: float = cos(angle)
+		var cy: float = sin(angle)
+		# 超椭圆把扁长椭圆改为饱满的圆角凝胶块；表面产生轻微不规则弹性起伏。
+		var contour: Vector2 = Vector2(
+			signf(cx) * pow(absf(cx), 0.63) * radius.x,
+			signf(cy) * pow(absf(cy), 0.63) * radius.y
+		)
+		var jiggle: float = sin(angle * 3.0 + _phase) * jelly_wobble
+		contour += Vector2(cx * jiggle * 0.55, cy * jiggle * 0.45)
+		hull.append(center + contour)
+		core.append(center + contour * Vector2(0.94, 0.76) + Vector2(0, -1.0))
 	var tint: Color = get_base_tint()
-	var fill: Color = tint.lerp(Color("#E9FCFF"), 0.27)
-	fill.a = jelly_opacity
-	draw_colored_polygon(points, fill)
-	var outline: Color = tint.lightened(0.67)
-	outline.a = 0.90
-	draw_polyline(points, outline, 3.2, true)
-	var inside: Color = jelly_shine
-	inside.a *= 0.65 + 0.25 * sin(_phase)
-	draw_arc(Vector2(middle.x, middle.y + 1.0), minf(rx, ry) * 0.72, PI * 1.06, PI * 1.87, 32, inside, 3.0, true)
-	draw_line(Vector2(24, size.y - 8), Vector2(size.x - 24, size.y - 8), Color(0.1, 0.15, 0.27, 0.25), 2.2, true)
+	var gel: Color = tint.lightened(0.18)
+	gel.a = jelly_opacity
+	var dark_edge: Color = tint.darkened(0.39)
+	dark_edge.a = 0.56
+	var light_edge: Color = tint.lightened(0.62)
+	light_edge.a = 0.47
+	var lit_core: Color = tint.lightened(0.52)
+	lit_core.a = 0.27
+	# 暗边包裹透明胶体，较亮的内层保持底下画面透出。
+	draw_colored_polygon(hull, gel)
+	draw_colored_polygon(core, lit_core)
+	# 底部流动的胶体折光层增加体积与重量感，保留中心正文区域。
+	var lower_gel: Color = tint.lightened(0.34)
+	lower_gel.a = 0.32
+	draw_colored_polygon(PackedVector2Array([
+		Vector2(19, size.y - 22), Vector2(size.x * 0.34, size.y - 28),
+		Vector2(size.x * 0.64, size.y - 20), Vector2(size.x - 19, size.y - 23),
+		Vector2(size.x - 20, size.y - 11), Vector2(19, size.y - 11)
+	]), lower_gel)
+	draw_polyline(hull, dark_edge, 2.8, true)
+	draw_polyline(hull, light_edge, 1.1, true)
+	# 凝胶顶面使用整体柔软反射，避开中心正文。
+	var reflection: PackedVector2Array = PackedVector2Array()
+	for i in range(20):
+		var angle: float = PI * 1.10 + PI * 0.43 * float(i) / 19.0
+		var cx: float = cos(angle)
+		var cy: float = sin(angle)
+		reflection.append(center + Vector2(
+			signf(cx) * pow(absf(cx), 0.63) * (radius.x - 8.0),
+			signf(cy) * pow(absf(cy), 0.63) * (radius.y - 7.0)
+		))
+	var shine: Color = jelly_shine
+	shine.a *= 0.88
+	draw_polyline(reflection, shine, 2.8, true)
+	# 微小的胶体气泡只放在边缘，避开正文。其亮暗相依来传递湿润和透光感。
+	var bubble_dark: Color = tint.darkened(0.24)
+	bubble_dark.a = 0.42
+	var bubble_light: Color = Color(1.0, 1.0, 1.0, 0.42)
+	for center_point: Vector2 in [Vector2(26, 19), Vector2(size.x - 30, 18), Vector2(size.x - 22, size.y - 20)]:
+		draw_circle(center_point, 4.5, bubble_dark)
+		draw_arc(center_point, 3.2, PI * 1.05, PI * 1.84, 12, bubble_light, 1.2, true)
+	var lowlight: Color = tint.lightened(0.60)
+	lowlight.a = 0.30
+	draw_line(Vector2(size.x * 0.34, size.y - 9), Vector2(size.x * 0.78, size.y - 9), lowlight, 1.6, true)
 
 
 
-# 鲜艳的椭圆气泡与普通灰色复读同属气泡家族，轮廓清楚且保持前景文字。
+# 假复读使用 PA-04 真复读的同一块灰玻璃调色、透明度和边缘样式，只改圆角形状。
 func _draw_fake_repeat() -> void:
 	var center: Vector2 = size * 0.5
-	var radius: Vector2 = size * 0.5
-	var outside: PackedVector2Array = PackedVector2Array()
-	var inside: PackedVector2Array = PackedVector2Array()
-	for index in range(49):
-		var theta: float = TAU * float(index) / 48.0
-		var ray: Vector2 = Vector2(cos(theta), sin(theta))
-		outside.append(center + ray * (radius - Vector2(1.5, 1.5)))
-		inside.append(center + ray * (radius - Vector2(4.0, 4.0)))
-	var tint: Color = get_base_tint()
-	var color: Color = tint.lerp(Color.WHITE, 1.0 - fake_saturation)
-	color.a = 0.92
-	draw_colored_polygon(outside, fake_rim_color)
-	draw_colored_polygon(inside, color)
-	var light: Color = Color.WHITE
-	light.a = 0.32
-	draw_arc(center + Vector2(0, 3), minf(radius.x, radius.y) * 0.55, PI * 1.15, PI * 1.8, 22, light, 2.0, true)
+	var radius: Vector2 = size * 0.5 - Vector2.ONE * 1.5
+	var ellipse: PackedVector2Array = PackedVector2Array()
+	for index in range(65):
+		var theta: float = TAU * float(index) / 64.0
+		ellipse.append(center + Vector2(cos(theta), sin(theta)) * radius)
+	draw_colored_polygon(ellipse, _glass_style.bg_color)
+	draw_polyline(ellipse, _glass_style.border_color, 1.0, true)
 
 
 # 同一个命中矩形对应一块不规则板；多处小字都由本 CanvasItem 绘制。
