@@ -2,13 +2,13 @@
 
 > **统一派工入口**：[2026-10-09 任务卡整合与依赖顺序](../开发计划_2026-10-09_任务卡依赖整合.md)。已实现的基础卡用于接口复查；新的视觉、静止弹幕、对话与阶段打磨以最新单卡和此表为准。
 
-## 2026-10-09 现行实现核对与任务状态
+## 2026-10-10 现行实现核对与任务状态
 
-**现有结算：** `HitResolution.resolve_shot_results()` 已汇总逐目标正负 PK 并一次更新玩家 PK；`fake_card`、`retaliation_copy` 与整发异常已有数值。HR-16/HR-17 仅追加**按发分别累积正贡献与负贡献并分别限幅**，相抵后得到本发实际 PK 变化。现有玩家 PK 上下限为另一层全局限幅。区域遮挡整发落空由 CA-15 在提交前统一处理。
+**现有结算：** `HitResolution.resolve_shot_results()` 汇总整发贡献并一次更新玩家 PK；HR-16 已对正向贡献独立限幅，HR-17 后续为负向贡献增加独立限幅。正负贡献相抵后得到本发 PK 变化，玩家 PK `[0,1]` 范围仍由全局限幅处理。区域遮挡整发落空由 CA-15 在提交前统一处理。策划尚未确定单发上限数值，有限值仅由可选接口注入，正式默认保持当前行为。
 
 | 卡片 | 按实际代码核对后的唯一功能 | 状态 |
 | --- | --- | --- |
-| [HR-16](tasks/HR-16_shot-positive-cap.md) | 单发正值贡献独立上限 | 待开发 |
+| [HR-16](tasks/HR-16_shot-positive-cap.md) | 单发正值贡献独立上限 | 已实现，待提交 PR |
 | [HR-17](tasks/HR-17_shot-negative-cap.md) | 单发负值贡献独立上限 | 待开发 |
 
 本节是当前派工依据；历史章节中的旧默认值与旧任务说明保留用来追溯已有系统演变。开发时以单卡现行版和本节为准。
@@ -42,7 +42,7 @@ HR-02 的 `calculate_normal_word_reward(strength, tendency_id)` 按内容强度�
 
 HR-04 的 `calculate_repeat_hit_result()` 返回有效命中标记和零 PK、零倾向收益；它不修改 PK 或提交倾向。
 
-HR-05 的 `resolve_shot_results(target_results, shot_anomaly=ShotAnomaly.NONE)` 接收逐目标结算字典，先汇总全部 `pk_delta`，再一次性更新并限制玩家 PK。返回整发的 `total_pk_delta` 与 `final_player_pk`，并深拷贝逐目标结果，供后续读取每个目标的倾向变化；最终 PK 信号同步交给 CombatStage。原单参数调用保持有效。
+HR-05 的 `resolve_shot_results(target_results, shot_anomaly=ShotAnomaly.NONE)` 接收逐目标结算字典，一次更新并限制玩家 PK。HR-16 增加 `HitResolution.new(initial_pk, minimum_pk, maximum_pk, max_positive_pk_delta_per_shot=INF)` 可选参数；按发汇总正贡献并应用该上限，再与未封顶的负贡献及整发异常相抵。默认 `INF` 保留既有正式结算，策划定值前不改正式配置。返回的 `total_pk_delta` 是本发限幅及相抵后的净变化，逐目标结果仍深拷贝返回，倾向、有效命中和复读结果保持逐目标事实；最终 PK 信号仍只发出一次。有限上限通过 TEST_ONLY 用例显式注入。
 
 BT-11（2026-10-09）补齐已存在真实 TraitResult 的惩罚消费：FAKE_CARD 每目标 `-0.005`，RETALIATION_COPY 每目标 `-0.007`，OCCLUSION / REFLECT 的目标 PK 为 0，特殊结果普通倾向与有效普通命中标记清零；CombatAttack 传入 HR-06 选出的整发异常，BOUNCE / OBSTRUCTION / MISS 每发扣 `-0.01`，和目标增量合并后仅更新一次 PK。沿用 `data/source_tables/06_战斗数值.csv` 正式值，4 / 5 不计算惩罚。终局关闭、PK 已归零提前返回的边界保持。尚无真实雷结果类型，雷映射仍待其正式接口；本次仅完成 BT-11 已有特性结果联调。
 
@@ -77,10 +77,11 @@ HR-07 的 `is_shot_fully_missed(target_validity)` 仅在没有任何有效目标
 | HR-13 | 矛盾阶段边界接线 | 无新增自动化测试 |
 | HR-14 | 记录本场普通话语命中历史 | 1 个关键单元测试 |
 | HR-15 | 普通命中历史提交与失败回滚 | 2 个关键单元测试 |
+| HR-16 | 单发正向贡献限幅与旧默认行为 | 1 个关键单元测试 |
 
 ## 测试预算
 
-只保留 11 个核心 case：
+只保留 13 个核心 case：
 
 - PK 低于下限会被限制；
 - PK 高于上限会被限制；
@@ -91,6 +92,8 @@ HR-07 的 `is_shot_fully_missed(target_validity)` 仅在没有任何有效目标
 - 同一原句重复命中时历史正确归并；
 - PK 胜利提交普通命中历史；
 - 失败重开撤回本次未提交普通命中历史。
+- 单发正向贡献高于显式上限时先限幅，再与负贡献相抵，并保留逐目标倾向和复读有效命中事实；
+- 未注入上限时继续按原始正负贡献汇总。
 
 正常话语数值、陷阱数值、复读零收益、跨系统广播全部不逐项堆单测。
 
