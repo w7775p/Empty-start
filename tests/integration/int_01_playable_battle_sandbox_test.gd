@@ -254,7 +254,7 @@ func _verify_failure_restart_and_full_pk() -> void:
 	var tendency_before: int = _attempt_tendency_total()
 	await _fire_at(target)
 	_check(is_equal_approx(_hit().get_player_pk(), 1.0) and not bool(_sandbox.get("_normal_combat_active")), "真实普通命中使 PK 满值并停止普通战斗")
-	_check(bool(_sandbox.get("_contradiction_stage_active")), "满值只进入一次矛盾阶段")
+	_check(bool(_sandbox.get_contradiction_oracle_flow().is_contradiction_active()), "满值只进入一次矛盾阶段")
 	var contradiction_ids: Array[String] = []
 	for view: BarrageView in _views(false):
 		if view.runtime_record.is_contradiction:
@@ -278,7 +278,7 @@ func _verify_failure_restart_and_full_pk() -> void:
 		if not view.runtime_record.is_contradiction:
 			normal_view_count += 1
 	_check(is_equal_approx(_hit().get_player_pk(), 1.0) and SaveManager.data.live_session.comment_count >= comment_before and normal_view_count == 0, "满值保持且只生成矛盾内容")
-	var break_system := _sandbox.get("_contradiction_break") as ContradictionBreakSystem
+	var break_system := _sandbox.get_contradiction_oracle_flow().get_contradiction_system() as ContradictionBreakSystem
 	var repeat_config := _sandbox.get("battle_config") as SandboxBattleConfig
 	_check(break_system != null and break_system.get_remaining_seconds() > 0.0 and break_system.get_remaining_shots() == 1, "矛盾限时窗口和一次发射机会已启动")
 	var contradiction_target: BarrageView = null
@@ -300,9 +300,9 @@ func _verify_failure_restart_and_full_pk() -> void:
 		_queue().clear_contradiction_queue()
 		_area.clear_barrages()
 		await _wait(0.65)
-		var oracle_session := _sandbox.get("_final_oracle_session") as FinalOracleSession
+		var oracle_session := _sandbox.get_contradiction_oracle_flow().get_oracle_session() as FinalOracleSession
 		var candidate_display := _sandbox.get_node("%OracleCandidateDisplay") as FinalOracleCandidateDisplay
-		_check(not bool(_sandbox.get("_contradiction_stage_active")) and oracle_session.is_open(), "击破成功和静音过渡后开放神谕")
+		_check(not bool(_sandbox.get_contradiction_oracle_flow().is_contradiction_active()) and oracle_session.is_open(), "击破成功和静音过渡后开放神谕")
 		_check(candidate_display.visible and candidate_display.get_child_count() == 1, "一条真实普通命中候选显示在中央主游戏区")
 		_check(not _area.is_normal_generation_enabled() and _views(false).is_empty() and _views(true).is_empty(), "神谕阶段停止普通生成并清除战斗弹幕")
 		if candidate_display.get_child_count() == 1:
@@ -317,21 +317,25 @@ func _verify_failure_restart_and_full_pk() -> void:
 			var repeat_count_before_oracle_shot: int = normal_generation_stats.get_normal_count(StringName(candidate_id))
 			var submissions_before_oracle_shot: int = _submissions.size()
 			await _fire_at(candidate_target)
-			var confirmation_state := _sandbox.get("_oracle_confirmation_state") as FinalOracleConfirmationState
+			var confirmation_state := _sandbox.get_contradiction_oracle_flow().get_confirmation_state() as FinalOracleConfirmationState
 			var selected_candidate: Dictionary = confirmation_state.get_confirmed_selection(oracle_session.get_level_id())
 			_check(not candidate_id.is_empty() and str(selected_candidate.get("original_sentence_id", "")) == candidate_id, "普通攻击命中唯一候选并完成正式神谕确认")
 			_check(is_equal_approx(_hit().get_player_pk(), pk_before_oracle_shot), "神谕选择攻击不改变玩家 PK")
 			_check(_hit().get_normal_hit_history() == history_before_oracle_shot, "神谕选择攻击不追加普通命中历史")
 			_check(_get_total_tendency_points() == tendency_total_before_oracle_shot, "神谕选择攻击不产生倾向收益")
 			_check(normal_generation_stats.get_normal_count(StringName(candidate_id)) == repeat_count_before_oracle_shot and _submissions.size() == submissions_before_oracle_shot, "神谕选择攻击不生成复读或 HitResolution 提交")
-			_check(_sandbox.get("_oracle_selection_timer") == null and not _attack.can_start_charging(), "确认后停止倒计时并锁住后续攻击")
-			var confirmed_label := candidate_display.get_child(0) as Control
-			_check(
-				candidate_display.get_child_count() == 1
-				and candidate_display.get_candidate_id_for_target(confirmed_label).is_empty()
-				and str((confirmed_label as Label).text) == str(selected_candidate.get("original_sentence_text", "")),
-				"确认后中央区域只保留最终神谕正文"
-			)
+			_check(_sandbox.get_contradiction_oracle_flow().get_selection_timer() == null and not _attack.can_start_charging(), "确认后停止倒计时并锁住后续攻击")
+			_check(_sandbox.get_contradiction_oracle_flow().get_result() == _sandbox.get("_rest_session")
+				and _sandbox.get_contradiction_oracle_flow().get_result().get_result_snapshot()["result_kind"] == "breakthrough_oracle_complete",
+				"正式确认交付同一成功 Rest 对象")
+			_check(not candidate_display.visible and SaveManager.data.scripture_data.get_entry_for_level(StringName(oracle_session.get_level_id())) != null,
+				"Rest 收起候选并读取真实已保存经文")
+
+	# 假矛盾等待使用 INT-04 已有的 TEST_ONLY 短复读数值；正式 120 条仍在真击破计划检查中覆盖。
+	var short_repeat_config: SandboxBattleConfig = (_sandbox.battle_config as SandboxBattleConfig).duplicate(true)
+	short_repeat_config.contradiction_repeat_count = 3
+	short_repeat_config.contradiction_repeat_lifetime_seconds = 0.3
+	_sandbox.battle_config = short_repeat_config
 	_sandbox.restart_current_attempt()
 	_hit().apply_player_pk_delta(1.0 - _hit().get_player_pk())
 	await _wait(0.05)
@@ -345,9 +349,14 @@ func _verify_failure_restart_and_full_pk() -> void:
 	if false_target != null:
 		false_target.position = Vector2(_area.size.x * 0.65, _area.size.y * 0.38)
 		await _fire_at(false_target)
-		var failed_break := _sandbox.get("_contradiction_break") as ContradictionBreakSystem
+		var failed_break := _sandbox.get_contradiction_oracle_flow().get_contradiction_system() as ContradictionBreakSystem
 		_check(failed_break.get_outcome() == ContradictionBreakSystem.Outcome.NOT_BROKEN and not _attack.can_start_charging(), "假矛盾用尽机会后保持 PK 胜利但未击破")
-		_check(not bool(_sandbox.get("_contradiction_stage_active")) and (_sandbox.get("_rest_session") as RestSession).is_open(), "未击破交给休息入口后结束矛盾阶段")
+		_check(_sandbox.get_contradiction_oracle_flow().is_contradiction_active() and _sandbox.get_contradiction_oracle_flow().get_result() == null, "假矛盾命中等待真实有限复读")
+		# 按真实队列及离场事实等待，固定秒数无法覆盖容量与延迟生成。
+		var rest_deadline: int = Time.get_ticks_msec() + 15000
+		while _sandbox.get_contradiction_oracle_flow().get_result() == null and Time.get_ticks_msec() < rest_deadline:
+			await get_tree().process_frame
+		_check(not bool(_sandbox.get_contradiction_oracle_flow().is_contradiction_active()) and (_sandbox.get("_rest_session") as RestSession).is_open(), "未击破交给休息入口后结束矛盾阶段")
 		_check(_queue().get_pending_contradiction_count() == 0 and not _area.has_visible_contradiction_repeats(), "休息阶段不再推进矛盾复读")
 
 
@@ -378,6 +387,7 @@ func _verify_three_candidate_overlap_selection() -> void:
 	_aim_at_point(aim_point)
 	_mouse_button(true)
 	await _wait(0.24)
+	_aim_at_point(aim_point)
 	_mouse_button(false)
 	await _wait(0.29)
 	if _snapshots.size() <= snapshots_before:
@@ -385,8 +395,10 @@ func _verify_three_candidate_overlap_selection() -> void:
 		return
 	var oracle_shot: AttackTargetSnapshot = _snapshots.back()
 	var target_ids: Array[int] = oracle_shot.get_target_instance_ids()
+	print("INT01 overlap first=", first_rect, " second=", second_rect,
+		" release_aim=", oracle_shot.get_aim_center_global_position(), " targets=", target_ids)
 	_check(target_ids.has(first_instance_id) and target_ids.has(second_instance_id), "同一发快照覆盖相邻两条神谕候选")
-	var confirmation_state := _sandbox.get("_oracle_confirmation_state") as FinalOracleConfirmationState
+	var confirmation_state := _sandbox.get_contradiction_oracle_flow().get_confirmation_state() as FinalOracleConfirmationState
 	var selected_candidate: Dictionary = confirmation_state.get_confirmed_selection(session.get_level_id())
 	_check(str(selected_candidate.get("original_sentence_id", "")) == first_candidate_id, "同发命中多句时只确认准心中心最近的一句")
 	_check(_submissions.size() == submissions_before and is_equal_approx(_hit().get_player_pk(), pk_before), "多目标神谕攻击不进入 HitResolution 或改变 PK")
@@ -396,7 +408,7 @@ func _verify_three_candidate_overlap_selection() -> void:
 func _verify_oracle_timeout_pause_and_auto_pick() -> void:
 	await _replace_sandbox()
 	var session: FinalOracleSession = await _open_oracle_with_hit_history(3)
-	var timer := _sandbox.get("_oracle_selection_timer") as FinalOracleSelectionTimer
+	var timer := _sandbox.get_contradiction_oracle_flow().get_selection_timer() as FinalOracleSelectionTimer
 	var pause_menu: Node = _sandbox.get_node("%PauseMenu")
 	var expected_candidate: Dictionary = session.select_timeout_candidate()
 	var submissions_before: int = _submissions.size()
@@ -408,10 +420,10 @@ func _verify_oracle_timeout_pause_and_auto_pick() -> void:
 	_check((_sandbox.get_node("%BattleStateFeedback") as Label).text == status_before_pause, "暂停时战斗状态栏保留剩余时间")
 	pause_menu.resume_game()
 	await _wait(10.2)
-	var confirmation_state := _sandbox.get("_oracle_confirmation_state") as FinalOracleConfirmationState
+	var confirmation_state := _sandbox.get_contradiction_oracle_flow().get_confirmation_state() as FinalOracleConfirmationState
 	var selected_candidate: Dictionary = confirmation_state.get_confirmed_selection(session.get_level_id())
 	_check(str(selected_candidate.get("original_sentence_id", "")) == str(expected_candidate.get("original_sentence_id", "")), "10 秒到期后按 FO-08 顺序自动确认正确原句")
-	_check(_sandbox.get("_oracle_selection_timer") == null and not _attack.can_start_charging(), "自动确认后停表并关闭攻击选择")
+	_check(_sandbox.get_contradiction_oracle_flow().get_selection_timer() == null and not _attack.can_start_charging(), "自动确认后停表并关闭攻击选择")
 	_check(_hit().get_player_pk() >= 1.0 and _submissions.size() == submissions_before, "超时神谕确认不提交普通命中 PK")
 
 
@@ -446,7 +458,7 @@ func _open_oracle_with_hit_history(candidate_count: int) -> FinalOracleSession:
 	_sandbox.call("debug_set_player_pk", 1.0)
 	await get_tree().process_frame
 	await get_tree().process_frame
-	var break_system := _sandbox.get("_contradiction_break") as ContradictionBreakSystem
+	var break_system := _sandbox.get_contradiction_oracle_flow().get_contradiction_system() as ContradictionBreakSystem
 	if break_system == null:
 		_check(false, "普通 PK 满值后进入矛盾阶段")
 		return null
@@ -454,7 +466,7 @@ func _open_oracle_with_hit_history(candidate_count: int) -> FinalOracleSession:
 	var hit_ids: Array[String] = [break_system.get_true_contradictions()[0].original_sentence_id]
 	break_system.resolve_shot_hit_ids(hit_ids)
 	await _wait(0.7)
-	var session := _sandbox.get("_final_oracle_session") as FinalOracleSession
+	var session := _sandbox.get_contradiction_oracle_flow().get_oracle_session() as FinalOracleSession
 	_check(session != null and session.is_open(), "矛盾击破成功和静音过渡后开放 FinalOracle")
 	return session
 
@@ -473,10 +485,10 @@ func _fire_at(target: Control) -> void:
 	await _wait(0.24)
 	_check(_attack.is_fully_charged(), "正式配置蓄力达到 100%")
 	_aim_at(target)
-	var was_contradiction_stage: bool = bool(_sandbox.get("_contradiction_stage_active"))
+	var was_contradiction_stage: bool = bool(_sandbox.get_contradiction_oracle_flow().is_contradiction_active())
 	_mouse_button(false)
 	if was_contradiction_stage:
-		_check((_sandbox.get("_contradiction_break") as ContradictionBreakSystem).is_result_locked(), "矛盾在释放同帧判定，不等待飞行到达")
+		_check((_sandbox.get_contradiction_oracle_flow().get_contradiction_system() as ContradictionBreakSystem).is_result_locked(), "矛盾在释放同帧判定，不等待飞行到达")
 	await _wait(0.29)
 
 

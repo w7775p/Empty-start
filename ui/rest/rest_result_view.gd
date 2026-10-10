@@ -47,6 +47,12 @@ func _ready() -> void:
 	_loser_card_history.back_requested.connect(_on_loser_card_history_back_requested)
 
 
+# 场景离树时只取消待完成展示；子控件已离树，不能再访问 Viewport 或抢焦点。
+func _exit_tree() -> void:
+	_result_active = false
+	_presentation_id += 1
+
+
 # 保留未击破专用入口；没有周目数据时只显示本场说明。
 func show_unbroken_result(session: RestSession) -> bool:
 	if session == null or not session.is_open():

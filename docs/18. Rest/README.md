@@ -44,6 +44,8 @@ UI、空态、历史查看、环境变化和输入切换全部做实际运行联
 
 现有结果页面为静态展示，没有正式演出时长；默认在下一布局帧调用 `finish_result_performance()`。后续演出可使用新增的第五参数 `wait_for_performance = true`，完成时显式调用该接口；`result_performance_finished` 只通知已结束事实。关闭 / 重开会使旧静态等待失效，隐藏时报告完成无效，重复完成不会重复通知。没有补写正式动画、文案或平衡配置。
 
+INT-08 真实回归补齐离树清理：`RestResultView._exit_tree()` 撤销当前展示标记和等待编号，旧布局帧回调不会在关卡重开或场景移除后访问控件焦点。正常关闭仍使用 `hide_result()`；离树只取消等待，避免子控件已离树后再访问空 Viewport。验证见 Integration 的 INT-08 日志。
+
 准心通过公开 `configure_battle_aim(aim: AimReticle)` 注入。Rest 显示期间暂停其输入处理，历史面板保持原生悬停、点击和滚动；`hide_result()` 恢复准心进入前的处理状态。蓄力 / 发射仍由 Sandbox 原有 `set_combat_active(false)` / `lock_new_attacks()` 路径负责，菜单解锁不会调用攻击启用接口。按 [Godot 输入事件文档](https://docs.godotengine.org/en/stable/tutorials/inputs/inputevent.html)，在 `_input()` 消费移动会同时阻断 GUI，因此菜单阶段保留完整事件传递。
 
 **Lane A 集成完成（2026-10-09，PR #78 补做）**：正式 Sandbox 在 `_ready()` 中创建 Rest 页面并 `add_child()` 后调用一次以下接口。重开及继续路由复用该实例，保留原有唯一的继续信号连接。

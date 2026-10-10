@@ -93,6 +93,11 @@ func get_normal_hit_history() -> Array[Dictionary]:
 	return history_copy
 
 
+# 流程重试后续奖励前读取本场提交事实，避免再次累计普通历史。
+func has_committed_normal_hit_history() -> bool:
+	return _normal_history_committed
+
+
 # PK 胜利后只合入本场普通命中一次；旧原句沿用首次正式提交顺序。
 func commit_normal_hit_history(run_data: SaveData) -> bool:
 	if run_data == null or _normal_history_committed:

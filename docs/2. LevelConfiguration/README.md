@@ -179,3 +179,7 @@ LevelProfile 新增可选 normal_speech_pool_source: LevelSpeechPool，使用 ge
 - 05与11的首关ID已统一为 `level_001`；现有正式 `.tres` 与导表器还需 [LC-10](tasks/LC-10_pending-data-import-and-integration.md) 对接四关及新表字段。
 
 现有 Godot `LevelProfile` 类型和两关示例资源持续作为程序实现基础，正式资源随LC-10导表集成。
+
+## 2026-10-10 新版主播粉丝团名称
+
+策划总表的 `02_主播关卡.fan_group_name` 用于该关对手直播间**主播名右侧**的 `❤粉丝团名❤` 文字，原字段名 `fan_badge_text` 已弃用。PA-20 将把此名称接入 `LevelProfile` 和正式 BattleHud，玩家侧仍直接读取 `SaveData.fan_group_name`。对手 `fan_badge_id / fan_badge_texture` 与玩家共享资源 `player_fan_badge` 继续用于 LD-15 直播评论内粉丝身份标记。参见 `docs/Shared/PresentationAssets/tasks/PA-20_header-fan-group-name.md`。

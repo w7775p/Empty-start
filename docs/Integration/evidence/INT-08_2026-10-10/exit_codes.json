@@ -1,0 +1,134 @@
+[
+  {
+    "run": "import",
+    "godot_exit_code": -1
+  },
+  {
+    "run": "import_cached",
+    "godot_exit_code": -1
+  },
+  {
+    "run": "import_noautoload",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "import_explicit_quit",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "flow_check",
+    "godot_exit_code": -1073741819
+  },
+  {
+    "run": "import_restored",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "flow_check_final",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "int08_gui",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "int01_gui",
+    "godot_exit_code": 1
+  },
+  {
+    "run": "int04_gui",
+    "godot_exit_code": 1
+  },
+  {
+    "run": "int04_gui_final",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "int01_gui_final",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "int08_gui_final",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "test_cb_04_window_shots",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "test_cb_05_shot_result",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "test_cb_06_timeout_result",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "test_cb_07_lock_result",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "test_candidate_pool",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "test_rs_08_reopen_idempotent",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "test_rs_09_next_level",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "test_rs_10_to_divine_descent",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "test_int07_flow",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "int01_gui_verified",
+    "godot_exit_code": 1
+  },
+  {
+    "run": "int01_gui_short_fixture",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "int08_gui_verified",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "int04_gui_verified",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "export_scene_smoke",
+    "godot_exit_code": 1
+  },
+  {
+    "run": "sandbox_gui",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "export_scene_smoke_final",
+    "godot_exit_code": 1
+  },
+  {
+    "run": "rest_view_check",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "hit_resolution_check",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "export_scene_smoke_verified",
+    "godot_exit_code": 0
+  },
+  {
+    "run": "export_scene_smoke_cleanup",
+    "godot_exit_code": 0
+  }
+]

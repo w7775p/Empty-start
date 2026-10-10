@@ -94,9 +94,15 @@ LD-10 等 18. Rest。
 
 最小场景验收入口为 `tests/live_data/ld11_hud_smoke.tscn`，覆盖正式战斗两侧 HUD、四项边界值、Resource 通知、图标与方向切换、数据源替换和显式解绑；`-- --gui-review` 保留图形窗口 45 秒供查看。验证结果见 [LD-11 日志](直播数据表现系统_LD-11_2026-10-10_log.md)。Android 真机验收未执行。
 
+## 2026-10-10 最新：观众固定账号 ID、主播信息区粉丝团文字
+
+顶部主播信息区按 PA-20 显示 `主播名    ❤粉丝团名❤`，不再显示静态粉丝牌槽。玩家团名来自 `SaveData.fan_group_name`，对手团名从 `LevelProfile.fan_group_name`（新增待接线）提供。原有粉丝牌 Texture2D 仅用于本系统 LD-15 中有粉丝身份的评论行。
+
+`25_直播观众账号` 提供 `viewer_id / display_name / audience_type / side_scope / streamer_id / weight / enabled / notes`；`19_直播评论词库` 提供 `comment_id / viewer_id / text / streamer_id / weight / enabled / notes`。一条评论通过 `viewer_id` 读取稳定昵称与粉丝/路人身份；同一个用户可拥有多条评论。用户 ID 和昵称的稳定性由 LD-12 读取时保障，LD-13 负责按侧、主播及权重抽取，LD-14 负责展示 `昵称：正文`，LD-15 负责评论专属粉丝牌，LD-16 负责开播切关生命周期。
+
 ## LD-12～LD-16：双侧直播评论流（普通评论第一版）
 
-已确认：直播间评论采用**配置表随机文字**，每条评论有用户名、正文与粉丝/路人类型；玩家、对手两侧各自独立刷新并向上滚动。粉丝显示所在主播阵营粉丝牌，路人仅显示昵称和正文；本版只显示普通评论。刷新频率、滚动速度、同屏可见数采用可调参数，实机以清晰、不眼花缭乱为验收标准。
+已确认：直播间评论采用**观众账号表 + 评论词库表**，观众账号持有稳定ID、昵称和粉丝/路人身份；评论通过 viewer_id 绑定发言者；玩家、对手两侧各自独立刷新并向上滚动。粉丝显示所在主播阵营粉丝牌，路人仅显示昵称和正文；本版只显示普通评论。刷新频率、滚动速度、同屏可见数采用可调参数，实机以清晰、不眼花缭乱为验收标准。
 
 此显示流独立于现有 LD-05 的 `comment_count`：LD-05 继续按真实弹幕/复读生成事实累计四项指标中的评论数；模拟直播聊天只展示观众评论文本与滚动，不引入额外 PK、粉丝资源或统计增量。
 
@@ -113,3 +119,5 @@ LD-10 等 18. Rest。
 ## 2026-10-10 直播评论按对手配置
 
 策划 `19_直播评论词库` 在原 `comment_id / username / text / audience_type / side_scope / weight / enabled` 后新增可选 `streamer_id`。LD-12导表按 `side_scope` 与当前 `LevelProfile.streamer_id` 共同过滤；`streamer_id` 空表示通用评论，指定值表示该对手专属评论。LD-16在直播开场、重开与关卡切换时按新对手重取候选，并复用当前侧粉丝牌。四项直播统计继续由现有LiveSessionData更新，随机聊天属于展示。
+
+当前仓库中 `PresentationAssetConfig.player_fan_badge` 与 `LevelProfile.fan_badge_texture` 已可提供评论专属粉丝牌纹理；顶部粉丝团名归 PA-20。`19_直播评论词库` 与 `25_直播观众账号` 是两张相互引用的普通评论数据表，均与 `09_直播数据` 真实业务计数分离。
