@@ -3,6 +3,6 @@
 [ext_resource type="Script" path="res://systems/combat_attack/aim_reticle.gd" id="1_aim_reticle"]
 
 [node name="AimReticle" type="Control"]
-custom_minimum_size = Vector2(32, 32)
+custom_minimum_size = Vector2(144, 144)
 mouse_filter = 2
 script = ExtResource("1_aim_reticle")

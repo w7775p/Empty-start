@@ -152,9 +152,9 @@ LevelProfile 新增可选 normal_speech_pool_source: LevelSpeechPool，使用 ge
 
 测试场景为 tests/fixtures/data_export/test_only_sandbox.tscn，注入测试关卡目录；正常主场景默认继续使用原关卡目录。导表方法、已实现映射、策划确认后的替换方式详见 tools/README.md。
 
-## 待办：LC-10 正式导表与新增需求联调（未完成）
+## 2026-10-08 阶段记录：LC-10 正式导表待办（未完成）
 
-当前导表工具已完成 Excel/XLSX → CSV 数据校验及 TEST_ONLY 02/03/04/05 → Godot 关卡 Resource 的联调路径。正式关卡与矛盾表尚无有效记录，生成数值仍待填写；正式运行关卡仍用占位配置。正式数据绑定和跨系统联调尚未完成。**本系统先暂停新增需求讨论与开发；等待其他系统新增任务卡及策划正式数据确定后，再补充 LC-10 的具体实施和验收。**详见 `tasks/LC-10_pending-data-import-and-integration.md`。
+当前导表工具已完成 Excel/XLSX → CSV 数据校验及 TEST_ONLY 02/03/04/05 → Godot 关卡 Resource 的联调路径。正式关卡与矛盾表尚无有效记录，生成数值仍待填写；正式运行关卡仍用占位配置。正式数据绑定和跨系统联调尚未完成。**此为旧阶段的暂停记录；现行字段、拆卡和开工条件以下方 2026-10-10 新需求和最新版 LC-10/LC-13 为准。**详见 `tasks/LC-10_pending-data-import-and-integration.md`。
 
 ## 2026-10-09 新确认规则与单功能任务卡
 
@@ -166,3 +166,21 @@ LevelProfile 新增可选 normal_speech_pool_source: LevelSpeechPool，使用 ge
 | [LC-12](tasks/LC-12_special-trait-instance-cap.md) | 特殊特性话语的同屏实例上限配置 | 待实施 |
 
 本轮任务卡逐项说明触发条件、应发生的行为与验收结果；派工时依赖最新卡片和系统当前代码。
+
+## 2026-10-10 四关策划表与新接口（未开始正式导表）
+
+当前策划 Google Sheets：`02_主播关卡` 已确定 `level_001/alien`、`level_002/kiwi`、`level_003/frog`、`level_004/fox`，四关均为正式PK，首关负责新手教学。战斗数值保留现有可调入口，待策划函数建模。
+
+- **02表现行16列：**`level_id, level_order, streamer_id, streamer_name, portrait_set_id, tutorial_config_id, story_config_id, live_theme, fan_group_name, background_asset_id, word_pool_id, contradiction_set_id, enabled, notes, fan_badge_asset_id, 新需求对接状态`。原 `avatar_asset_id`、`special_play_id`、`loser_card_id` 已从策划表移除；败者卡用 `streamer_id`、反击池用 `streamer_id + tier`。
+- **03_普通词库：**用于中央可击中的普通战斗弹幕，按 `pool_id` 构造 `LevelSpeechPool`，由02.`word_pool_id` 关联；正式源池归属与 `source_streamer_id` 映射按 LC-10 未决事项处理，保持与19直播评论和20事件对白分离。
+- **23_对手立绘配置：**通过 `portrait_set_id` 关联 `streamer_id`，包含 idle、tier_01～03、defeat、可选过渡图和击败效果ID。已有 `alien`、`kiwi`、`fox` 记录，`frog` 的美术与演出之后补齐。由 PA-15/17 消费。
+- **24_新手教学配置：**通过 `tutorial_config_id` 关联首关，提供步骤ID、顺序、触发事件、提示文本、完成事件与启用标记。当前三步为未启用草案；新增 [LC-13](tasks/LC-13_first-level-tutorial-steps.md) 负责读取真实输入事实并按事件推进。
+- **05_关卡生成：**新增可选 `special_instance_screen_cap`，留空沿用06.`special_foreground_instance_cap`。对战前景总容量仍归08 Tier配置（CS-24）。
+- **20/21/19表：**02.`story_config_id` 关联20表同名剧情配置ID，按本场主播校验归属；20的 `trigger_type/trigger_key`、指定原句、时间节点驱动SD-05～07，新增 `line_order` 保证同事件多句剧情对白按顺序显示（SD-08/SD-03）。反击候选按 `streamer_id + tier`（CS-28），直播评论按 `side_scope + 可选streamer_id`（LD-12）。
+- 05与11的首关ID已统一为 `level_001`；现有正式 `.tres` 与导表器还需 [LC-10](tasks/LC-10_pending-data-import-and-integration.md) 对接四关及新表字段。
+
+现有 Godot `LevelProfile` 类型和两关示例资源持续作为程序实现基础，正式资源随LC-10导表集成。
+
+## 2026-10-10 新版主播粉丝团名称
+
+策划总表的 `02_主播关卡.fan_group_name` 用于该关对手直播间**主播名右侧**的 `❤粉丝团名❤` 文字，原字段名 `fan_badge_text` 已弃用。PA-20 将把此名称接入 `LevelProfile` 和正式 BattleHud，玩家侧仍直接读取 `SaveData.fan_group_name`。对手 `fan_badge_id / fan_badge_texture` 与玩家共享资源 `player_fan_badge` 继续用于 LD-15 直播评论内粉丝身份标记。参见 `docs/Shared/PresentationAssets/tasks/PA-20_header-fan-group-name.md`。

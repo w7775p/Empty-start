@@ -31,7 +31,7 @@
 - `SaveData.streamer_name`、`SaveData.fan_group_name` 与 `SaveData.identity_id` 保存本周目确认结果；新周目初始化为空值，确认后由 `SaveManager.set_identity_data()` 一次写入。
 - 新增字段有明确空值默认，并兼容旧版 SaveData，因此 `SaveData.CURRENT_VERSION` 保持 `1`。
 - `ui/identity_setup/identity_setup.tscn/.gd` 提供三个独立全屏步骤。最终经 SaveManager 写入资料和开局倾向、保存成功后发出 `opening_saved(run_data: SaveData)`；RS-12 接收该事实后通过 SceneRouter 打开独立开局房间；路由失败仅重试进入房间。
-- 第二步只展示 ID-08 正式标题与描述，图标字段保留且不用于分组表现。
+- 第二步初始显示十二张占位卡背，首次点击翻开该卡，再次点击正面选择；正面沿用 ID-08 正式标题与描述，图标字段保留且不用于分组表现。
 
 ## 当前仓库状态
 
@@ -55,6 +55,7 @@
 | ID-07 | 自定义粉丝团名并写入本周目数据 | 复用 ID-02 名称确认测试 |
 | ID-08 | 十二身份卡片选择与开局三倾向映射（独立步骤已实现） | 1 个 CSV/映射回归用例、原锁定测试、真实图形 UI smoke 通过 |
 | ID-09 | 三步开局流程：主播取名 → 12 身份卡 → 粉丝团取名，最终提交已实现，房间接入 BLOCKED_RS12 | 复用原有存档测试与真实流程 smoke；RS-12 负责开局房间入口 |
+| ID-10 | 单张身份卡独立翻开，二次点击选择，回退保留本轮状态（已实现） | Godot 4.7.2 Windows GUI / headless 事件 smoke，既有身份回归通过 |
 
 ## ID-08 可复用身份步骤（2026-10-09）
 
@@ -121,3 +122,12 @@ ID-07 完成后，本周目的主播名、粉丝团名和身份使用稳定数�
 | [ID-13](tasks/ID-13_opening-identity-flow-reorder.md) | 将既有身份步骤接入开场漫画流程 | ID-10～ID-12、现有 ID-09/RS-12 |
 
 身份资源、十二卡固定混排顺序、单选信号、姓名确认、三项存档与房间入口均沿用现有实现；程序任务以界面事件与流程为边界，画面内容由美术自行制作。
+
+## ID-10 单张身份卡翻开（2026-10-10）
+
+- `identity_selection.gd` 以身份 ID 保存各卡的页面临时翻开状态；新页面初始十二张背面。首次点击只翻该卡，保留已有选择且不发 `selection_changed`；正面再次点击复用原单选与 `next_requested`。
+- 卡背使用“身份牌 / 点击翻开”文字占位。`_present_card_face(button: Button, revealed: bool)` 是统一表现入口，目前直接切换 `CardFace/Front` 与 `CardFace/Back`，后续美术从此接图片或翻面动画；本卡没有正式翻牌美术。
+- ID-09 返回主播取名或从粉丝团取名回退时复用同一控件，保留已翻开的卡及当前选择。`restore_selection()` 恢复正式选项时让所选卡保持正面；其余卡的状态保持。创建新页面会重置临时状态。
+- 键盘聚焦仅滚动到卡片，Enter 与鼠标采用相同的两次操作。十二份资源、名称、正文、顺序、稳定 ID、SaveData 与既有信号签名保持原样。
+- Windows Godot `4.7.2.stable.steam.ed1daf0bf` 的实际 GUI 和 headless smoke 各通过 115 项检查，退出码均为 0；1920×1080 与 960×540 截图已核对。自动事件注入覆盖逐卡两次点击、选择保留、两个步骤回退、键盘和小窗口下一步。既有映射、名称和锁定测试退出码均为 0。
+- 未进行人工物理键鼠、Android 实机、最终保存或房间路由复验；详细命令、失败修正与证据位置见 [ID-10 日志](身份系统_ID-10_2026-10-10_log.md)。ID-11～ID-13 继续由各自任务卡负责。

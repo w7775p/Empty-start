@@ -25,6 +25,7 @@
 | [SD-05](tasks/SD-05_specific-sentence-reply.md) | 击中特定话语触发对手预设对白 | SD-01、SD-03、SD-04 |
 | [SD-06](tasks/SD-06_combat-state-dialogue-event.md) | 根据连线、Tier、输赢状态播放配置对白 | SD-01、SD-03；CS-22、CS-27 提供状态事件 |
 | [SD-07](tasks/SD-07_timed-opponent-dialogue.md) | 战斗进行时按时间触发对手对白 | SD-01、SD-03、Sandbox 战斗状态 |
+| [SD-08](tasks/SD-08_per-streamer-dialogue-table-binding.md) | 按当前关剧情配置ID筛选20表并载入SD-01 | SD-01、LC-10；供SD-04～07读取 |
 
 ## 当前已确认与后续输入
 - 已确认：非复读的实际命中由玩家侧复述，复读命中不复述；对手有特定原句答话、状态对白及定时闲聊；普通气泡允许同侧约 3 条同时上浮；剧情优先且完整，定时对白最低优先。
@@ -34,3 +35,26 @@
 
 ## 派工建议
 先做 SD-01～03 的可复用显示能力；SD-04、05、06、07 作为互不重写 HUD 的事件消费者分别接线。阶段系已有卡片继续负责自己的触发条件，保持事件流单向。
+
+## SD-01 当前实现（2026-10-10）
+
+SD-01 数据配置已完成。代码和空的正式配置位于 `data/streamer_bubble_dialogue/`，完成记录见 [SD-01 日志](双主播气泡对话系统_SD-01_2026-10-10_log.md)。
+
+- `BubbleDialogueEntry` 是可在 Inspector 编辑的 Resource：`side` 使用 `SpeakerSide.PLAYER / OPPONENT`，`text` 为显示文本，`original_sentence_id` 沿用 `LevelSpeech` 的 String 原句 ID（可空），`event_id` 为 StringName 事件 ID，`display_duration_seconds` 为停留秒数，`priority` 为可编辑优先级。
+- `Priority.PLOT=2 > HIT=1 > TIMED_IDLE=0`；指定原句答话由策划填写对手侧和剧情优先级。条目初值为玩家侧、命中优先级、3 秒，正式时长仍待试玩确认。
+- `BubbleDialogueConfig.entries` 保存本场条目。`find_by_sentence(id, side=ANY_SIDE)` 按原句读取；`find_by_event(event_id, side=ANY_SIDE, original_sentence_id="")` 是事件请求的读取入口，空原句参数表示该事件的全部原句。结果保持配置顺序，允许同事件多句；空或未知查询 ID 返回空数组。读取返回共享的静态条目引用，消费者保持只读。
+- `create_hit_echo(original_sentence_id, original_sentence_text, is_valid_hit, is_repeat)` 从调用方提供的最终事实构造独立条目：有效的非复读命中映射到玩家侧，事件为 `actual_hit`，优先级为 HIT，文本完整保留原句；落空、复读及空白文本返回 null。时长读取当前 `hit_display_duration_seconds`。接口没有收益筛选，因此同样适用于有效负收益话语；它本身不判定命中。
+- `bubble_dialogue_config.tres` 当前无正式对白；策划可新增同类型配置，在 `entries` 中添加条目。后续组合方持有本场配置引用，按事件调用读取接口；本卡未向 `LevelProfile`、Sandbox 或 HUD 增加字段和接线。
+- 本卡只保存配置和生成请求数据。队列、显示上限、优先级调度、气泡 UI、实际命中接线与定时触发留给后续卡，不保存 PK、Tier 或命中历史。
+
+Windows 验证命令（Godot 4.7.2）：
+
+```powershell
+& ./tests/streamer_bubble_dialogue/run_windows.ps1 -GodotExe '<Godot 4.7.2 Windows exe>'
+```
+
+脚本将本模块复制到工作树 `.godot/sd01/harness` 的临时纯数据工程，避免无关 Autoload；执行三个脚本的 `--headless --check-only --script` 与 Resource 读写和查询 smoke。测试文本仅在 `tests/streamer_bubble_dialogue/` 的测试进程内创建；正式数据保持空。已验证 Windows headless，PC GUI、正式场景集成及 Android 硬件均未验证。
+
+## 2026-10-10 当前主播对白接线
+
+Google Sheets `02_主播关卡.story_config_id` 指向 `20_主播气泡对白.story_config_id`；两个表的 `streamer_id` 同时用于对手身份校验。四关预留 `story_level_001`～`story_level_004`，正式对白尚待策划填写。20表保留 `trigger_type`（`hit_word / connect / tier_up / tier_down / win / lose / timed`）、`trigger_key`、`source_word_id`、`trigger_time_s`、发言方、显示时长与优先级，并新增 `line_order` 让相同事件触发的多条剧情对白明确播放顺序。SD-01已完成配置和查询入口；新增 [SD-08](tasks/SD-08_per-streamer-dialogue-table-binding.md) 按当前关剧情配置ID把20表转换为既有 `BubbleDialogueConfig`，由SD-03～07消费事件。

@@ -37,6 +37,8 @@ enum DisplaySide { PLAYER_LEFT, OPPONENT_RIGHT }
 @onready var _fan_metric: RichTextLabel = %FanMetric
 
 var _live_session: LiveSessionData = null
+# 仅缓存最近展示输入，避免图标或方向变化时从 k 文本反推并丢失整数。
+var _display_values: Array[int] = [0, 0, 0, 0]
 
 
 # 编辑器只预览展示方向；运行时按独立绑定配置读取当前周目。
@@ -63,22 +65,23 @@ func bind_live_session(session: LiveSessionData) -> void:
 		set_values(0, 0, 0, 0)
 
 
-# 将调用方提供的四项数值直接映射到文本，不保存敌方业务状态。
+# 保留调用方的原始展示输入；业务状态仍由数据源持有。
 func set_values(viewer_count: int, like_count: int, comment_count: int, fan_count: int) -> void:
+	_display_values = [viewer_count, like_count, comment_count, fan_count]
+	if not is_node_ready():
+		return
 	_render_metric(_viewer_metric, viewer_icon, viewer_count)
 	_render_metric(_like_metric, like_icon, like_count)
 	_render_metric(_comment_metric, comment_icon, comment_count)
 	_render_metric(_fan_metric, fan_icon, fan_count)
 
 
-# 绑定数据时读取唯一来源；仅改展示配置时沿用标签中的当前整数。
+# 绑定时读取数据源；未绑定时按最近的原始展示输入重新排版。
 func _refresh_values() -> void:
 	if not is_node_ready():
 		return
 	if _live_session == null:
-		# parsed_text 去掉 BBCode；to_int 忽略 Emoji 等非数字，避免新增数值副本。
-		set_values(_viewer_metric.get_parsed_text().to_int(), _like_metric.get_parsed_text().to_int(),
-			_comment_metric.get_parsed_text().to_int(), _fan_metric.get_parsed_text().to_int())
+		set_values(_display_values[0], _display_values[1], _display_values[2], _display_values[3])
 		return
 	set_values(_live_session.viewer_count, _live_session.like_count,
 		_live_session.comment_count, _live_session.fan_count)
@@ -86,9 +89,11 @@ func _refresh_values() -> void:
 
 # 四项标签独立渲染，后续单项变色或 Tween 可在此接入。
 func _render_metric(metric: RichTextLabel, icon: String, value: int) -> void:
+	# 千以下沿用整数；从 1000 起按千显示一位小数，只转换可见文字。
+	var number_text: String = "%.1fk" % (value / 1000.0) if value >= 1000 else str(value)
 	if display_side == DisplaySide.OPPONENT_RIGHT:
 		metric.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		metric.text = str(value) + icon
+		metric.text = number_text + icon
 	else:
 		metric.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-		metric.text = icon + str(value)
+		metric.text = icon + number_text

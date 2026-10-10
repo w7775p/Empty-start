@@ -6,6 +6,7 @@ signal next_requested(option: IdentityOption)
 var _selected_option: IdentityOption
 var _locked: bool = false
 var _buttons: Array[Button] = []
+var _revealed_ids: Dictionary[StringName, bool] = {}
 
 @onready var _grid: GridContainer = %IdentityCards
 @onready var _scroll: ScrollContainer = %CardScroll
@@ -27,20 +28,28 @@ func _ready() -> void:
 		button.add_theme_stylebox_override("pressed", selected_style)
 		button.add_theme_stylebox_override("hover_pressed", selected_style)
 		var margin := MarginContainer.new()
+		margin.name = "CardFace"
 		margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		for side in ["left", "right", "top", "bottom"]:
 			margin.add_theme_constant_override("margin_" + side, 20)
 		button.add_child(margin)
 		var content := VBoxContainer.new()
+		content.name = "Front"
 		content.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		content.add_theme_constant_override("separation", 12)
 		margin.add_child(content)
 		var title := _make_label(option.display_name, 30)
 		content.add_child(title)
 		content.add_child(_make_label(option.description, 21))
-		button.pressed.connect(_select_card.bind(option))
-		button.focus_entered.connect(_reveal_card.bind(button))
+		var back := _make_label("身份牌\n点击翻开", 30)
+		back.name = "Back"
+		back.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		back.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		margin.add_child(back)
+		_present_card_face(button, _revealed_ids.has(option.identity_id))
+		button.pressed.connect(_on_card_pressed.bind(option, button))
+		button.focus_entered.connect(_scroll_to_card.bind(button))
 		_buttons.append(button)
 	_next.pressed.connect(_request_next)
 	_wire_focus()
@@ -78,9 +87,25 @@ func _wire_focus() -> void:
 	_next.focus_neighbor_top = _next.get_path_to(_buttons[8])
 
 # 使用网格局部坐标滚动，避免缩放后的全局矩形重复影响滚动距离。
-func _reveal_card(button: Button) -> void:
+func _scroll_to_card(button: Button) -> void:
 	_scroll.scroll_horizontal = int(clampf(_scroll.scroll_horizontal, button.position.x + button.size.x - _scroll.size.x + 12, button.position.x))
 	_scroll.scroll_vertical = int(clampf(_scroll.scroll_vertical, button.position.y + button.size.y - _scroll.size.y + 12, button.position.y))
+
+# 背面首次点击只翻本张；正面再次点击才进入既有单选流程。
+func _on_card_pressed(option: IdentityOption, button: Button) -> void:
+	if _locked:
+		return
+	if not _revealed_ids.has(option.identity_id):
+		_revealed_ids[option.identity_id] = true
+		_present_card_face(button, true)
+		_refresh_selection()
+		return
+	_select_card(option)
+
+# 卡背与翻面表现的统一占位入口；后续美术可在此接图或动画，状态由页面持有。
+func _present_card_face(button: Button, revealed: bool) -> void:
+	button.get_node("CardFace/Front").visible = revealed
+	button.get_node("CardFace/Back").visible = not revealed
 
 # 玩家点选可反复切换，已确认周目由调用方传入锁定状态。
 func _select_card(option: IdentityOption) -> void:
@@ -96,7 +121,12 @@ func restore_selection(identity_id: StringName, locked: bool = false) -> void:
 	_selected_option = IdentityOptions.find_option(identity_id)
 	if not locked and not IdentityOptions.CARDS.has(_selected_option):
 		_selected_option = null
+	# 恢复已有正式选择时保证该卡为正面，其他卡的本轮翻开状态保持。
+	if IdentityOptions.CARDS.has(_selected_option):
+		_revealed_ids[_selected_option.identity_id] = true
 	if is_node_ready():
+		for index in range(_buttons.size()):
+			_present_card_face(_buttons[index], _revealed_ids.has(IdentityOptions.CARDS[index].identity_id))
 		_refresh_selection()
 
 # 向流程持有者提供当前具体身份及底层倾向。
@@ -121,7 +151,7 @@ func _refresh_selection() -> void:
 	if _selected_option != null:
 		_status.text = "已选择：%s" % _selected_option.display_name if IdentityOptions.CARDS.has(_selected_option) else "沿用本周目已确认身份"
 	else:
-		_status.text = "已保存身份无法识别，请保留存档并检查配置。" if _locked else "请选择一张身份卡片"
+		_status.text = "已保存身份无法识别，请保留存档并检查配置。" if _locked else "翻开后再点一次选择"
 
 # 仅通知下一步；本视图不会修改 SaveData 或跳转 Game / Rest。
 func _request_next() -> void:

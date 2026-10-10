@@ -1,0 +1,16 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: AMD - AMD Radeon(TM) Graphics
+
+INT04 aim target=(1212.0, 144.0) raw_input=(727.2, 86.4) viewport_mouse=(943.3333, 496.6666) actual_aim=(1212.0, 144.0)
+INT04 aim target=(1212.0, 144.0) raw_input=(727.2, 86.4) viewport_mouse=(943.3333, 496.6666) actual_aim=(1212.0, 144.0)
+INT04 aim target=(1168.0, 144.0) raw_input=(700.8, 86.4) viewport_mouse=(943.3333, 496.6666) actual_aim=(1168.0, 144.0)
+INT04 aim target=(960.0, 452.0) raw_input=(576.0, 271.2) viewport_mouse=(943.3333, 496.6666) actual_aim=(960.0, 452.0)
+INT04 aim target=(1212.0, 144.0) raw_input=(727.2, 86.4) viewport_mouse=(943.3333, 496.6666) actual_aim=(1212.0, 144.0)
+INT04 aim target=(1212.0, 144.0) raw_input=(727.2, 86.4) viewport_mouse=(943.3333, 496.6666) actual_aim=(1212.0, 144.0)
+INT04 Ending layout empty=false scroll=0 title_y=24.0 page_position=(0.0, 0.0) content_position=(0.0, 0.0)
+INT04 ROUTE PASS empty_history=false facts={ "identity": &"identity_orthodox_1", "fans": 14, "tendency": [6, 0, 0], "history": [{ "original_sentence_id": "test_word_01", "tendency": "orthodox", "hit_count": 1, "first_committed_hit_order": 1 }, { "original_sentence_id": "test_word_09", "tendency": "orthodox", "hit_count": 1, "first_committed_hit_order": 2 }], "scripture": 1, "cards": 1, "assimilation": { "inherited_word_weights": { &"test_int04_pool_test_level_01": 1.0 }, "inherited_trait_ids": [&"occlusion"] } }
+INT04 aim target=(1212.0, 144.0) raw_input=(727.2, 86.4) viewport_mouse=(943.3333, 496.6666) actual_aim=(1212.0, 144.0)
+INT04 aim target=(1212.0, 144.0) raw_input=(727.2, 86.4) viewport_mouse=(943.3333, 496.6666) actual_aim=(1212.0, 144.0)
+INT04 Ending layout empty=true scroll=0 title_y=24.0 page_position=(0.0, 0.0) content_position=(0.0, 0.0)
+INT04 ROUTE PASS empty_history=true facts={ "identity": &"identity_orthodox_1", "fans": 14, "tendency": [0, 0, 0], "history": [], "scripture": 0, "cards": 0, "assimilation": { "inherited_word_weights": {  }, "inherited_trait_ids": [] } }
+PASS INT-04 full run checks=88 top_level_routes=10 DD_completed=1

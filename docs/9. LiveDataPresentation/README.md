@@ -32,8 +32,8 @@
 - 当前 `SceneRouter.goto_game()` 指向可玩 Sandbox，左主播区复用 `ui/live_data/live_data_hud.tscn`。开局及原地重开通过 `initialize_session()` 清空本场数据并保留入关粉丝数；Viewer / Like 的事件增量仍等待策划规则。
 - INT-02 将左右下部设为 `448×520`；INT-03 复用同一HUD场景。左边为ICON→数字左对齐，右边为数字→ICON右对齐。旧 Panel / CardPanel、2×2排版和字段标题已移除；四个控件为 `Metrics/ViewerMetric`、`LikeMetric`、`CommentMetric`、`FanMetric`。
 - `display_side` 仅控制图标顺序与对齐；独立的 `auto_bind_player_session` 决定运行时是否默认绑定玩家数据。Sandbox右实例关闭自动绑定，通过 `set_values(0,0,0,0)` 提供明确的零值占位；未来可显式 `bind_live_session()` 注入真实敌方数据源。
-- `set_values(viewer_count,like_count,comment_count,fan_count)` 直接格式化四项富文本，HUD不保存另一份业务数值。当前ICON为可配置的👤/👍/🔊/👥字符串，可换成BBCode图像；单项视觉更新集中在 `_render_metric()`，尚未加入数值动画。
-- 未绑定数据源时，运行期改方向或ICON从标签当前显示内容提取整数再排版，保留调用方传入的显示值；显式 `bind_live_session(null)` 仍清成四项0。
+- `set_values(viewer_count,like_count,comment_count,fan_count)` 保留四项原始整数作为最近展示输入，再格式化富文本；该缓存只供重新排版，业务数值仍由 `LiveSessionData` 或调用方持有。入树前的显式输入可在就绪后展示。当前ICON为可配置的👤/👍/🔊/👥字符串，可换成BBCode图像；单项视觉更新集中在 `_render_metric()`，尚未加入数值动画。
+- 未绑定数据源时，运行期改方向或ICON沿用最近展示输入，避免从缩写文字反解析整数；绑定时重新读取当前 Resource。显式 `bind_live_session(null)` 仍清成四项0。
 - HUD的 `@tool` 分支只渲染编辑器预览和对齐，跳过SaveManager访问。四项支持BBCode、单行、禁滚动、忽略鼠标，保留实际战斗输入。
 - 这些值只供表现和展示读取，不作为 PK、倾向或关卡解锁输入。
 
@@ -90,11 +90,19 @@ LD-10 等 18. Rest。
 两个正式 Sandbox 分支已有 `show_result()` 所需 SaveData，无需新增 Lane A 接线；`show_unbroken_result(session)` 的无上下文兼容入口仍明确显示资料不可用。新增一个 `LiveResult` 原生 Label，沿用现有 Theme，未制作正式展示美术、配置数值或新增永久测试。真实 Godot 4.7.2 D3D12 smoke 与既有单测结果见 `直播数据表现系统_LD-10_2026-10-09_log.md`。
 ## LD-11：四项直播数据 k 缩写
 
-[LD-11 任务卡](tasks/LD-11_live-data-k-number-abbreviation.md) 负责对观看、点赞、评论和粉丝统一执行显示层数字格式化：`999 → 999`、`1000 → 1.0k`、`1100 → 1.1k`、`12500 → 12.5k`。复用当前四个 `RichTextLabel` 和 `set_values()`，玩家区 ICON 在前、敌方区 ICON 在后。格式化前的整数仍是数据源与显式展示入口的真实值；切换图标/显示方向时沿用这些真实整数。
+[LD-11 任务卡](tasks/LD-11_live-data-k-number-abbreviation.md) 已实现四项一致的显示层格式化：0～999 沿用整数；从 1000 起按千保留一位小数并使用小写 `k`，例如 `999 → 999`、`1000 → 1.0k`、`1100 → 1.1k`、`12500 → 12.5k`。小数按 Godot `%.1f` 格式化规则舍入。复用当前四个 `RichTextLabel` 和 `set_values()`，玩家区 ICON 在前、敌方区 ICON 在后。数据源和最近展示输入保持原始整数，切换图标/显示方向继续使用真实值。
+
+最小场景验收入口为 `tests/live_data/ld11_hud_smoke.tscn`，覆盖正式战斗两侧 HUD、四项边界值、Resource 通知、图标与方向切换、数据源替换和显式解绑；`-- --gui-review` 保留图形窗口 45 秒供查看。验证结果见 [LD-11 日志](直播数据表现系统_LD-11_2026-10-10_log.md)。Android 真机验收未执行。
+
+## 2026-10-10 最新：观众固定账号 ID、主播信息区粉丝团文字
+
+顶部主播信息区按 PA-20 显示 `主播名    ❤粉丝团名❤`，不再显示静态粉丝牌槽。玩家团名来自 `SaveData.fan_group_name`，对手团名从 `LevelProfile.fan_group_name`（新增待接线）提供。原有粉丝牌 Texture2D 仅用于本系统 LD-15 中有粉丝身份的评论行。
+
+`25_直播观众账号` 提供 `viewer_id / display_name / audience_type / side_scope / streamer_id / weight / enabled / notes`；`19_直播评论词库` 提供 `comment_id / viewer_id / text / streamer_id / weight / enabled / notes`。一条评论通过 `viewer_id` 读取稳定昵称与粉丝/路人身份；同一个用户可拥有多条评论。用户 ID 和昵称的稳定性由 LD-12 读取时保障，LD-13 负责按侧、主播及权重抽取，LD-14 负责展示 `昵称：正文`，LD-15 负责评论专属粉丝牌，LD-16 负责开播切关生命周期。
 
 ## LD-12～LD-16：双侧直播评论流（普通评论第一版）
 
-已确认：直播间评论采用**配置表随机文字**，每条评论有用户名、正文与粉丝/路人类型；玩家、对手两侧各自独立刷新并向上滚动。粉丝显示所在主播阵营粉丝牌，路人仅显示昵称和正文；本版只显示普通评论。刷新频率、滚动速度、同屏可见数采用可调参数，实机以清晰、不眼花缭乱为验收标准。
+已确认：直播间评论采用**观众账号表 + 评论词库表**，观众账号持有稳定ID、昵称和粉丝/路人身份；评论通过 viewer_id 绑定发言者；玩家、对手两侧各自独立刷新并向上滚动。粉丝显示所在主播阵营粉丝牌，路人仅显示昵称和正文；本版只显示普通评论。刷新频率、滚动速度、同屏可见数采用可调参数，实机以清晰、不眼花缭乱为验收标准。
 
 此显示流独立于现有 LD-05 的 `comment_count`：LD-05 继续按真实弹幕/复读生成事实累计四项指标中的评论数；模拟直播聊天只展示观众评论文本与滚动，不引入额外 PK、粉丝资源或统计增量。
 
@@ -107,3 +115,9 @@ LD-10 等 18. Rest。
 | [LD-16](tasks/LD-16_chat-feed-lifecycle-wiring.md) | 战斗时启动与重置双方直播评论流 | LD-12～LD-15 |
 
 当前仓库中 `PresentationAssetConfig.player_fan_badge` 与 `LevelProfile.fan_badge_texture` 已可提供两侧资源；正式风格由现有美术资源替换入口承接。新词库为独立 `19_直播评论词库`，与 `09_直播数据` 数值规则表分别管理。
+
+## 2026-10-10 直播评论按对手配置
+
+策划 `19_直播评论词库` 在原 `comment_id / username / text / audience_type / side_scope / weight / enabled` 后新增可选 `streamer_id`。LD-12导表按 `side_scope` 与当前 `LevelProfile.streamer_id` 共同过滤；`streamer_id` 空表示通用评论，指定值表示该对手专属评论。LD-16在直播开场、重开与关卡切换时按新对手重取候选，并复用当前侧粉丝牌。四项直播统计继续由现有LiveSessionData更新，随机聊天属于展示。
+
+当前仓库中 `PresentationAssetConfig.player_fan_badge` 与 `LevelProfile.fan_badge_texture` 已可提供评论专属粉丝牌纹理；顶部粉丝团名归 PA-20。`19_直播评论词库` 与 `25_直播观众账号` 是两张相互引用的普通评论数据表，均与 `09_直播数据` 真实业务计数分离。

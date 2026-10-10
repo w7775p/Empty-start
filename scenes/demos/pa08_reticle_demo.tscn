@@ -1,0 +1,53 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scenes/demos/pa08_reticle_demo.gd" id="1_demo"]
+[ext_resource type="PackedScene" path="res://systems/combat_attack/aim_reticle.tscn" id="2_aim"]
+[ext_resource type="Texture2D" path="res://assets/environment/live/player_live_temp.png" id="3_bg"]
+[ext_resource type="Texture2D" path="res://assets/characters/opponents/kiwi/kiwi_idle.png" id="4_kiwi"]
+
+[node name="PA08ReticleDemo" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_demo")
+
+[node name="Backdrop" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+modulate = Color(0.45, 0.64, 0.71, 0.75)
+texture = ExtResource("3_bg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Darken" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.026, 0.038, 0.055, 0.67)
+
+[node name="Opponent" type="TextureRect" parent="."]
+offset_left = 1320.0
+offset_top = 135.0
+offset_right = 1870.0
+offset_bottom = 945.0
+mouse_filter = 2
+modulate = Color(0.92, 0.96, 1, 0.8)
+texture = ExtResource("4_kiwi")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="AimReticle" parent="." instance=ExtResource("2_aim")]
+layout_mode = 0
+z_index = 10

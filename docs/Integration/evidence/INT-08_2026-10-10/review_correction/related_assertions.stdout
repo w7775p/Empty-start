@@ -1,0 +1,53 @@
+=== cb04 ===
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+PASS: full charge launch consumes one
+PASS: undercharge cancel keeps chance
+CB-04: 2 cases passed
+
+=== cb05 ===
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+PASS: true in one shot breaks
+PASS: false only consumes and continues
+PASS: empty hit consumes and continues
+CB-05: 3 cases passed
+
+=== cb06 ===
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+PASS: remaining chance continues
+PASS: exhausted chances give PK win without break
+PASS: timeout gives PK win without break
+CB-06: 3 cases passed
+
+=== cb07 ===
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+PASS: first outcome remains fixed and attacks close
+CB-07: 1 case passed
+
+=== fo02_09 ===
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+通过：FO-02 至 FO-09 候选生成、排序、超时选择与单次确认
+
+=== rs08 ===
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+PASS RS-08：重复打开只读已提交成果，奖励与关卡没有额外变化，1/1
+
+=== rs09 ===
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+PASS RS-09：有下一关时返回 ADVANCED 并进入正确普通关，1/1
+
+=== rs10 ===
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+PASS RS-10：全部普通关完成时选择终局路线，1/1
+
+=== int07 ===
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+PASS INT-07 flow completion/cancellation

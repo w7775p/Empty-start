@@ -5,6 +5,36 @@
 
 Lane A 持有 Sandbox 与顶层路由接线。系统规则、倾向、历史、奖励及结局显示继续归各系统所有者。
 
+## INT-08 矛盾 / 神谕与 Rest 交接（2026-10-10）
+
+`Sandbox` 组合运行时子节点 `ContradictionOracleFlow`，持有本次 `ContradictionBreakSystem`、静音过渡 Timer、`FinalOracleSession`、选择计时和准备好的 `RestSession`。同周目确认状态由流程复用；正常重开、换关与终局均显式 `stop()`，离树作最终清理。没有增加 Autoload 或修改生产 Scene / Resource。
+
+- `Sandbox.get_contradiction_oracle_flow()`：INT-09 的阶段组合入口。普通 PK 满值后沿用 Sandbox 的粉丝及普通复读提交，再调用流程 `start(run_data, catalog, current_level, hit_resolution, combat_stage, area, opponent_pk_bar, attack_input, repeat_queue, candidate_display, battle_config, loser_card_catalog, window_config, audio_manager) -> bool`。注入真实本场组件，所有关卡及配置保持原值。
+- `advance(delta)`：仅在矛盾阶段推进本场复读队列，在候选阶段推进原十秒选择计时；暂停不推进。释放快照同步消耗一次正式机会并立即判定，飞行只保留演出。真、假矛盾均等候队列及可见复读离场；真击破再执行原 0.5 秒静音 Timer。
+- `entered(system)`、`outcome_resolved(outcome)`、`oracle_opened(session)` 是阶段事实；`state_text_changed(text)` 驱动既有 HUD。Sandbox 继续转发原 `final_oracle_opened(session)`。
+- `get_contradiction_system()`、`get_oracle_session()`、`get_selection_timer()`、`get_confirmation_state()` 提供同一业务对象；`is_contradiction_active()` 和 `get_result()` 用于阶段及结果读取。Rest 后保留本次神谕 Session 供核对，停止尝试时清空。
+- `rest_ready(result: RestSession)` 交付已打开的同一结果对象，一次尝试通知一次。真击破结果为 `breakthrough_oracle_complete`，未击破为 `pk_win_unbroken`。Sandbox 仅调用 `RestResultView.show_result()`、转发 `rest_opened` 并保留 Continue / 下一关 / 末关神降临路由。Rest 继续从各数据所有者读取成果，查看历史和返回不发奖。
+
+确认仍复用 `FinalOracleConfirmationState` 与 `ScriptureData.bind_confirmation_state()`：圣典先同步接收，流程核对实际经文，再依次提交普通历史、倾向、败者卡、真正击败、可继承普通池及特性白名单。返回 false 时查询接收方保存的去重事实；正式空卡目录仍沿用无新卡规则，禁止继承和矛盾池继续跳过。`HitResolution.has_committed_normal_hit_history()` 只读原提交标记。
+
+中途写入失败发出 `commit_failed(reason)`，`get_commit_error()` 保留原因，后续奖励和 Rest 交接停止，此前合法成果保持。修复来源配置后可显式 `commit_confirmed_rewards() -> bool` 补齐当前已确认结果；重试读取原数据所有者的去重事实。普通历史与倾向仅由实际首次确认的 HitResolution 提交，同次失败重试复用其原提交标记。成功后使用 `call_deferred()` 等同步确认和攻击回调结束再交接 Rest；同帧重开会取消旧交接。已确认同关重开沿用首次候选，撤回新尝试的普通历史与倾向暂存，只补齐原奖励并读取稳定成果进入新 Rest；复用确认不触发新的神谕确认上涨。
+
+Windows Godot 4.7.2 运行证据、准确退出码、测试入口适配及限制见 [INT-08 日志](Sandbox重构_INT-08_2026-10-10_log.md)。本次只执行 INT-08。
+
+## INT-07 神降临流程抽取（2026-10-10）
+
+`Sandbox` 组合运行时子节点 `DivineDescentFlow`。流程统一持有本次冻结 `DivineDescentSession`、`DivineDescentCombatMode`、子节点 `DivineDescentSpread` 及已接收的 `EndingSession`。原 DD / Ending 规则和生产配置沿用当前实现；没有新增 Autoload 或修改场景资源。
+
+- `start(run_data, catalog, current_level, tier_catalog, hit_resolution, combat_stage, contradiction_break, area, opponent_pk_bar, attack_input, battle_config, decay_config, presentation) -> bool`：入树后调用一次，注入同场组件与完整目录。返回 true 表示已进入终局；正式演出配置缺失仍停留在已进入状态并输出提示，保持 INT-04 行为。
+- `presentation` 消费 Sandbox 已有的 `repeat_interval_seconds`、`fade_seconds`、`hold_seconds`、`input_scale`、`input_return_seconds`、`trait_colors`，默认值与 TEST_ONLY 注入来源保持原值。
+- `entered(session)`：冻结及普通规则关闭后同步通知 Sandbox 收起普通、神谕和 Rest 阶段；Sandbox 继续转发原 `divine_descent_entered(session)`。原始空历史延迟接收 Ending；非空历史沿用扩散、衰减归零、锁句、90% 可见占比及真实 Tween 完成顺序。
+- `advance(delta)`、`handle_input(event) -> bool`：由 Sandbox 每帧及输入入口调用；暂停、停止或完成后不推进。只有实际接受的左键 / 非重复空格表现输入返回 true，Sandbox 此时消费事件。
+- `completed(result: EndingSession)`：同一冻结 Session 接收成功后通知一次。`get_result()` 返回同一已接收对象，Sandbox 只调用真实 SaveManager 存盘和 `SceneRouter.goto_ending(result)`。
+- `stop()`：显式停止新话生成及普通攻击，扩散子树离树并销毁，取消 Timer / Tween；中断不形成完成事实。场景离树执行最终清理。
+- `Sandbox.get_divine_descent_flow()` 与流程的 `get_session()`、`get_combat_mode()`、`get_spread()` 是联调读取入口。冻结快照和可变扩散池仍通过各原组件公开 getter 读取。
+
+Windows Godot 4.7.2 D3D12 / Forward+ 的 INT-04 两条真实 GUI 路线通过（68 checks、10 routes、DD_completed=1、退出 0），含成果存读、一次接收和节点销毁。8 个既有 DD 脚本、RS-10、EN-09 及新增流程完成 / 中断定向测试均 headless 退出 0；正式 Sandbox 直接 GUI 启动退出 0。具体过程、命令和单文件检查限制见 [INT-07 日志](Sandbox重构_INT-07_2026-10-10_log.md)。Android 实机、正式演出参数及人工操作体验仍未验收。INT-08 接手时使用上述流程接口；本卡未执行 INT-08/09/10。
+
 ## INT-04（2026-10-09）
 
 已接通真实 MainMenu → ID-09 三页 → RS-12 开局房间 → 主动开播 → 普通关 1 → Rest → 普通关 2 → DivineDescent → Ending。
