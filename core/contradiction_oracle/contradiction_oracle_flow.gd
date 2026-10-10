@@ -510,4 +510,3 @@ func _open_rest_after_unbroken() -> void:
 	_attack_charge_input.set_combat_active(false)
 	state_text_changed.emit("PK 胜利 · 未击破矛盾 · 休息时刻")
 	rest_ready.emit(_rest_session)
-
