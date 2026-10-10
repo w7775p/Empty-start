@@ -57,11 +57,11 @@ Windows 验证命令（Godot 4.7.2）：
 
 ## 2026-10-10 当前主播对白接线
 
-Google Sheets `02_主播关卡.story_config_id` 指向 `20_主播气泡对白.story_config_id`；两个表的 `streamer_id` 同时用于对手身份校验。四关预留 `story_level_001`～`story_level_004`，正式对白尚待策划填写。20表保留 `trigger_type`（`hit_word / connect / tier_up / tier_down / win / lose / timed`）、`trigger_key`、`source_word_id`、`trigger_time_s`、发言方、显示时长与优先级，并新增 `line_order` 让相同事件触发的多条剧情对白明确播放顺序。SD-01已完成配置和查询入口；新增 [SD-08](tasks/SD-08_per-streamer-dialogue-table-binding.md) 按当前关剧情配置ID把20表转换为既有 `BubbleDialogueConfig`，由SD-03～07消费事件。
+Google Sheets `02_主播关卡.story_config_id` 指向 `20_主播气泡对白.story_config_id`；两个表的 `streamer_id` 同时用于对手身份校验。四关预留 `story_level_001`～`story_level_004`，正式对白尚待策划填写。20表保留 `trigger_type`（`hit_word / connect / tier_up / tier_down / win / lose / timed / random_idle`）、`trigger_key`、`source_word_id`、`trigger_time_s`、发言方、显示时长与优先级，并新增 `line_order` 让相同事件触发的多条剧情对白明确播放顺序。SD-01已完成配置和查询入口；新增 [SD-08](tasks/SD-08_per-streamer-dialogue-table-binding.md) 按当前关剧情配置ID把20表转换为既有 `BubbleDialogueConfig`，由SD-03～07消费事件。
 
 ## 2026-10-10 双侧随机闲聊与03/20内容边界
 
 - 03普通词库的全部候选都是**主角可说出的战斗话语**，随机生成在中央可击中区域。SD-04只在玩家真实有效命中后复述原句，其内容来自03。
 - 20_主播气泡对白独立保存两侧主播的随机闲聊与剧情事件台词。`story_config_id`与`streamer_id`对应02本场关卡与对手，`speaker_side=player/opponent`区分实际发言方。
-- 20表`trigger_type=random_idle`是双方随机闲聊候选，`random_weight`为该侧相对权重（空按1）；标准`priority=timed`对应现有最低优先级。SD-08负责转换和分侧提供候选，新增[SD-07](tasks/SD-07_both-sides-random-idle.md)负责可暂停的独立随机计时、选句和提交SD-03。同一SD-07还负责按明确`trigger_time_s`出现的指定时间对白。
+- 20表`trigger_type=random_idle`是双方随机闲聊候选，`random_weight`为该侧相对权重（空按1）；标准`priority=timed`对应现有最低优先级。SD-08负责转换和分侧提供候选，现有[SD-07](tasks/SD-07_timed-opponent-dialogue.md)负责可暂停的独立随机计时、选句和提交SD-03。同一SD-07还负责按明确`trigger_time_s`出现的指定时间对白。
 - 19直播评论仍属于LD的双侧滚动观众留言，和03中央战斗话语、20主播气泡各自独立。
