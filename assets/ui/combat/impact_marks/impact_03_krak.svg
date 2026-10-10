@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><title>Hand-drawn Comic KRAK</title>
+<g transform="rotate(-10 126 128)">
+<path d="M11 94 L51 88 L61 117 L68 71 L111 72 L119 106 L132 67 L163 67 L178 108 L193 66 L231 70 L222 162 L249 160 L248 204 L213 204 L209 184 L182 201 L156 180 L141 205 L115 186 L91 209 L69 178 L46 208 L12 185Z" fill="#151625" stroke="#151625" stroke-width="8"/>
+<path d="M20 100 L39 94 L37 126 L60 94 L74 101 L52 130 L68 160 L50 175 L38 150 L37 178 L19 177Z" fill="#FFF4DE" stroke="#111526" stroke-width="6"/>
+<path d="M73 91 L104 88 Q127 98 113 124 L102 134 L121 172 L98 183 L91 145 L87 182 L70 184Z M89 106 L89 126 Q104 125 103 112Z" fill="#FFF4DE" stroke="#111526" stroke-width="6" fill-rule="evenodd"/>
+<path d="M123 179 L131 92 L154 82 L177 174 L155 186 L151 164 L141 163 L139 183Z M143 143 L150 143 L145 117Z" fill="#FFF4DE" stroke="#111526" stroke-width="6" fill-rule="evenodd"/>
+<path d="M172 91 L190 87 L189 121 L207 89 L225 101 L207 130 L223 163 L205 178 L192 149 L188 179 L170 178Z" fill="#FFF4DE" stroke="#111526" stroke-width="6"/>
+<path d="M27 188 L232 54 L211 103 L55 218Z" fill="#F36557" stroke="#111526" stroke-width="6"/>
+<path d="M55 197 L206 92" stroke="#FFF5E2" stroke-width="7" stroke-linecap="round"/>
+<path d="M230 132 L240 137 L233 176 L222 177Z M223 188 L239 188 L237 200 L224 204Z" fill="#FFF4DE" stroke="#111526" stroke-width="6"/>
+</g><path d="M19 41 L49 64 M211 219 L236 234 M104 17 L99 42" stroke="#141725" stroke-width="10"/>
+</svg>
