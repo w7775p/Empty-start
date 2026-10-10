@@ -76,6 +76,10 @@ func setup(barrage_record: BarrageRuntimeRecord, move_speed_pixels_per_second: f
 	_visual_bbcode = ""
 	_set_visual_material()
 	_fit_visual_to_sentence(barrage_record.text)
+	# PA-05 只读取现有实例 TraitSet，选择外观不改变战斗结算或命中对象。
+	var special: BarrageSpecialSurface = get_glass_surface() as BarrageSpecialSurface
+	if special != null and barrage_record.trait_set != null and not barrage_record.is_repeat:
+		special.configure_traits(barrage_record.trait_set.get_trait_ids())
 
 
 # 独立视觉富文本接口。由 BG-28 的正式局部样式数据接入时调用，复读保留纯文本。

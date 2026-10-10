@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://systems/barrage_generation/barrage_view.gd" id="1_view"]
-[ext_resource type="Script" path="res://systems/barrage_generation/barrage_glass_surface.gd" id="2_glass"]
+[ext_resource type="Script" path="res://systems/barrage_generation/barrage_special_surface.gd" id="2_glass"]
 
 [node name="BarrageView" type="Label"]
 custom_minimum_size = Vector2(520, 48)
