@@ -1,64 +1,60 @@
 extends BarrageGlassSurface
 
-# 仅供方案预览；通过同一个 BarrageGlassSurface 对外接口展示三档玻璃结构。
-# 选定后由 PA-04 组件负责人把样式迁入正式材质。
+# 强度样式仅用于视觉预览：关注程度来自清晰的板身、外发光和缓慢呼吸。
 var _tier: int = 1
+var _pulse_clock: float = 0.0
+var _redraw_elapsed: float = 0.0
 
 
-# 外部运行记录仍决定强度和倾向，禁止另造战斗数值。
+# 战斗运行记录决定倾向与强度；背景光晕不参与命中、容量及生命周期。
 func configure(tendency: String, strength: int, is_repeat: bool) -> void:
 	super.configure(tendency, strength, is_repeat)
 	_tier = clampi(strength, 1, 3)
+	var tint: Color = get_base_tint()
+	var level: int = _tier - 1
+	# S1 透出场景；S2 形成清晰玻璃；S3 亮面显色并成为场上高价值目标。
+	var fill: Color = Color("#101622").lerp(tint, [0.16, 0.38, 0.62][level])
+	fill.a = [0.66, 0.84, 0.95][level]
+	_glass_style.bg_color = fill
+	var edge: Color = tint.lightened([0.18, 0.39, 0.60][level])
+	edge.a = [0.36, 0.77, 1.0][level]
+	_glass_style.border_color = edge
+	_glass_style.set_border_width_all([1, 2, 3][level])
+	# 彩色外扩光晕提供强度认知，整圈柔光代替刻痕与层叠硬框。
+	var bloom: Color = tint.lightened(0.38)
+	bloom.a = [0.0, 0.34, 0.63][level]
+	_glass_style.shadow_color = bloom
+	_glass_style.shadow_size = [0, 8, 17][level]
+	_glass_style.shadow_offset = Vector2.ZERO
 	queue_redraw()
 
 
-# 不使用整条水平按钮高光，改用切角反射、内沿折光和分层边缘。
+# S3 缓慢呼吸，约每秒 24 次更新绘制，减少同屏多条弹幕的无效刷新。
+func _process(delta: float) -> void:
+	if _tier != 3:
+		return
+	_pulse_clock += delta
+	_redraw_elapsed += delta
+	if _redraw_elapsed >= 1.0 / 24.0:
+		_redraw_elapsed = 0.0
+		queue_redraw()
+
+
+# 保持平整完整的亮面玻璃：强度越高，边缘越亮、柔光越强，无刻痕装饰。
 func _draw() -> void:
 	if size.x < 30.0 or size.y < 20.0:
 		return
-	# Glass base and strength-aware border are provided by the original surface.
+	var highlight_level: float = float(_tier - 1) * 0.5
+	if _tier == 3:
+		# 呼吸振幅温和，形成持续可被余光感知的注意力引导。
+		var pulse: float = 0.5 + 0.5 * sin(_pulse_clock * 3.4)
+		var glow: Color = _glass_style.shadow_color
+		glow.a = lerpf(0.40, 0.72, pulse)
+		_glass_style.shadow_color = glow
+		_glass_style.shadow_size = roundi(lerpf(13.0, 20.0, pulse))
 	draw_style_box(_glass_style, Rect2(Vector2.ZERO, size))
-	var tint: Color = get_base_tint()
-	var rim: Color = tint.lightened(0.48)
-	var w: float = size.x
-	var h: float = size.y
-	var tier_ratio: float = float(_tier - 1) * 0.5
 
-	# All tiers: an upper-right light reflection; no left-side stripe.
-	var edge_reflect: Color = Color.WHITE
-	edge_reflect.a = 0.14 + tier_ratio * 0.34
-	draw_line(Vector2(w * 0.73, 3.7), Vector2(w - 16.0, 3.7), edge_reflect, 1.1 + tier_ratio * 0.75, true)
-	var bottom: Color = tint.darkened(0.35)
-	bottom.a = 0.20 + tier_ratio * 0.35
-	draw_line(Vector2(15.0, h - 4.0), Vector2(w - 15.0, h - 4.0), bottom, 1.0 + tier_ratio, true)
-
-	if _tier >= 2:
-		# S2: two subtle, slanted facets in the upper-right, kept outside text baseline.
-		var sheen: Color = rim
-		sheen.a = 0.22 if _tier == 2 else 0.39
-		draw_colored_polygon(PackedVector2Array([
-			Vector2(w - 59.0, 6.0), Vector2(w - 39.0, 6.0),
-			Vector2(w - 57.0, 15.0), Vector2(w - 72.0, 15.0)
-		]), sheen)
-		var corner: Color = Color.WHITE
-		corner.a = 0.17 if _tier == 2 else 0.35
-		draw_line(Vector2(w - 17.0, 8.0), Vector2(w - 9.0, 16.0), corner, 1.2, true)
-
-	if _tier >= 3:
-		# S3: continuous inset rim for a deep cut-glass look; symmetrical around the panel.
-		var inner: StyleBoxFlat = StyleBoxFlat.new()
-		inner.bg_color = Color.TRANSPARENT
-		inner.border_color = rim
-		inner.border_color.a = 0.55
-		inner.set_border_width_all(1)
-		inner.set_corner_radius_all(maxi(3, roundi(corner_radius - 4.0)))
-		draw_style_box(inner, Rect2(5.0, 5.0, w - 10.0, h - 10.0))
-		# The polished underside provides glass thickness without covering glyphs.
-		var depth: Color = Color.WHITE
-		depth.a = 0.31
-		draw_line(Vector2(16.0, h - 7.5), Vector2(w - 16.0, h - 7.5), depth, 1.0, true)
-		# Short diagonal-cut reflections keep the entire left edge quiet.
-		var diamond: Color = rim
-		diamond.a = 0.65
-		draw_line(Vector2(w - 34.0, 7.0), Vector2(w - 43.0, 17.0), diamond, 1.9, true)
-		draw_line(Vector2(w - 23.0, 7.0), Vector2(w - 32.0, 17.0), diamond, 1.5, true)
+	# 上缘局部漫反射与平缓亮度层次：连续光面，避免尖角划痕与按钮式硬高光。
+	var light: Color = Color(1.0, 1.0, 1.0, 0.07 + 0.16 * highlight_level)
+	var inset: float = maxf(12.0, corner_radius + 5.0)
+	draw_rect(Rect2(inset, 6.0, maxf(1.0, size.x - inset * 2.0), 2.5), light)

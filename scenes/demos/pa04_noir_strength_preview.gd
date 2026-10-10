@@ -25,7 +25,7 @@ func _ready() -> void:
 		_make_label(LABELS[i], Vector2(92 + i * 454, 215), 23, Color(COLOR_HEX[i]))
 	for tier in range(3):
 		_make_label("S%d" % (tier + 1), Vector2(28, 311 + tier * 167), 28, Color("#D7E2F1"))
-		_make_label(["01   Thin glass", "02   Raised bevel", "03   Cut-glass rim"][tier],
+		_make_label(["01   Quiet glass", "02   Bright glass", "03   Luminous target"][tier],
 			Vector2(86, 382 + tier * 167), 17, Color("#8B99A8"))
 	for col in range(4):
 		for tier in range(3):
@@ -33,9 +33,9 @@ func _ready() -> void:
 	_make_label("MATERIAL CLOSE-UP   /   SAME CONTENT, SAME 24PX BASE FONT", Vector2(88, 799), 22, Color("#DDE6F2"))
 	for tier in range(3):
 		_spawn("orthodox", "信仰赋予神明形体", tier + 1, Vector2(135 + tier * 600, 864), 1.45)
-		_make_label(["S1   1px outline", "S2   2px bevel / facet", "S3   3px rim / inset / bold"][tier],
+		_make_label(["S1   Subtle border", "S2   Bright border + halo", "S3   Breathing glow + bold"][tier],
 			Vector2(132 + tier * 600, 960), 18, Color("#A1BBD0"))
-	_make_label("PREVIEW ONLY  /  NO LEFT BAR  /  DESIGN CHOICE PENDING", Vector2(1120, 1055), 17, Color("#99A9BA"))
+	_make_label("PREVIEW ONLY  /  NO SCRATCHES  /  NO LEFT BAR", Vector2(1140, 1050), 17, Color("#99A9BA"))
 	if OS.get_cmdline_user_args().has("--capture-strength"):
 		call_deferred("_capture")
 
@@ -99,6 +99,14 @@ func _capture() -> void:
 	var image: Image = get_viewport().get_texture().get_image()
 	var error: Error = image.save_jpg(ProjectSettings.globalize_path(OUTPUT), 0.92)
 	print("PA04_NOIR_STRENGTH_RENDER=%d; size=%s" % [error, image.get_size()])
+	if error == OK and image.get_size() == Vector2i(1920, 1080):
+		await get_tree().create_timer(0.85).timeout
+		await RenderingServer.frame_post_draw
+		var second: Image = get_viewport().get_texture().get_image()
+		var second_error: Error = second.save_jpg(ProjectSettings.globalize_path(OUTPUT.replace(".jpg", "_breathing.jpg")), 0.92)
+		print("PA04_NOIR_STRENGTH_BREATHING=%d; size=%s" % [second_error, second.get_size()])
+		if second_error != OK:
+			error = second_error
 	if error != OK or image.get_size() != Vector2i(1920, 1080):
 		push_error("PA04_NOIR_STRENGTH_CAPTURE_FAILED")
 		get_tree().quit(1)
