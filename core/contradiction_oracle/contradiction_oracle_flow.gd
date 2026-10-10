@@ -12,6 +12,8 @@ var _run_data: SaveData
 var _current_level: LevelProfile
 var _catalog: LevelCatalog
 var _hit_resolution: HitResolution
+# 仅引用本次首次确认的历史拥有者；复用旧确认的新尝试没有提交资格。
+var _confirmation_hit_resolution: HitResolution
 var _combat_stage: CombatStage
 var _barrage_area: BarrageArea
 var _opponent_pk_bar: OpponentPKBar
@@ -71,6 +73,7 @@ func stop() -> void:
 	_contradiction_stage_active = false
 	_oracle_selection_timer = null
 	_final_oracle_session = null
+	_confirmation_hit_resolution = null
 	_rest_session = null
 	if is_instance_valid(_attack_charge_input):
 		if _attack_charge_input.shot_snapshot_created.is_connected(_on_contradiction_shot_created):
@@ -147,8 +150,13 @@ func commit_confirmed_rewards() -> bool:
 		entry = _run_data.scripture_data.get_entry_for_level(level_id)
 	if entry == null or entry.original_line_id != StringName(str(candidate.get("original_sentence_id", ""))):
 		return _fail_commit("圣典保存结果与首次确认不匹配")
-	if not _commit_history_and_tendency():
-		return false
+	if _confirmation_hit_resolution == _hit_resolution:
+		if not _commit_history_and_tendency():
+			return false
+	else:
+		# 重放旧神谕只补齐原奖励，新尝试的普通暂存由原拥有者撤回。
+		_hit_resolution.discard_uncommitted_normal_hit_history()
+		_run_data.tendency_state.rollback_attempt_tendency()
 	# 正式卡目录缺资料沿用无卡规则；有资料时拒绝写入必须有已有卡片作为去重依据。
 	var cards: LoserCardData = _run_data.loser_card_data
 	var card_added: bool = cards.grant_on_true_defeat(level_id, streamer_id, true, true, loser_card_catalog)
@@ -173,9 +181,10 @@ func commit_confirmed_rewards() -> bool:
 				return _fail_commit("特性继承提交失败")
 	_commit_error = ""
 	_rest_handoff_pending = true
-	_run_data.live_session.start_short_boost(LiveSessionData.BoostEvent.ORACLE_CONFIRMATION,
-		battle_config.oracle_boost_viewer_gain, battle_config.oracle_boost_like_gain,
-		battle_config.oracle_boost_duration_seconds)
+	if _confirmation_hit_resolution == _hit_resolution:
+		_run_data.live_session.start_short_boost(LiveSessionData.BoostEvent.ORACLE_CONFIRMATION,
+			battle_config.oracle_boost_viewer_gain, battle_config.oracle_boost_like_gain,
+			battle_config.oracle_boost_duration_seconds)
 	# 同步确认与攻击回调先结束，帧尾再清候选并交付同一 Rest 对象。
 	_open_rest_after_oracle.call_deferred(_run_data, _final_oracle_session)
 	return true
@@ -392,6 +401,8 @@ func _on_oracle_confirmation_committed(run_data: SaveData, level_id: String, _ca
 	var current_level: LevelProfile = _current_level
 	if current_level == null or current_level.level_id != level_id:
 		return
+	# 同次失败重试继续使用原拥有者；同关重开只读旧确认，不会再次收到此事件。
+	_confirmation_hit_resolution = _hit_resolution
 	commit_confirmed_rewards()
 
 

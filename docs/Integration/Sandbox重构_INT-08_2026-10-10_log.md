@@ -79,3 +79,17 @@ INT-08 定向回归将内存 TEST_ONLY 继承池权重设为 -1：经文、历�
 更新 Integration README 与 12/13/18 的现行组合 / 生命周期说明。新离树问题已写入 Rest 正式文档，按 AGENTS 的归属规则继续由该文档负责；known_traps 保持原值，复用 KT-25/27/34/39。没有修改 Original 原始需求，没有执行其他任务卡。
 
 下一位从 Integration README、INT-09 卡、本日志及 `get_contradiction_oracle_flow()` 开始。PR 提交后停止本任务，等待 review。
+
+## 2026-10-10 PR #116 review 修正：已确认关重放的普通命中
+
+仍在 `codex/lane-a-int08-1010` 继续同一 INT-08 卡。review 复现为：奖励已提交后重开同关，新尝试再命中普通话语，真击破后复用旧神谕；旧入口将新 HitResolution 的历史与倾向再次入账。此前重开用例没有加入普通命中，原“未重复成果”的验收范围因此不足。修改后的用例在旧实现实际 GUI 退出 1，明确失败在重放成果断言。
+
+最小修正仅在流程引用实际首次确认事件所属的 HitResolution，stop 时清空引用。首次确认仍按原顺序提交；同次部分写入失败重试仍使用该拥有者的提交标记及各奖励所有者保存事实；同关重放撤回新尝试历史与倾向暂存，只核验或补齐原奖励、展示原神谕，不再触发神谕确认上涨。没有新增存档字段、管理器、配置、Scene 或 Resource。
+
+只调整现有 `int_08_flow_test.gd` 的一个重放边界：重开后经正式记录接口新增一次普通命中和 +3 正统暂存，核对全部已提交历史、三项累计倾向、暂存撤回、首次确认候选、原节号、圣典 / 卡片数量和吞并快照保持。原中途拒绝、补齐及旧帧尾交接取消用例继续保留。
+
+Windows Godot `4.7.2.stable.steam.ed1daf0bf` 实际复跑结果：INT-08 GUI 23 checks / exit 0，stderr 只有一次预期的“普通词库继承提交失败”；INT-01 GUI 128 checks / exit 0、stderr 空；INT-04 GUI 两路、88 checks / 10 routes / DD_completed=1、exit 0、stderr 空。CB-04/05/06/07、FO-02～09、RS-08/09/10、INT-07 flow 共 9 个既有 headless 入口全部 PASS / exit 0、stderr 空；Flow check-only exit 0、stderr 空。各进程使用 Start-Process -Wait -PassThru 读取真实 ExitCode，GUI 没有 headless 参数。
+
+本轮沿用 `.godot/int08/project/` 已导入的隔离副本，仅存读路径和副本编辑器插件与工程不同。核对所有跟踪的 gd / tscn / tres，相关运行时代码一致；副本 Sandbox 原有两个空行差异已同步，未运行的额外数据导出 smoke 旧等待已同步。没有重新导入或改动任何 `.import` 文件。19081 的 MCP get_project_info 在修改前及结束前均确认当前 worktree，19080 未操作；本轮没有需要查证的新 Godot API。
+
+真实退出码、失败复现和最终 stdout / stderr 保存在 [review_correction](evidence/INT-08_2026-10-10/review_correction/exit_codes.json)，9 个既有断言日志按入口名合并保留。更新 Integration README 与 FinalOracle README 的确认归属说明，该规则由正式文档负责，known_traps 未修改。额外数据导出 smoke、Android、音频听感和人工物理键鼠本轮未复验；旧限制仍适用。交接从本段和该边界用例开始。本轮作为 PR #116 的独立修正提交，推送后停止，不执行 INT-09 或测试整并。

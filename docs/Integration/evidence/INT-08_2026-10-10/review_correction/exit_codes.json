@@ -1,0 +1,86 @@
+[
+    {
+        "run":  "replay_red",
+        "godot_exit_code":  1,
+        "stderr_bytes":  1243,
+        "mode":  "Windows D3D12 GUI"
+    },
+    {
+        "run":  "int08_gui_final",
+        "godot_exit_code":  0,
+        "stderr_bytes":  833,
+        "mode":  "Windows D3D12 GUI"
+    },
+    {
+        "run":  "int01_gui",
+        "godot_exit_code":  0,
+        "stderr_bytes":  0,
+        "mode":  "Windows D3D12 GUI"
+    },
+    {
+        "run":  "int04_gui",
+        "godot_exit_code":  0,
+        "stderr_bytes":  0,
+        "mode":  "Windows D3D12 GUI"
+    },
+    {
+        "run":  "flow_check",
+        "godot_exit_code":  0,
+        "stderr_bytes":  0,
+        "mode":  "headless"
+    },
+    {
+        "run":  "cb04",
+        "godot_exit_code":  0,
+        "stderr_bytes":  0,
+        "mode":  "headless"
+    },
+    {
+        "run":  "cb05",
+        "godot_exit_code":  0,
+        "stderr_bytes":  0,
+        "mode":  "headless"
+    },
+    {
+        "run":  "cb06",
+        "godot_exit_code":  0,
+        "stderr_bytes":  0,
+        "mode":  "headless"
+    },
+    {
+        "run":  "cb07",
+        "godot_exit_code":  0,
+        "stderr_bytes":  0,
+        "mode":  "headless"
+    },
+    {
+        "run":  "fo02_09",
+        "godot_exit_code":  0,
+        "stderr_bytes":  0,
+        "mode":  "headless"
+    },
+    {
+        "run":  "rs08",
+        "godot_exit_code":  0,
+        "stderr_bytes":  0,
+        "mode":  "headless"
+    },
+    {
+        "run":  "rs09",
+        "godot_exit_code":  0,
+        "stderr_bytes":  0,
+        "mode":  "headless"
+    },
+    {
+        "run":  "rs10",
+        "godot_exit_code":  0,
+        "stderr_bytes":  0,
+        "mode":  "headless"
+    },
+    {
+        "run":  "int07",
+        "godot_exit_code":  0,
+        "stderr_bytes":  0,
+        "mode":  "headless"
+    }
+]

@@ -59,7 +59,14 @@ func _execute() -> void:
 		and run.scripture_data.entries.size() == 1 and run.loser_card_data.acquired_streamer_ids.size() == 1, "补齐保留历史、倾向、圣典及卡片数量")
 	_check(run.assimilation_data.inherited_word_weights.size() == 1 and run.assimilation_data.inherited_trait_ids == [&"occlusion"], "继承池和白名单特性补齐一次")
 	# 重开已确认同关会自动交接首份成果，无需再选择；新尝试普通暂存仍回滚。
+	var original_history: Array[Dictionary] = run.get_committed_normal_hit_history()
+	var original_candidate: Dictionary = session.get_confirmed_selection()
+	var original_verse: int = rewards["new_scripture_entry"].verse_number
+	var original_assimilation: Dictionary = run.assimilation_data.get_current_content_snapshot()
 	_sandbox.restart_current_attempt()
+	# 复现 review：新 HitResolution 再命中一次，旧神谕复用时不得将新暂存入账。
+	_sandbox._hit_resolution.record_normal_word_hit(level.get_normal_speech_pool()[0].original_sentence_id, "orthodox")
+	run.tendency_state.record_normal_speech_tendency("orthodox", 3)
 	_sandbox.debug_set_player_pk(1.0)
 	await _frames()
 	system = flow.get_contradiction_system()
@@ -68,7 +75,14 @@ func _execute() -> void:
 	await get_tree().create_timer(0.7).timeout
 	await _frames()
 	_check(_rest_results.size() == 2 and flow.get_result() != _rest_results[0], "同关重开复用首次确认并交付本次结果")
-	_check(run.scripture_data.entries.size() == 1 and run.get_committed_normal_hit_history()[0]["hit_count"] == 1, "重开已确认关未重复成果")
+	var replay_rewards: Dictionary = flow.get_result().read_committed_rewards(run, _sandbox.level_catalog, _sandbox.loser_card_catalog)
+	_check(run.get_committed_normal_hit_history() == original_history and run.tendency_state.orthodox_total == 3
+		and run.tendency_state.heretical_total == 0 and run.tendency_state.absurd_total == 0
+		and run.tendency_state.attempt_orthodox_total == 0
+		and flow.get_oracle_session().get_confirmed_selection() == original_candidate
+		and replay_rewards["new_scripture_entry"].verse_number == original_verse and run.scripture_data.entries.size() == 1
+		and run.loser_card_data.acquired_streamer_ids.size() == 1
+		and run.assimilation_data.get_current_content_snapshot() == original_assimilation, "重开已确认关的新普通命中未入账，Rest 保留首次成果")
 	# 第二关真实窗口到期走未击破，不创建候选或奖励。
 	_sandbox._rest_result_view._continue_button.pressed.emit()
 	await _frames()

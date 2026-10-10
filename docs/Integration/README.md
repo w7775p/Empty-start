@@ -17,7 +17,7 @@ Lane A 持有 Sandbox 与顶层路由接线。系统规则、倾向、历史、�
 
 确认仍复用 `FinalOracleConfirmationState` 与 `ScriptureData.bind_confirmation_state()`：圣典先同步接收，流程核对实际经文，再依次提交普通历史、倾向、败者卡、真正击败、可继承普通池及特性白名单。返回 false 时查询接收方保存的去重事实；正式空卡目录仍沿用无新卡规则，禁止继承和矛盾池继续跳过。`HitResolution.has_committed_normal_hit_history()` 只读原提交标记。
 
-中途写入失败发出 `commit_failed(reason)`，`get_commit_error()` 保留原因，后续奖励和 Rest 交接停止，此前合法成果保持。修复来源配置后可显式 `commit_confirmed_rewards() -> bool` 补齐当前已确认结果；重试读取原数据所有者的去重事实。成功后使用 `call_deferred()` 等同步确认和攻击回调结束再交接 Rest；同帧重开会取消旧交接。已确认同关重开沿用首次候选并核验成果后进入新 Rest。
+中途写入失败发出 `commit_failed(reason)`，`get_commit_error()` 保留原因，后续奖励和 Rest 交接停止，此前合法成果保持。修复来源配置后可显式 `commit_confirmed_rewards() -> bool` 补齐当前已确认结果；重试读取原数据所有者的去重事实。普通历史与倾向仅由实际首次确认的 HitResolution 提交，同次失败重试复用其原提交标记。成功后使用 `call_deferred()` 等同步确认和攻击回调结束再交接 Rest；同帧重开会取消旧交接。已确认同关重开沿用首次候选，撤回新尝试的普通历史与倾向暂存，只补齐原奖励并读取稳定成果进入新 Rest；复用确认不触发新的神谕确认上涨。
 
 Windows Godot 4.7.2 运行证据、准确退出码、测试入口适配及限制见 [INT-08 日志](Sandbox重构_INT-08_2026-10-10_log.md)。本次只执行 INT-08。
 
