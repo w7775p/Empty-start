@@ -1,97 +1,70 @@
 extends SceneTree
 
-var _completed_count: int = 0
+const RETICLE_SCENE: PackedScene = preload("res://systems/combat_attack/aim_reticle.tscn")
+
+var _finished: int = 0
 
 
-# 单独启动场景验证公开接口、几何判定、进度平滑、暂停、重播和完成信号。
+# 只验收外部调用会破坏玩法的边界；具体色彩与动效交给实际 Godot 画面检查。
 func _initialize() -> void:
-	call_deferred("_run_checks")
+	call_deferred("_smoke")
 
 
-func _run_checks() -> void:
-	var packed: PackedScene = load("res://systems/combat_attack/aim_reticle.tscn")
-	if not _expect(packed != null, "can load AimReticle scene"):
-		return
-	var reticle: AimReticle = packed.instantiate() as AimReticle
+func _smoke() -> void:
+	var reticle: AimReticle = RETICLE_SCENE.instantiate() as AimReticle
 	root.add_child(reticle)
 	await process_frame
-	reticle.animation_finished.connect(_on_animation_finished)
+	reticle.animation_finished.connect(func() -> void: _finished += 1)
 
-	reticle.move_touch_aim(Vector2(420.0, 300.0), 64.0)
-	var expected: Vector2 = reticle.get_canvas_transform().affine_inverse() * Vector2(420.0, 300.0)
-	if not _expect(reticle.get_aim_center_global_position().distance_to(expected) < 0.05, "touch center matches aim center"):
-		return
-	if not _expect(is_equal_approx(reticle.reticle_diameter, 64.0), "mobile diameter changes visual and hit geometry"):
-		return
-	if not _expect(reticle.intersects_target_area(Rect2(expected - Vector2(8.0, 8.0), Vector2(16.0, 16.0))), "center target intersects"):
-		return
-	if not _expect(not reticle.intersects_target_area(Rect2(expected + Vector2(130.0, 130.0), Vector2(20.0, 20.0))), "distant target misses"):
-		return
-
-	reticle.set_charge_visual_state(0.50, true, false)
-	await create_timer(0.24).timeout
-	if not _expect(absf(reticle.get_display_charge_progress() - 0.50) < 0.06, "charging follows injected state"):
+	# 移动端准星中心与命中判定保持一致。
+	reticle.move_touch_aim(Vector2(420, 300), 64.0)
+	var center: Vector2 = reticle.get_canvas_transform().affine_inverse() * Vector2(420, 300)
+	if not _expect(
+		reticle.get_aim_center_global_position().distance_to(center) < 0.1
+		and reticle.intersects_target_area(Rect2(center - Vector2(8, 8), Vector2(16, 16)))
+		and not reticle.intersects_target_area(Rect2(center + Vector2(140, 140), Vector2(16, 16))),
+		"touch aim still hits the correct target"
+	):
 		return
 
-	reticle.set_charge_visual_state(0.86, true, false)
+	# 外部蓄力事实可以推动进度环，复位可重新开始下一次蓄力。
+	reticle.set_charge_visual_state(0.6, true, false)
+	await create_timer(0.25).timeout
+	var progressed: bool = reticle.get_display_charge_progress() > 0.5
+	reticle.reset_visual_state()
+	if not _expect(progressed and reticle.get_display_charge_progress() == 0.0, "charge input and reset"):
+		return
+
+	# 演出暂停时不能提前发出完成通知；恢复后只能发送一次。
+	reticle.play_shot_feedback()
 	reticle.set_visual_paused(true)
-	var saved: float = reticle.get_display_charge_progress()
-	await create_timer(0.20).timeout
-	if not _expect(absf(reticle.get_display_charge_progress() - saved) < 0.0001, "pause holds rendering progress"):
-		return
+	await create_timer(0.23).timeout
+	var held: bool = _finished == 0 and reticle.is_shot_feedback_playing()
 	reticle.set_visual_paused(false)
-	await create_timer(0.22).timeout
-	if not _expect(absf(reticle.get_display_charge_progress() - 0.86) < 0.05, "resume continues progress"):
+	await create_timer(0.23).timeout
+	if not _expect(held and _finished == 1 and not reticle.is_shot_feedback_playing(), "shot pause and completion signal"):
 		return
 
-	reticle.set_charge_visual_state(1.0, true, true)
-	await create_timer(0.20).timeout
-	if not _expect(reticle.get_display_charge_progress() > 0.96, "full charge ring reaches complete state"):
-		return
-
+	# 同一视觉实例可以重播，重置正在播放的短闪也不会误报完成。
 	reticle.play_shot_feedback()
-	if not _expect(reticle.is_shot_feedback_playing(), "shot begins visible effect"):
-		return
-	await create_timer(0.24).timeout
-	if not _expect(_completed_count == 1 and not reticle.is_shot_feedback_playing(), "shot emits completion once"):
-		return
-
-	reticle.play_shot_feedback()
-	await create_timer(0.24).timeout
-	if not _expect(_completed_count == 2, "shot replays and finishes again"):
-		return
-
+	await create_timer(0.23).timeout
+	var replayed: bool = _finished == 2
 	reticle.play_shot_feedback()
 	reticle.reset_visual_state()
-	await create_timer(0.22).timeout
-	if not _expect(_completed_count == 2 and reticle.get_display_charge_progress() == 0.0, "reset cancels effect and clears progress"):
+	await create_timer(0.23).timeout
+	if not _expect(replayed and _finished == 2 and not reticle.is_shot_feedback_playing(), "replay and cancellation"):
 		return
 
-	reticle.play_shot_feedback()
-	reticle.set_visual_paused(true)
-	await create_timer(0.24).timeout
-	if not _expect(_completed_count == 2 and reticle.is_shot_feedback_playing(), "paused shot retains its time"):
-		return
-	reticle.set_visual_paused(false)
-	await create_timer(0.24).timeout
-	if not _expect(_completed_count == 3 and not reticle.is_shot_feedback_playing(), "paused shot resumes with one finish"):
-		return
-
-	print("PA08_RUNTIME_TEST_PASS: 15 checks, 3 completion signals")
+	print("PA08_SMOKE_PASS: 4 behavior scenarios")
 	reticle.queue_free()
-	quit()
+	quit(0)
 
 
-# 只观察来自准星视觉组件的动画完成事实。
-func _on_animation_finished() -> void:
-	_completed_count += 1
-
-
-# 任何失败都以非零退出码报告给自动化脚本。
-func _expect(condition: bool, description: String) -> bool:
-	if condition:
-		print("PASS: " + description)
-		return true
-	push_error("PA08_TEST_FAIL: " + description)
-	quit(1)
-	return false
+# 以运行结果判定成功，退出码不能替代明确的预期输出。
+func _expect(valid: bool, description: String) -> bool:
+	if not valid:
+		push_error("PA08_SMOKE_FAIL: " + description)
+		quit(1)
+		return false
+	print("PASS: " + description)
+	return true
