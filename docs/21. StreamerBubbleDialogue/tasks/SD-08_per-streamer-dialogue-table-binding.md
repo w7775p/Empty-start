@@ -28,7 +28,7 @@
 2. 将20.`speaker_side`、`text`、`source_word_id`、`priority`、`display_duration_s` 对应到已有 `BubbleDialogueEntry`；将 `trigger_type + trigger_key` 映射为稳定的SD-01 `event_id`，同时为SD-07提供 `trigger_time_s`。
 3. 同一剧情配置、同一触发事件下，按正整数 line_order 升序提供连续对白查询结果和稳定排序列表，供SD-03顺序播放；队列完成通知由SD-03按其任务卡提供给CS-23。
 4. 提供事件映射表及查询接口：hit_word关联source_word_id，供SD-05匹配实际命中；connect、tier_up、tier_down、win、lose供SD-06根据战斗状态查询；timed及trigger_time_s供SD-07的可暂停计时消费；random_idle及可选random_weight（留空按1）作为当前关双方随机闲聊候选供SD-07使用。
-5. 当前关开播、重开、进入下一关时按新的 `story_config_id` 读取本场对白；与现有 `LevelProfile`、Sandbox和SD-01资源接口协调，使用同一静态配置供SD-03～07和SD-07消费。
+5. 当前关开播、重开、进入下一关时按新的 `story_config_id` 读取本场对白；与现有 `LevelProfile`、Sandbox和SD-01资源接口协调，使用同一静态配置供SD-03～07消费。
 
 ### 验收条件
 - 四关读取对应剧情配置ID；有条目的关卡按本场ID和主播筛选，未填写正式对白的关卡可进入正常战斗。
