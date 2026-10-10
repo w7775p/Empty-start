@@ -1,0 +1,14 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+PASS: first shot accepted
+PASS: one chance rejects second launch
+PASS: true in one shot breaks
+PASS: first breakthrough stays fixed
+PASS: later requests preserve breakthrough
+PASS: first shot accepted
+PASS: one chance rejects second launch
+PASS: false only exhausts the one chance
+PASS: first shot accepted
+PASS: one chance rejects second launch
+PASS: miss exhausts the one chance
+CB-05: 3 cases passed

@@ -1,0 +1,47 @@
+[gd_resource type="Resource" script_class="LevelProfile" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://data/level_configuration/level_profile.gd" id="1_profile"]
+[ext_resource type="Script" path="res://data/level_configuration/level_contradiction.gd" id="2_contradiction"]
+
+[sub_resource type="Resource" script_class="LevelContradiction" id="TrueLine"]
+script = ExtResource("2_contradiction")
+original_sentence_id = "test_cb13_contradiction_true_001"
+text = "测试真句：昨夜停电时仍在直播。"
+
+[sub_resource type="Resource" script_class="LevelContradiction" id="FalseLine01"]
+script = ExtResource("2_contradiction")
+original_sentence_id = "test_cb13_contradiction_false_001"
+text = "我从没删过观众评论。"
+
+[sub_resource type="Resource" script_class="LevelContradiction" id="FalseLine02"]
+script = ExtResource("2_contradiction")
+original_sentence_id = "test_cb13_contradiction_false_002"
+text = "这条评论在开播前发出。"
+
+[sub_resource type="Resource" script_class="LevelContradiction" id="FalseLine03"]
+script = ExtResource("2_contradiction")
+original_sentence_id = "test_cb13_contradiction_false_003"
+text = "直播时我一直没有离开。"
+
+[sub_resource type="Resource" script_class="LevelContradiction" id="FalseLine04"]
+script = ExtResource("2_contradiction")
+original_sentence_id = "test_cb13_contradiction_false_004"
+text = "后台没有人替我操作。"
+
+[sub_resource type="Resource" script_class="LevelContradiction" id="FalseLine05"]
+script = ExtResource("2_contradiction")
+original_sentence_id = "test_cb13_contradiction_false_005"
+text = "昨晚的录像从未被剪辑。"
+
+[resource]
+script = ExtResource("1_profile")
+level_id = "test_cb13_level"
+level_order = 1
+streamer_id = "test_cb13_streamer"
+streamer_name = "TEST_ONLY 候选集"
+true_contradictions = Array[ExtResource("2_contradiction")]([SubResource("TrueLine")])
+false_contradictions = Array[ExtResource("2_contradiction")]([SubResource("FalseLine01"), SubResource("FalseLine02"), SubResource("FalseLine03"), SubResource("FalseLine04"), SubResource("FalseLine05")])
+base_batch_count = 3
+base_spawn_interval_seconds = 0.01
+base_move_speed_pixels_per_second = 0.0
+normal_barrage_screen_cap = 1

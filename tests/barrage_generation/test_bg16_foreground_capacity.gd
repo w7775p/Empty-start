@@ -92,20 +92,24 @@ func _run_test() -> void:
 	if fallback_first == null or fallback_second == null or fallback_overflow != null:
 		failures.append("T0 zero falls back to the LevelProfile capacity of two")
 
-	# Paradox 明确沿用关卡原上限；同屏前景 Tier 值不改变其容量。
+	# Paradox 固定生成六条矛盾，并使用独立容量；前景 Tier 与关卡普通上限不参与占位。
 	area.clear_barrages()
 	area.set_foreground_slot_count(1)
 	var contradiction := LevelContradiction.new()
-	contradiction.original_sentence_id = "bg16_paradox_sentence"
-	contradiction.text = "矛盾阶段容量"
+	contradiction.original_sentence_id = "test_bg16_paradox_true"
+	contradiction.text = "TEST_ONLY 真句"
 	var true_lines: Array[LevelContradiction] = [contradiction]
 	var false_lines: Array[LevelContradiction] = []
+	for index: int in range(ContradictionWindowConfig.PARADOX_FALSE_CANDIDATE_COUNT):
+		var false_line := LevelContradiction.new()
+		false_line.original_sentence_id = "test_bg16_paradox_false_%d" % index
+		false_line.text = "TEST_ONLY 假句 %d" % index
+		false_lines.append(false_line)
 	var paradox_started: bool = area.start_contradiction_generation(profile, true_lines, false_lines, PARADOX_CONFIG)
-	var paradox_first: BarrageView = area.spawn_contradiction_barrage(profile, contradiction)
-	var paradox_second: BarrageView = area.spawn_contradiction_barrage(profile, contradiction)
-	var paradox_overflow: BarrageView = area.spawn_contradiction_barrage(profile, contradiction)
-	if not paradox_started or paradox_first == null or paradox_second == null or paradox_overflow != null:
-		failures.append("Paradox keeps the LevelProfile capacity of two")
+	var paradox_count: int = int(area.get_current_barrage_counts().get("contradiction", 0))
+	var paradox_overflow: BarrageView = area.spawn_contradiction_barrage(profile, false_lines[0])
+	if not paradox_started or paradox_count != ContradictionWindowConfig.PARADOX_CANDIDATE_COUNT or paradox_overflow != null:
+		failures.append("Paradox shows six candidates under its independent fixed-set capacity")
 
 	area.clear_barrages()
 	area.queue_free()
