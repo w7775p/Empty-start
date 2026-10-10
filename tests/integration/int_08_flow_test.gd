@@ -5,6 +5,7 @@ var _sandbox
 var _rest_results: Array[RestSession] = []
 var _errors: Array[String] = []
 var _checks: int = 0
+var _failed: bool = false
 
 
 # TEST_ONLY 实景验证提交中途失败；组件和成果写入均使用正式实现。
@@ -113,8 +114,8 @@ func _execute() -> void:
 	_sandbox.queue_free()
 	await _frames()
 	_check(not is_instance_valid(flow), "场景离树销毁流程")
-	print("PASS INT-08 flow checks=", _checks, " rest_ready=", _rest_results.size(), " expected_failures=", _errors.size())
-	get_tree().quit(0)
+	print("FAIL" if _failed else "PASS", " INT-08 flow checks=", _checks, " rest_ready=", _rest_results.size(), " expected_failures=", _errors.size())
+	get_tree().quit(1 if _failed else 0)
 
 
 # 留出帧尾结果与真实界面布局的处理时间。
@@ -126,6 +127,7 @@ func _frames() -> void:
 func _check(condition: bool, description: String) -> void:
 	_checks += 1
 	if not condition:
+		_failed = true
 		push_error("FAIL INT-08: " + description)
 		get_tree().quit(1)
 	else:

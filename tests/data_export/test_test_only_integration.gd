@@ -1,4 +1,4 @@
-## TEST_ONLY 合成工作簿 → CSV → LevelSpeechPool → LevelProfile/LevelCatalog → 选择器的真实加载验证。
+## TEST_ONLY CSV 与关卡 / 词库的字段及引用比对；成功仅证明测试数据转换。
 extends SceneTree
 
 const CATALOG_PATH := "res://data/test_only/generated/level_configuration/test_only_level_catalog.tres"
@@ -14,6 +14,7 @@ func _initialize() -> void:
     var record_count: int = 0
     var expected: Dictionary = {"test_level_01": 8, "test_level_02": 4}
     var all_ids: Dictionary = {}
+    var pool_by_id: Dictionary = {}
     for profile: LevelProfile in catalog.profiles:
         if profile == null or not expected.has(profile.level_id):
             _fail("出现非 TEST_ONLY 关卡")
@@ -38,41 +39,42 @@ func _initialize() -> void:
             if all_ids.has(speech.original_sentence_id):
                 _fail("发现重复原句 ID")
                 return
-            all_ids[speech.original_sentence_id] = true
+            all_ids[speech.original_sentence_id] = speech
+            pool_by_id[speech.original_sentence_id] = profile.normal_speech_pool_source.pool_id
             record_count += 1
-        var selector: NormalSpeechSelector = NormalSpeechSelector.new()
-        var drawn: LevelSpeech = selector.select_next_normal_speech(profile)
-        if drawn == null or not all_ids.has(drawn.original_sentence_id):
-            _fail("普通弹幕选择器未能读取新词库")
-            return
-    var state: LevelRunState = LevelRunState.new(catalog)
-    if state.get_current_level_profile() == null or state.get_current_level_profile().level_id != "test_level_01":
-        _fail("首关选择错误")
-        return
-    if not state.set_current_level_order(2):
-        _fail("切换第二关失败")
-        return
-    if state.get_current_level_profile().level_id != "test_level_02":
-        _fail("第二关读取失败")
-        return
     var file: FileAccess = FileAccess.open(CSV_FIRST, FileAccess.READ)
     if file == null:
         _fail("TEST_ONLY 词库 CSV 缺失")
         return
-    file.get_csv_line()  # 跳过表头
+    var header: PackedStringArray = file.get_csv_line()
+    if header != PackedStringArray(["word_id", "text", "tendency", "strength", "pool_id", "weight", "source_streamer_id", "enabled", "notes"]):
+        _fail("TEST_ONLY CSV 字段漂移")
+        return
     var csv_count: int = 0
+    var csv_ids: Dictionary = {}
     while not file.eof_reached():
         var cols: PackedStringArray = file.get_csv_line()
         if cols.size() > 1 and cols[0].begins_with("test_"):
+            if cols.size() != header.size():
+                _fail("CSV 行缺少字段：" + cols[0])
+                return
+            if cols[7] != "true":
+                continue
             csv_count += 1
-            if not all_ids.has(cols[0]):
+            if not all_ids.has(cols[0]) or csv_ids.has(cols[0]):
                 _fail("CSV 与 Resource 不一致：" + cols[0])
+                return
+            csv_ids[cols[0]] = true
+            var speech: LevelSpeech = all_ids[cols[0]]
+            var tendency: String = "heretical" if cols[2] == "heresy" else cols[2]
+            if speech.text != cols[1] or speech.tendency_id != tendency or speech.strength != int(cols[3]) or not is_equal_approx(speech.appearance_weight, float(cols[5])) or pool_by_id[cols[0]] != cols[4]:
+                _fail("CSV 字段或跨池引用漂移：" + cols[0])
                 return
     if csv_count != record_count:
         _fail("CSV 与 Resource 记录数不一致")
         return
     print("PASS TEST_ONLY 2 LevelProfiles, 2 speech pools, ", record_count,
-          " speech records, contradictions, LevelRunState, NormalSpeechSelector.")
+          " speech records with CSV fields/pool links; formal content UNVERIFIED.")
     quit(0)
 
 

@@ -22,7 +22,7 @@
 | [CS-21](tasks/CS-21_tier1-opponent-portrait.md) | T0/T1 对手立绘出现 | 已有资源 |
 | [CS-22](tasks/CS-22_tier1-bubble-dialogue.md) | T1 开场气泡对白 | 待开发 |
 | [CS-23](tasks/CS-23_tier1-resume-on-dialogue-end.md) | T1 对话后恢复战斗 | 待接线 |
-| [CS-24](tasks/CS-24_tier-foreground-slot-catalog.md) | Tier 唯一前景容量字段 | 待开发 |
+| [CS-24](tasks/CS-24_tier-foreground-slot-catalog.md) | Tier 唯一前景容量字段与 BarrageArea 读取接口 | 已完成 |
 | [CS-25](tasks/CS-25_paradox-tier6-stage-label.md) | T6/Paradox HUD 阶段标记 | 待接线 |
 
 本节是当前派工依据；历史章节中的旧默认值与旧任务说明保留用来追溯已有系统演变。开发时以单卡现行版和本节为准。
@@ -45,6 +45,8 @@ INT-01 已在正式 Sandbox 完成 HitResolution、BarrageArea、OpponentPKBar �
 ## 当前已实现数据
 
 `data/combat_stage/tier_catalog.tres` 为 Tier 0～5 的静态配置来源。`CombatStageTierCatalog.get_tier_config(tier)` 按档位读取各自的升/降档阈值、生成数量/频率/移动/寿命倍率、对手回拉倍率、每次命中复读数和对手立绘状态标识。
+
+CS-24 增加 `CombatStageTierConfig.foreground_slot_count`。正式配置 T0=0（尚待策划填写）、T1～T5=10/13/16/19/22；各档 Resource 可独立调整。CombatStage 在绑定 BarrageArea、开局和档位切换时通过 `barrage_foreground_slot_count_changed` 发布当前值；BarrageArea 通过 `set_foreground_slot_count()` 接收并由 `get_foreground_slot_count()` 提供受控读取。0 保留为未配置标记，后续 BG-16 应沿用 `LevelProfile.normal_barrage_screen_cap` 的现有行为；CS-24 不改变容量准入或生成逻辑。
 
 TT-14 在 `CombatStageTierConfig` 增加 `neutral_weight_multiplier`（默认 1.0）；正式 Tier 0～5 分别为 `1.00 / 0.99 / 0.70 / 0.40 / 0.15 / 0.00`。CombatStage 随当前 Tier 通过 `neutral_weight_multiplier_changed` 把该倍率交给 BarrageArea，绑定时也补发。它只改变后续普通话语类别抽取，不改动静态关卡比例或已有弹幕。
 

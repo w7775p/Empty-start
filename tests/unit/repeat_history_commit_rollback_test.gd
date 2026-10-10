@@ -26,6 +26,8 @@ func _test_commit() -> bool:
 	var stats := REPEAT_STATS.new()
 	stats.record_generated(_make_plan(REPEAT_PLAN.RepeatType.NORMAL, &"same_line"), 3)
 	stats.record_generated(_make_plan(REPEAT_PLAN.RepeatType.CONTRADICTION, &"contradiction_line"), 7)
+	passed = passed and stats.get_normal_count(&"same_line") == 3 and stats.get_contradiction_count(&"contradiction_line") == 7
+	passed = passed and stats.get_normal_count(&"contradiction_line") == 0 and stats.get_contradiction_count(&"same_line") == 0
 	passed = passed and stats.commit_normal_repeat_history(run_data, &"current_level")
 	passed = passed and not stats.commit_normal_repeat_history(run_data, &"current_level")
 	var replay := REPEAT_STATS.new()
@@ -38,6 +40,16 @@ func _test_commit() -> bool:
 	passed = passed and stats.get_normal_count(&"same_line") == 3
 	stats.record_generated(_make_plan(REPEAT_PLAN.RepeatType.NORMAL, &"same_line"), 1)
 	passed = passed and current[&"same_line"] == 3
+	# 原生存读必须保留两关快照；使用独占临时路径，绕开用户正式存档。
+	var save_path: String = "user://test_repeat_history_%d.tres" % OS.get_process_id()
+	var save_error: Error = ResourceSaver.save(run_data, save_path)
+	var restored: SaveData = null
+	if save_error == OK:
+		restored = ResourceLoader.load(save_path, "", ResourceLoader.CACHE_MODE_IGNORE) as SaveData
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path))
+	passed = passed and restored != null
+	if restored != null:
+		passed = passed and restored.committed_normal_repeat_history_by_level == run_data.committed_normal_repeat_history_by_level
 	if not passed:
 		push_error("RP-10 commit failed")
 		return false

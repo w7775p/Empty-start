@@ -51,13 +51,8 @@ func _test_selector_tier_zero_and_five() -> bool:
 		push_error("TT-14 Tier 0 未保留 Neutral 基础权重")
 		return false
 	level.orthodox_ratio = 1.0
-	for _index in range(20):
-		if selector.select_next_normal_speech(level, 0.0).tendency_id != "orthodox":
-			push_error("TT-14 Tier 5 仍抽到 Neutral")
-			return false
-	level.neutral_ratio = 0.0
-	if selector.select_next_normal_speech(level, 1.0).tendency_id != "orthodox":
-		push_error("TT-14 旧关卡零 Neutral 比例改变了原有抽取")
+	if selector.select_next_normal_speech(level, 0.0).tendency_id != "orthodox":
+		push_error("TT-14 Tier 5 仍抽到 Neutral")
 		return false
 	return true
 

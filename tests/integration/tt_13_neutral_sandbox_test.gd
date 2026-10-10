@@ -43,9 +43,8 @@ func _ready() -> void:
 	_sandbox.restart_current_attempt()
 	await get_tree().process_frame
 
-	var selected: LevelSpeech = NormalSpeechSelector.new().select_next_normal_speech(level)
-	_check(selected == speech, "neutral 配置被普通生成器选中")
-	var view: BarrageView = _area.spawn_normal_barrage(level, selected)
+	# 此入口负责跨系统命中链；选择器配置的纯逻辑由所属系统测试负责。
+	var view: BarrageView = _area.spawn_normal_barrage(level, speech)
 	_check(view != null and view.runtime_record.tendency_id == "neutral" and is_equal_approx(view.runtime_record.strength, 1.0), "neutral 使用普通弹幕及内容强度")
 	if view != null:
 		view.position = Vector2(_area.size.x * 0.65, _area.size.y * 0.38)
@@ -65,7 +64,6 @@ func _ready() -> void:
 	_check(state.attempt_orthodox_total == 0 and state.attempt_heretical_total == 0 and state.attempt_absurd_total == 0 and state.has_no_effective_behavior(), "只命中 neutral 保持三项全零")
 	var queue: RepeatDelayQueue = _sandbox.get("_repeat_queue") as RepeatDelayQueue
 	var comments_before_repeat: int = SaveManager.data.live_session.comment_count
-	_check(not queue._pending_items.is_empty(), "neutral 命中创建普通复读计划")
 	queue.advance_and_dispatch(3.1, _area)
 	var neutral_repeat_found: bool = false
 	for child: Node in _area.get_children():
@@ -75,9 +73,6 @@ func _ready() -> void:
 				neutral_repeat_found = true
 	_check(neutral_repeat_found and queue.get_generation_stats().get_normal_count(&"tt13-neutral-live") > 0, "neutral 复读保留原句和类别并实际生成")
 	_check(SaveManager.data.live_session.comment_count > comments_before_repeat, "neutral 复读沿用直播评论表现")
-	speech.strength = 2
-	var stronger_view: BarrageView = _area.spawn_normal_barrage(level, speech)
-	_check(stronger_view != null and is_equal_approx(stronger_view.runtime_record.strength, 2.0), "普通弹幕强度读取内容数据而非固定为 1")
 
 	_sandbox.queue_free()
 	await get_tree().process_frame

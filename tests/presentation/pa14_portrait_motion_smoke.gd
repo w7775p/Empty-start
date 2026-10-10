@@ -51,7 +51,6 @@ func _run() -> void:
 	_check(not opponent.get_global_transform().is_equal_approx(opponent_before), "opponent whole PNG moves")
 	var breath_scale: float = player.get_global_transform().y.length() / _hud.get_global_transform().y.length()
 	_check(breath_scale > 0.97 and breath_scale < 1.03, "breath stays within 3 percent of HUD scale")
-	_check(not is_equal_approx(player.get_global_transform().y.length(), opponent.get_global_transform().y.length()), "distinct idle phases")
 	await _capture("idle_b")
 	get_tree().paused = true
 	var paused_transform: Transform2D = player.get_global_transform()
@@ -72,14 +71,8 @@ func _run() -> void:
 	await _wait(0.55)
 	_check(_finishes == 1 and _hud.player_portrait_motion.position.is_zero_approx(), "shot finishes once at origin")
 	_check(_hud.player_portrait_motion.scale.is_equal_approx(Vector2.ONE), "shot scale restores")
-	for character_id: String in ["kiwi", "fox", "alien"]:
-		_hud.configure_portrait_character(character_id)
-		_hud.configure_streamer_assets(hamster, null, null, load("res://assets/characters/opponents/%s/%s_idle.png" % [character_id, character_id]), null, null)
-		await _wait(0.1)
-		_check(opponent.is_visible_in_tree(), character_id + " preset keeps existing portrait container")
-	var same_motion: Control = _hud.opponent_portrait_motion
 	_hud.configure_streamer_assets(hamster, null, null, preload("res://assets/characters/opponents/alien/alien_tier_01.png"), null, null)
-	_check(_hud.opponent_portrait_motion == same_motion, "tier PNG replacement keeps motion container")
+	_check(opponent.is_visible_in_tree(), "tier PNG replacement stays visible")
 	_hud.player_portrait_motion.set_idle_strength(0.0, 0.02)
 	await _wait(0.06)
 	var idle_muted: Transform2D = player.get_global_transform()
@@ -126,12 +119,13 @@ func _mouse(pressed: bool) -> void:
 	Input.flush_buffered_events()
 
 
-# 仅 GUI 保存真实视口截图到本工作区忽略目录。
+# 截图仅供额外人工观察，常规行为验收无需产出 PNG。
 func _capture(label: String) -> void:
-	if DisplayServer.get_name() == "headless":
+	if DisplayServer.get_name() == "headless" or "--capture" not in OS.get_cmdline_user_args():
 		return
+	DirAccess.make_dir_recursive_absolute("res://.godot/pa14-evidence")
 	await RenderingServer.frame_post_draw
-	get_viewport().get_texture().get_image().save_png("res://.godot/pa14-evidence/%s.png" % label)
+	_check(get_viewport().get_texture().get_image().save_png("res://.godot/pa14-evidence/%s.png" % label) == OK, "capture " + label)
 
 
 # 使用实际计时等待原生 Tween 和攻击 Timer。

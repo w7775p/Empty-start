@@ -9,6 +9,10 @@ var _completed: int = 0
 func _init() -> void:
 	_test_internal_intersection()
 	_test_edge_contact_intersection()
+	# 原边界坐标确实为半径 5；向外挪 0.01 必须落空，防止恒真判定。
+	_expect_intersection(false, AimIntersectionScript.circle_overlaps_rect(
+		Vector2.ZERO, 10.0, Rect2(5.01, -2.0, 4.0, 4.0)
+	), "outside edge misses")
 
 	if _failures > 0:
 		push_error("CA-02: %d/%d case(s) failed." % [_failures, _completed])

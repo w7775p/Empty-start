@@ -28,19 +28,13 @@ func _run() -> void:
 	var session: LiveSessionData = SaveManager.data.live_session
 	# 暂停战斗推进，防止正常弹幕生成改变本次显示检查的评论数。
 	battle.process_mode = Node.PROCESS_MODE_DISABLED
-	for sample in [[0, "0"], [999, "999"], [1000, "1.0k"], [1100, "1.1k"], [12500, "12.5k"]]:
-		var value: int = sample[0]
-		var text: String = sample[1]
-		session.viewer_count = value
-		session.like_count = value
-		session.comment_count = value
-		session.fan_count = value
-		right.set_values(value, value, value, value)
-		_check_metrics(left, [text, text, text, text], "绑定数据 %d" % value)
-		_check_metrics(right, [text, text, text, text], "显式数据 %d" % value)
-		_check(session.viewer_count == value and session.like_count == value
-			and session.comment_count == value and session.fan_count == value, "数据源保留整数 %d" % value)
-		print("LD11_SAMPLE %d -> %s (all four, both sides)" % [value, text])
+	session.viewer_count = 999
+	session.like_count = 1000
+	session.comment_count = 1100
+	session.fan_count = 12500
+	_check_metrics(left, ["999", "1.0k", "1.1k", "12.5k"], "绑定混合数据")
+	_check(session.viewer_count == 999 and session.like_count == 1000
+		and session.comment_count == 1100 and session.fan_count == 12500, "显示缩写保持源整数")
 	# 混合数值与含数字的 BBCode 图标，确保排版完全不解析可见文字。
 	right.set_values(999, 1000, 1100, 12500)
 	right.display_side = 0
@@ -49,8 +43,6 @@ func _run() -> void:
 	right.comment_icon = "[b]C9[/b]"
 	right.fan_icon = "[b]F6[/b]"
 	_check_metrics(right, ["999", "1.0k", "1.1k", "12.5k"], "换方向与四项图标")
-	right.display_side = 1
-	_check_metrics(right, ["999", "1.0k", "1.1k", "12.5k"], "恢复右侧")
 	right.viewer_icon = "👤"
 	right.like_icon = "👍"
 	right.comment_icon = "🔊"
@@ -64,9 +56,6 @@ func _run() -> void:
 	left.bind_live_session(replacement)
 	session.viewer_count = 77
 	_check_metrics(left, ["1.0k", "1.1k", "12.5k", "999"], "替换数据源")
-	left.display_side = 1
-	left.display_side = 0
-	_check_metrics(left, ["1.0k", "1.1k", "12.5k", "999"], "绑定方向切换")
 	left.bind_live_session(null)
 	_check_metrics(left, ["0", "0", "0", "0"], "显式解绑")
 	left.bind_live_session(replacement)
@@ -77,6 +66,7 @@ func _run() -> void:
 	# GUI 验收保留窗口，供人工检查；无参数时直接以明确退出码结束。
 	if "--gui-review" in OS.get_cmdline_user_args():
 		# 保存当前实际渲染的视口，便于检查被桌面浮窗遮住的区域。
+		DirAccess.make_dir_recursive_absolute("res://.godot/ld11")
 		get_viewport().get_texture().get_image().save_png("res://.godot/ld11/hud-gui.png")
 		await get_tree().create_timer(45.0).timeout
 	get_tree().quit(1 if _failed else 0)

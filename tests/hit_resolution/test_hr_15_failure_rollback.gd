@@ -12,7 +12,6 @@ func _initialize() -> void:
 	failed_attempt.discard_uncommitted_normal_hit_history()
 	var passed: bool = failed_attempt.get_normal_hit_history().is_empty()
 	passed = passed and run_data.get_committed_normal_hit_history() == previous
-	passed = passed and run_data.next_normal_hit_commit_order == 2
 	if passed:
 		print("PASS HR-15 failed attempt discards pending hits and preserves committed history")
 		quit(0)

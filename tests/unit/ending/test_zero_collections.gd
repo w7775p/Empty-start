@@ -30,15 +30,6 @@ func _test_zero_collections_complete() -> bool:
 	var descent: DivineDescentSession = DivineDescentSession.new()
 	if not descent.enter(run_data):
 		return false
-	var frozen: Dictionary = descent.get_entry_snapshot()
-	var content: Dictionary = frozen["assimilation_content"]
-	if (
-		not frozen["scripture_entries"].is_empty()
-		or not content["inherited_word_weights"].is_empty()
-		or not content["inherited_trait_ids"].is_empty()
-		or not run_data.loser_card_data.get_acquired_cards(LoserCardCatalog.new()).is_empty()
-	):
-		return false
 	# 冻结后改变实时倾向，零收藏结局仍须消费进入时的主导与身份比较依据。
 	run_data.tendency_state.record_normal_speech_tendency("absurd", 10)
 	run_data.tendency_state.commit_attempt_tendency()
@@ -46,27 +37,34 @@ func _test_zero_collections_complete() -> bool:
 	names.heretical_name = "TEST_ONLY_EN09_RELIGION"
 	var judgements: EndingJudgementTextConfig = EndingJudgementTextConfig.new()
 	judgements.shifted_text = "TEST_ONLY_EN09_JUDGEMENT"
+	var art := EndingMainArtConfig.new()
+	var sample_art := GradientTexture2D.new()
+	art.heretical_main_art = sample_art
 	var ending: EndingSession = EndingSession.new()
-	if not ending.receive_final_state(descent, catalog, EndingMainArtConfig.new(), names, judgements):
+	if not ending.receive_final_state(descent, catalog, art, names, judgements):
 		return false
 	var display: Dictionary = ending.get_display_data()
 	var scripture: Dictionary = display["scripture"]
 	var rows: Array = scripture["rows"]
 	if (
-		not ending.is_received()
-		or ending.get_final_snapshot()["tendency_result"] != frozen["tendency_result"]
-		or display["primary_tendency_id"] != "heretical"
+		display["primary_tendency_id"] != "heretical"
 		or display["secondary_tendency_id"] != "heretical"
 		or display["identity_result_class"] != EndingIdentityResultClassifier.SHIFTED
 		or display["religion_name"] != "TEST_ONLY_EN09_RELIGION"
 		or display["judgement_text"] != "TEST_ONLY_EN09_JUDGEMENT"
-		or display["main_art"] != null
+		or display["main_art"] != sample_art
 		or not scripture["is_empty"]
 		or scripture["status"] != EndingScriptureDisplayData.STATUS_NOT_FORMED_ORACLE
 		or rows.size() != 1
 	):
 		return false
 	if rows[0]["has_oracle"] or rows[0]["chapter_number"] != 3 or rows[0]["verse_number"] != 0:
+		return false
+	# 接收后源倾向、显示配置和返回副本变化均不能替换首次页面结果。
+	names.heretical_name = "TEST_ONLY_CHANGED_NAME"
+	var viewed: Dictionary = ending.get_display_data()
+	viewed["religion_name"] = "TEST_ONLY_CHANGED_COPY"
+	if ending.receive_final_state(descent, catalog, art, names, judgements) or ending.get_display_data()["religion_name"] != "TEST_ONLY_EN09_RELIGION":
 		return false
 	# 同一用例同时确认缺少正式文案 / 美术时可完成，且不会补写猜测内容。
 	var production_ending: EndingSession = EndingSession.new()

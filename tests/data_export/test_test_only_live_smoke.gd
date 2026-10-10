@@ -1,121 +1,64 @@
-## 测试场景实际进入 SceneTree，执行 _ready、生成、蓄力发射与跨关重启。
-## 真实经 Rest Continue 进入下一关，覆盖 RS-09 的完整信号链。
+## TEST_ONLY 数据消费 smoke；调试 PK、矛盾结算和按钮信号均为合成推进。
+## 验证场景实际生成与跨关换池；物理点击、蓄力与手感需要人工验收。
 extends Node
 
 const SCENE: PackedScene = preload("res://tests/fixtures/data_export/test_only_sandbox.tscn")
-var _errors: Array[String] = []
 
 func _ready() -> void:
+    get_tree().create_timer(15.0).timeout.connect(func(): _check(false, "数据消费 smoke 超时"))
     call_deferred("_execute")
 
-
+# 复用正式 Sandbox 启动和 Rest 接线；攻击链交由 INT-04 验证。
 func _execute() -> void:
-    # 添加到 SceneTree 会真实运行所有 _ready()、Timer、Autoload 绑定。
     var sandbox: Control = SCENE.instantiate() as Control
-    if sandbox == null:
-        _fail("无法实例化 TEST_ONLY Sandbox")
+    if not _check(sandbox != null and sandbox.level_catalog != null, "测试场景或目录加载失败"):
         return
     add_child(sandbox)
     await get_tree().process_frame
     await get_tree().process_frame
-    if not _check(sandbox.is_inside_tree(), "场景未进入 SceneTree"):
+    if not _check_pool(sandbox, sandbox.level_catalog.profiles[0]):
         return
-    if not _check(sandbox._normal_combat_active, "Sandbox._ready 未正常启动普通战斗"):
-        return
-    if not _check(sandbox._run_state.get_current_level_profile().level_id == "test_level_01", "首关不是 test_level_01"):
-        return
-    if not _check(sandbox._barrage_area.is_normal_generation_enabled(), "普通弹幕生成没有启动"):
-        return
-    var counts: Dictionary = sandbox._barrage_area.get_current_barrage_counts()
-    if int(counts.get("normal", 0)) <= 0:
-        sandbox.debug_spawn_normal_batch()
-    await get_tree().process_frame
-    var target: BarrageView
-    for child: Node in sandbox._barrage_area.get_children():
-        if child is BarrageView and child.runtime_record != null and not child.runtime_record.is_repeat:
-            target = child as BarrageView
-            break
-    if not _check(target != null, "真实战斗中没有生成普通弹幕"):
-        return
-    var target_id: String = target.runtime_record.original_sentence_id
-    if not _check(target_id.begins_with("test_word_"), "没有读取 TEST_ONLY 弹幕 ID"):
-        return
-    # 用正式 AttackChargeInput 蓄力和射击过程验证真正的命中结算入口。
-    var attack: AttackChargeInput = sandbox._attack_charge_input
-    var cursor: AimReticle = sandbox._aim_reticle
-    cursor._set_aim_center_global_position(target.get_global_rect().get_center())
-    var previous_pk: float = sandbox._hit_resolution.get_player_pk()
-    var pressed: InputEventMouseButton = InputEventMouseButton.new()
-    pressed.button_index = MOUSE_BUTTON_LEFT
-    pressed.pressed = true
-    # 直接调用组件输入入口时仍需提供 Viewport 坐标，CA-12 按下会读取本次事件位置。
-    pressed.position = cursor.get_canvas_transform() * target.get_global_rect().get_center()
-    attack._input(pressed)
-    attack._charge_progress.advance(attack._attack_timing.charge_time_s + 0.02, true)
-    if not _check(attack.is_fully_charged(), "未能真实完成蓄力"):
-        return
-    var released: InputEventMouseButton = InputEventMouseButton.new()
-    released.button_index = MOUSE_BUTTON_LEFT
-    released.pressed = false
-    released.position = pressed.position
-    attack._input(released)
-    # 飞行到达由现有 Timer、HitResolution 与 Sandbox 信号处理。
-    var flight_s: float = attack._attack_timing.projectile_flight_s
-    await get_tree().create_timer(maxf(flight_s + 0.12, 0.25)).timeout
-    if not _check(sandbox._hit_resolution.get_player_pk() > previous_pk, "发射后未产生真实 PK 命中收益"):
-        return
-    if not _check(sandbox._hit_resolution.get_normal_hit_history().size() > 0, "没有产生真实的普通命中历史"):
-        return
-    if not _check(sandbox._hit_resolution.get_normal_hit_history()[0].get("original_sentence_id", "") == target_id, "命中原句 ID 不正确"):
-        return
-
-    # Exercise the actual PK completion, unbroken Rest and Continue button signal.
-    # The test already confirmed a real normal hit above; now use the existing PK debug API.
     sandbox.debug_set_player_pk(sandbox.battle_config.maximum_player_pk)
     await get_tree().process_frame
     await get_tree().process_frame
-    var phase_flow: ContradictionOracleFlow = sandbox.get_contradiction_oracle_flow()
-    if not _check(phase_flow.get_contradiction_system() != null and phase_flow.is_contradiction_active(), "PK win did not enter contradiction stage"):
+    var flow: ContradictionOracleFlow = sandbox.get_contradiction_oracle_flow()
+    if not _check(flow.is_contradiction_active(), "PK 达标未启动矛盾"):
         return
-    # Consume the one official CB shot without a true contradiction hit.
-    if not _check(phase_flow.get_contradiction_system().register_launched_shot(), "Contradiction shot was rejected"):
-        return
+    var system = flow.get_contradiction_system()
     var no_hits: Array[String] = []
-    if not _check(phase_flow.get_contradiction_system().resolve_shot_hit_ids(no_hits), "Contradiction miss was rejected"):
+    if not _check(system.register_launched_shot() and system.resolve_shot_hit_ids(no_hits), "矛盾未击破结算失败"):
         return
     await get_tree().process_frame
-    if not _check(sandbox._rest_session != null and sandbox._rest_session.is_open(), "Unbroken outcome did not open Rest"):
+    if not _check(sandbox._rest_session != null and sandbox._rest_session.is_open(), "未击破没有打开 Rest"):
         return
-    if not _check(sandbox._rest_result_view._overlay.visible, "Rest view did not show the result"):
-        return
-    # Press the actual Rest button; this must reach RestSession and Sandbox RS-09 routing.
+    # 只验证信号接线，避免将合成信号描述为玩家物理点击。
     sandbox._rest_result_view._continue_button.pressed.emit()
     await get_tree().process_frame
-    if not _check(sandbox._run_state.get_current_level_profile().level_id == "test_level_02", "Rest Continue failed to enter second level"):
+    if not _check_pool(sandbox, sandbox.level_catalog.profiles[1]):
         return
-    if not _check(sandbox._normal_combat_active, "Second-level normal combat did not start"):
-        return
-    if not _check(sandbox._barrage_area.is_normal_generation_enabled(), "Second-level normal barrage generation did not start"):
-        return
-    # Repeating the same UI action cannot complete the next level.
-    sandbox._rest_result_view._continue_button.pressed.emit()
-    await get_tree().process_frame
-    if not _check(sandbox._run_state.get_current_level_profile().level_id == "test_level_02", "Repeated Continue advanced a second time"):
-        return
-    print("PASS TEST_ONLY live smoke: SceneTree _ready, spawned ", target_id,
-          ", charged attack, PK/hit history, Rest Continue -> level 2.")
     sandbox.queue_free()
     await get_tree().process_frame
+    print("PASS TEST_ONLY data smoke: SceneTree generation, Rest signal -> second pool; physical input UNVERIFIED")
     get_tree().quit(0)
 
+# 启动与切关后核对实际新弹幕均来自该关词库，禁止只检查目录注入。
+func _check_pool(sandbox: Control, profile: LevelProfile) -> bool:
+    var snapshot: Dictionary = sandbox.get_debug_snapshot()
+    if not _check(snapshot.get("level", "") == "第%d关" % profile.level_order and snapshot.get("normal_generation_enabled", false), "当前关卡或普通生成状态错误"):
+        return false
+    var ids: Array[String] = []
+    for speech: LevelSpeech in profile.get_normal_speech_pool():
+        ids.append(speech.original_sentence_id)
+    var count: int = 0
+    for child: Node in sandbox._barrage_area.get_children():
+        if child is BarrageView and child.runtime_record != null and not child.runtime_record.is_repeat:
+            if not _check(ids.has(child.runtime_record.original_sentence_id), "新批次使用了其他关卡词库"):
+                return false
+            count += 1
+    return _check(count > 0, "关卡没有实际生成普通弹幕")
 
 func _check(condition: bool, reason: String) -> bool:
-    if condition:
-        return true
-    _fail(reason)
-    return false
-
-
-func _fail(reason: String) -> void:
-    push_error("FAIL TEST_ONLY live smoke: " + reason)
-    get_tree().quit(1)
+    if not condition:
+        push_error("FAIL TEST_ONLY data smoke: " + reason)
+        get_tree().quit(1)
+    return condition

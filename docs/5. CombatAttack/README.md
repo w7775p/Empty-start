@@ -9,11 +9,19 @@
 | 卡片 | 按实际代码核对后的唯一功能 | 状态 |
 | --- | --- | --- |
 | [CA-13](tasks/CA-13_scaled-target-range.md) | 已有矩形相交后的缩放回归 | 已有基础 |
-| [CA-14](tasks/CA-14_all-overlapped-targets.md) | 多目标快照重叠验收 | 已有基础 |
+| [CA-14](tasks/CA-14_all-overlapped-targets.md) | 多目标快照重叠验收 | 场景验收通过（2026-10-10） |
 | [CA-15](tasks/CA-15_whole-shot-miss-on-occlusion.md) | 遮挡覆盖整发落空 | 待修复 |
 
 本节是当前派工依据；历史章节中的旧默认值与旧任务说明保留用来追溯已有系统演变。开发时以单卡现行版和本节为准。
 
+
+### CA-14 十目标同发与到达复核（2026-10-10）
+
+`tests/combat_attack/ca14_all_targets_gui.tscn` 实例化正式 Sandbox，并通过 `BarrageArea.spawn_normal_barrage()` 从首关真实话语池创建十个独立、可选的 `BarrageView`。首关当前有 3 条唯一 `LevelSpeech` 定义，验收入口循环使用这些正式定义来构造十个运行实例；十个实例有各自的 instance ID，Label 矩形两两重叠且全部与准心相交。
+
+GUI 运行使用 `Input.parse_input_event()` 合成鼠标事件；同一发快照冻结十个不重复 ID。飞行期间删除一条目标、令一条在到达前过期，并将一条移出准心但留在 BarrageArea；到达复核保留移位目标，只向 HitResolution 提交八个仍有效的目标。物理鼠标未验收。该卡只增加 TEST_ONLY 场景验收入口，没有修改生产代码或公开接口。
+
+截图证据：[CA-14 十个重叠目标 GUI 运行截图](evidence/CA-14_2026-10-10_overlapped_targets.png)
 
 ## 系统目标
 

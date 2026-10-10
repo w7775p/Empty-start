@@ -1,10 +1,11 @@
-## INT-04 实景驱动：按钮信号、原生输入、Timer、存读与顶层路由。
+## INT-04：真实场景与 Timer，按钮由信号驱动，输入为合成事件；物理操作另验。
 extends Node
 
 var checks := 0
 var route_count := 0
 var dd_completed := 0
 var emphasis_count := 0
+var failed := false
 
 func _ready() -> void:
 	get_tree().create_timer(100.0).timeout.connect(func(): _check(false, "整局超时"))
@@ -16,6 +17,7 @@ func _execute() -> void:
 	SceneRouter.game_scene_override = preload("res://tests/integration/int_04_test_only_sandbox.tscn")
 	get_tree().scene_changed.connect(func(): route_count += 1)
 	for empty_history in [false, true]:
+		print("INT04 ROUTE BEGIN empty_history=", empty_history)
 		await _opening()
 		var sandbox = get_tree().current_scene
 		var run: SaveData = SaveManager.data
@@ -38,6 +40,7 @@ func _execute() -> void:
 			await _frames()
 			_check(sandbox._normal_combat_active and run.get_committed_normal_hit_history().is_empty(), "失败重开历史污染")
 		for level in range(2):
+			print("INT04 LEVEL BEGIN empty_history=", empty_history, " level=", level)
 			if not empty_history:
 				await _normal_hit(sandbox)
 			sandbox.debug_set_player_pk(1.0)
@@ -49,8 +52,13 @@ func _execute() -> void:
 			sandbox._barrage_area.clear_current_barrages()
 			var view: BarrageView = sandbox._barrage_area.spawn_contradiction_barrage(profile, line)
 			_check(view != null, "矛盾弹幕未生成")
+			# 本发只测指定真假句：清场会保留生成 Timer，蓄力期间新真句会混入假句快照。
+			# 停止后续批次保留已生成目标和正式十秒窗口，复读仍由流程实际推进。
+			sandbox._barrage_area.stop_contradiction_generation()
 			await _shoot(sandbox, view)
-			_check(sandbox.get_contradiction_oracle_flow().get_contradiction_system().get_outcome() == (ContradictionBreakSystem.Outcome.BREAKTHROUGH if success else ContradictionBreakSystem.Outcome.NOT_BROKEN), "真假结果错误")
+			var system: ContradictionBreakSystem = sandbox.get_contradiction_oracle_flow().get_contradiction_system()
+			_check(system.get_outcome() == (ContradictionBreakSystem.Outcome.BREAKTHROUGH if success else ContradictionBreakSystem.Outcome.NOT_BROKEN),
+				"真假结果错误 empty=%s level=%d outcome=%d remaining_shots=%d seconds=%.3f" % [empty_history, level, system.get_outcome(), system.get_remaining_shots(), system.get_remaining_seconds()])
 			if success:
 				await _wait(func(): return sandbox.get_contradiction_oracle_flow().get_oracle_session() != null, "神谕未打开")
 				var candidate: Control = sandbox._attack_charge_input._selection_targets[0]
@@ -133,9 +141,6 @@ func _execute() -> void:
 			"Ending 未沿用首次冻结倾向")
 		var page: EndingPage = get_tree().current_scene
 		await get_tree().create_timer(0.15).timeout
-		print("INT04 Ending layout empty=", empty_history, " scroll=", page._scroll.scroll_vertical,
-			" title_y=", page.get_node("Margin/PageScroll/Content/Title").global_position.y,
-			" page_position=", page.position, " content_position=", page.get_node("Margin/PageScroll/Content").position)
 		_check(page._display_data.get("scripture", {}).get("is_empty") == empty_history, "结局经文空态错误")
 		_check(page._scripture_rows.get_child_count() == 2, "Ending 缺章行错误")
 		_check(run.live_session.fan_count == 14, "PK 胜利粉丝重复或缺失")
@@ -145,8 +150,8 @@ func _execute() -> void:
 		await _capture("empty_ending" if empty_history else "main_ending")
 		print("INT04 ROUTE PASS empty_history=", empty_history, " facts=", expected)
 	_check(dd_completed == 1, "DD 演出完成次数错误")
-	print("PASS INT-04 full run checks=", checks, " top_level_routes=", route_count, " DD_completed=", dd_completed)
-	get_tree().quit(0)
+	print("FAIL" if failed else "PASS", " INT-04 full run checks=", checks, " top_level_routes=", route_count, " DD_completed=", dd_completed)
+	get_tree().quit(1 if failed else 0)
 
 # 三步页面分别操作正式控件，保留十二张批准身份资源。
 func _opening() -> void:
@@ -187,6 +192,13 @@ func _normal_hit(sandbox) -> void:
 # 坐标通过 Viewport 变换，蓄力、飞行与硬直全由实际游戏帧推进。
 func _shoot(sandbox, target: Control) -> void:
 	await _frames()
+	var attack: AttackChargeInput = sandbox._attack_charge_input
+	var ready_before: bool = attack.can_start_charging()
+	var charged_before_release := false
+	var snapshots: Array[AttackTargetSnapshot] = []
+	var on_shot := func(snapshot: AttackTargetSnapshot): snapshots.append(snapshot)
+	attack.shot_snapshot_created.connect(on_shot)
+	var target_id: int = target.get_instance_id()
 	var point: Vector2 = get_viewport().get_final_transform() * target.get_global_rect().get_center()
 	var motion := InputEventMouseMotion.new()
 	motion.position = point
@@ -203,6 +215,14 @@ func _shoot(sandbox, target: Control) -> void:
 				" raw_input=", point, " viewport_mouse=", sandbox._aim_reticle.get_global_mouse_position(),
 				" actual_aim=", sandbox._aim_reticle.get_aim_center_global_position())
 			await get_tree().create_timer(sandbox.battle_config.attack_timing.charge_time_s + 0.08).timeout
+			print("INT04 before release held=", attack.is_charge_held(), " full=", attack.is_fully_charged(), " phase=", attack.get_attack_phase())
+			charged_before_release = attack.is_charge_held() and attack.is_fully_charged()
+	attack.shot_snapshot_created.disconnect(on_shot)
+	if snapshots.size() == 1:
+		print("INT04 shot targets=", snapshots[0].get_target_instance_ids(), " expected=", target_id, " facts=", snapshots[0].get_contradiction_facts())
+	# 一条链路断言足以定位夹具失败；每发保持一次发射，禁止重试。
+	_check(ready_before and charged_before_release and snapshots.size() == 1
+		and snapshots[0].get_target_instance_ids() == [target_id], "射击链路未满足 READY→满蓄→单目标唯一快照")
 	await get_tree().create_timer(sandbox.battle_config.attack_timing.projectile_flight_s + sandbox.battle_config.attack_timing.recovery_time_s + 0.1).timeout
 
 func _facts(run: SaveData) -> Dictionary:
@@ -233,5 +253,6 @@ func _capture(label: String) -> void:
 func _check(condition: bool, message: String) -> void:
 	checks += 1
 	if not condition:
+		failed = true
 		push_error("FAIL INT-04: " + message)
 		get_tree().quit(1)

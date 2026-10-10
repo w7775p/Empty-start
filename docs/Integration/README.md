@@ -5,6 +5,12 @@
 
 Lane A 持有 Sandbox 与顶层路由接线。系统规则、倾向、历史、奖励及结局显示继续归各系统所有者。
 
+## 2026-10-10 开发优先级：INT-09 → INT-10 → S3 依赖复核
+
+INT-07 / INT-08 已合并，下一张 Sandbox 任务优先做 `BattleAttemptFlow`（INT-09），随后精简 Sandbox 根场景（INT-10）。策划在同时填写正式表和决定字段，详见[现行优先开发计划](../开发计划_2026-10-09_任务卡依赖整合.md)；INT-09/10 使用现有接口和 TEST_ONLY 独立配置即可开始，不等待正式四关导表。
+
+INT-10 合并后按计划 S3 核对所有后续任务卡的真实前置、Owner 和公开事件接口，再接线 CA/CS/SD/LD/PA/UI；其他 Lane 当前已投入的独立功能和画面稿予以保留。新表字段适配、正式资源映射及 LC-10 四关联调统一安排在功能/场景稳定之后，不能将 TEST_ONLY 的整局冒烟称为正式四关联调。
+
 ## INT-08 矛盾 / 神谕与 Rest 交接（2026-10-10）
 
 `Sandbox` 组合运行时子节点 `ContradictionOracleFlow`，持有本次 `ContradictionBreakSystem`、静音过渡 Timer、`FinalOracleSession`、选择计时和准备好的 `RestSession`。同周目确认状态由流程复用；正常重开、换关与终局均显式 `stop()`，离树作最终清理。没有增加 Autoload 或修改生产 Scene / Resource。

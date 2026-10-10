@@ -1,31 +1,44 @@
 extends SceneTree
 
-const RUNTIME_RECORD_SCRIPT = preload("res://systems/barrage_generation/barrage_runtime_record.gd")
+const AREA_SCENE = preload("res://systems/barrage_generation/barrage_area.tscn")
 
-# 验证旧记录固定和新记录读取当前寿命，不启动完整战斗场景。
 func _init() -> void:
-	var passed_count: int = 0
+	call_deferred("_run")
 
-	var old_barrage_record: BarrageRuntimeRecord = RUNTIME_RECORD_SCRIPT.new() as BarrageRuntimeRecord
-	old_barrage_record.capture_lifetime_at_spawn(1000, 10.0, 1.0)
-	var original_deadline: int = old_barrage_record.expires_at_msec
-	var next_barrage_record: BarrageRuntimeRecord = RUNTIME_RECORD_SCRIPT.new() as BarrageRuntimeRecord
-	next_barrage_record.capture_lifetime_at_spawn(2000, 10.0, 2.0)
-	var old_deadline_unchanged: bool = old_barrage_record.expires_at_msec == original_deadline and original_deadline == 11000
-	if old_deadline_unchanged:
-		passed_count += 1
-		print("PASS: 已生成弹幕的截止时间保持原值。")
+# 通过实际区域改变倍率；旧实例截止时间应固定，新实例读取当前倍率。
+func _run() -> void:
+	var profile := LevelProfile.new()
+	profile.base_batch_count = 0
+	profile.base_spawn_interval_seconds = 60.0
+	profile.base_move_speed_pixels_per_second = 0.0
+	profile.normal_barrage_screen_cap = 2
+	var speech := LevelSpeech.new()
+	speech.original_sentence_id = "test_lifetime_line"
+	speech.text = "寿命快照"
+	var area: BarrageArea = AREA_SCENE.instantiate()
+	root.add_child(area)
+	area.start_normal_generation(profile)
+	area.base_lifetime_seconds = 10.0
+	var old_view: BarrageView = area.spawn_normal_barrage(profile, speech)
+	if old_view == null:
+		push_error("FAIL BG lifetime: first instance failed to spawn")
+		area.free()
+		quit(1)
+		return
+	var old_deadline: int = old_view.runtime_record.expires_at_msec
+	area.set_lifetime_multiplier(1.5)
+	var started: int = Time.get_ticks_msec()
+	var new_view: BarrageView = area.spawn_normal_barrage(profile, speech)
+	var ended: int = Time.get_ticks_msec()
+	var passed: bool = old_view.runtime_record.expires_at_msec == old_deadline and new_view != null
+	if new_view != null:
+		var deadline: int = new_view.runtime_record.expires_at_msec
+		passed = passed and deadline >= started + 15000 and deadline <= ended + 15000
+	if passed:
+		print("PASS BG lifetime: multiplier change preserves old deadline and applies to new instance")
 	else:
-		push_error("FAIL: 配置变化改写了旧弹幕截止时间。")
-
-	var new_barrage_record: BarrageRuntimeRecord = RUNTIME_RECORD_SCRIPT.new() as BarrageRuntimeRecord
-	new_barrage_record.capture_lifetime_at_spawn(2000, 10.0, 1.5)
-	var new_record_uses_current_lifetime: bool = new_barrage_record.expires_at_msec == 17000
-	if new_record_uses_current_lifetime:
-		passed_count += 1
-		print("PASS: 新实例使用生成时的寿命配置。")
-	else:
-		push_error("FAIL: 新实例未使用当前寿命配置。")
-
-	print("BG-06: %d/2 tests passed." % passed_count)
-	quit(0 if passed_count == 2 else 1)
+		push_error("FAIL BG lifetime: old deadline changed or new lifetime differs from 15 seconds")
+	area.clear_barrages()
+	area.queue_free()
+	await process_frame
+	quit(0 if passed else 1)
