@@ -2,20 +2,20 @@ class_name BarrageGlassSurface
 extends Control
 
 @export_group("四种倾向")
-@export var orthodox_color: Color = Color("#77A9B5")
-@export var heretical_color: Color = Color("#BE829C")
-@export var absurd_color: Color = Color("#C9AF7F")
-@export var neutral_color: Color = Color("#919BAF")
+@export var orthodox_color: Color = Color("#63B5C5")
+@export var heretical_color: Color = Color("#CD779E")
+@export var absurd_color: Color = Color("#DCB773")
+@export var neutral_color: Color = Color("#A2AEC3")
 @export var repeat_color: Color = Color("#7F8793")
 
 @export_group("玻璃底板")
 @export_range(4.0, 26.0, 1.0) var corner_radius: float = 13.0
-@export_range(0.1, 1.0, 0.05) var glass_alpha: float = 0.79
+@export_range(0.1, 1.0, 0.05) var glass_alpha: float = 0.82
 @export_range(0.0, 1.0, 0.05) var highlight_alpha: float = 0.24
 @export_range(0.0, 1.0, 0.05) var repeat_alpha: float = 0.24
 @export_range(1.0, 6.0, 0.5) var max_border_width: float = 2.0
-@export_range(0.0, 0.7, 0.01) var tint_mix_base: float = 0.17
-@export_range(0.0, 0.3, 0.01) var tint_mix_strength: float = 0.10
+@export_range(0.0, 0.7, 0.01) var tint_mix_base: float = 0.28
+@export_range(0.0, 0.3, 0.01) var tint_mix_strength: float = 0.11
 
 var _tendency: String = "neutral"
 var _strength: int = 1
@@ -55,7 +55,7 @@ func _rebuild_style() -> void:
 	var fill: Color = Color("#0F1825").lerp(tint, tint_mix_base + intensity * tint_mix_strength)
 	fill.a = repeat_alpha if _is_repeat else glass_alpha + intensity * (1.0 - glass_alpha) * 0.35
 	var edge: Color = tint.lightened(0.07 + intensity * 0.11)
-	edge.a = 0.30 if _is_repeat else 0.46 + intensity * 0.30
+	edge.a = 0.30 if _is_repeat else 0.58 + intensity * 0.25
 	_glass_style.bg_color = fill
 	_glass_style.border_color = edge
 	var width: int = 1 if _is_repeat else roundi(1.0 + intensity * (max_border_width - 1.0))
