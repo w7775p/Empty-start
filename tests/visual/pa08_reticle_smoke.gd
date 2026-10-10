@@ -16,15 +16,31 @@ func _smoke() -> void:
 	await process_frame
 	reticle.animation_finished.connect(func() -> void: _finished += 1)
 
-	# 移动端准星中心与命中判定保持一致。
-	reticle.move_touch_aim(Vector2(420, 300), 64.0)
+	# 根据策划表核对 PC 视觉 96 与命中直径 144，避免二者被绑成同一数值。
+	reticle.restore_mouse_aim(Vector2(420, 300))
 	var center: Vector2 = reticle.get_canvas_transform().affine_inverse() * Vector2(420, 300)
 	if not _expect(
-		reticle.get_aim_center_global_position().distance_to(center) < 0.1
-		and reticle.intersects_target_area(Rect2(center - Vector2(8, 8), Vector2(16, 16)))
-		and not reticle.intersects_target_area(Rect2(center + Vector2(140, 140), Vector2(16, 16))),
+		is_equal_approx(reticle.visual_diameter, 96.0)
+		and is_equal_approx(reticle.reticle_diameter, 144.0)
+		and reticle.get_aim_center_global_position().distance_to(center) < 0.1
+		and reticle.intersects_target_area(Rect2(center + Vector2(70, -3), Vector2(4, 6)))
+		and not reticle.intersects_target_area(Rect2(center + Vector2(76, -3), Vector2(4, 6))),
+		"PC visual footprint and 144px circular hit range"
+	):
+		return
+
+	# 触屏切换与鼠标恢复仍使用同一中心，移动端直径由外部注入。
+	reticle.move_touch_aim(Vector2(420, 300), 64.0)
+	var touch_center: Vector2 = reticle.get_canvas_transform().affine_inverse() * Vector2(420, 300)
+	if not _expect(
+		reticle.get_aim_center_global_position().distance_to(touch_center) < 0.1
+		and reticle.intersects_target_area(Rect2(touch_center - Vector2(8, 8), Vector2(16, 16)))
+		and not reticle.intersects_target_area(Rect2(touch_center + Vector2(140, 140), Vector2(16, 16))),
 		"touch aim still hits the correct target"
 	):
+		return
+	reticle.restore_mouse_aim(Vector2(420, 300))
+	if not _expect(is_equal_approx(reticle.reticle_diameter, 144.0), "restore PC hit diameter after touch"):
 		return
 
 	# 外部蓄力事实可以推动进度环，复位可重新开始下一次蓄力。
@@ -55,7 +71,7 @@ func _smoke() -> void:
 	if not _expect(replayed and _finished == 2 and not reticle.is_shot_feedback_playing(), "replay and cancellation"):
 		return
 
-	print("PA08_SMOKE_PASS: 4 behavior scenarios")
+	print("PA08_SMOKE_PASS: 6 behavior scenarios")
 	reticle.queue_free()
 	quit(0)
 

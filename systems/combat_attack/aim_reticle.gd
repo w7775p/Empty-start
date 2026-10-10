@@ -4,15 +4,19 @@ extends Control
 signal animation_finished
 
 @export_group("判定与位置")
-@export var reticle_diameter: float = 32.0
+# 正式 PC 命中区域为直径 144px 的圆，包络框是策划表中的 144×144。
+@export var reticle_diameter: float = 144.0
 
 @export_group("空心圆与环形蓄力")
-@export_range(2.0, 24.0, 0.5) var center_ring_radius: float = 5.5
-@export_range(1.0, 8.0, 0.5) var center_line_width: float = 2.0
+# 正式 PC 视觉限定 96×96；视觉大小不改变实际目标相交判定。
+@export_range(32.0, 160.0, 1.0) var visual_diameter: float = 96.0
+@export_range(2.0, 24.0, 0.5) var center_ring_radius: float = 7.5
+@export_range(1.0, 8.0, 0.5) var center_line_width: float = 2.5
 @export_range(0.0, 30.0, 0.5) var outer_ring_gap: float = 4.0
-@export_range(1.0, 8.0, 0.5) var outer_ring_width: float = 2.5
+@export_range(1.0, 8.0, 0.5) var outer_ring_width: float = 3.0
+@export_range(0.0, 9.0, 0.5) var contrast_halo_width: float = 5.5
 @export var idle_color: Color = Color(0.92, 0.99, 1.0, 0.96)
-@export var track_color: Color = Color(0.53, 0.78, 0.84, 0.40)
+@export var track_color: Color = Color(0.75, 0.93, 0.96, 0.77)
 @export var charge_color: Color = Color(0.35, 0.98, 0.88, 1.0)
 @export var full_color: Color = Color(1.0, 0.88, 0.37, 1.0)
 @export var shot_color: Color = Color(1.0, 1.0, 1.0, 1.0)
@@ -37,7 +41,7 @@ var _movement_flash_remaining: float = 0.0
 var _pulse_clock: float = 0.0
 
 
-# 初始化准心尺寸，视觉绘制与既有相交判定共用同一个几何中心。
+# 命中节点使用 PC 直径 144，绘制始终居中于独立的 96×96 视觉区域。
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_mouse_reticle_diameter = reticle_diameter
@@ -146,7 +150,7 @@ func is_shot_feedback_playing() -> bool:
 	return _shot_flash_remaining > 0.0
 
 
-# 原有准心直径属于命中范围，视觉环不改变这项数值。
+# 现有直径始终代表命中区域；鼠标恢复 144px，触屏继续采用外部独立配置。
 func _set_reticle_diameter(diameter: float) -> void:
 	if reticle_diameter == diameter:
 		return
@@ -166,7 +170,7 @@ func get_aim_center_global_position() -> Vector2:
 	return get_global_transform() * (size * 0.5)
 
 
-# 原有多目标圆-矩形命中检测接口维持不变。
+# 保持现有圆-矩形相交算法；144×144 为 PC 命中圆的包络范围。
 func intersects_target_area(target_area: Rect2) -> bool:
 	var local_target_area: Rect2 = get_global_transform().affine_inverse() * target_area
 	return BarrageAimIntersection.circle_overlaps_rect(
@@ -176,26 +180,39 @@ func intersects_target_area(target_area: Rect2) -> bool:
 	)
 
 
-# 程序绘制小空心圆与独立蓄力轨道；所有发光、缩放仅作用于绘制。
+# 在独立的 96×96 视觉范围内绘制准星，视觉变化始终不影响 144px 命中圆。
 func _draw() -> void:
 	var center: Vector2 = size * 0.5
-	var radius: float = reticle_diameter * 0.5 + outer_ring_gap
 	var shot_strength: float = _shot_flash_remaining / maxf(shot_flash_duration, 0.01)
 	var move_strength: float = _movement_flash_remaining / maxf(movement_flash_duration, 0.01)
 	var full_strength: float = 0.0
 	if _charge_full:
 		full_strength = (0.5 + 0.5 * sin(_pulse_clock * 9.0)) * full_pulse_strength
-	radius *= 1.0 + shot_strength * shot_ring_expansion + full_strength
+	# 预留描边的最外缘，满蓄/发射动画也控制在视觉边界内。
+	var outside_half_width: float = (outer_ring_width + contrast_halo_width) * 0.5
+	var max_radius: float = visual_diameter * 0.5 - outside_half_width
+	var base_radius: float = maxf(center_ring_radius + 5.0, max_radius - outer_ring_gap)
+	var radius: float = minf(base_radius * (1.0 + shot_strength * shot_ring_expansion + full_strength), max_radius)
 	var accent: Color = full_color if _charge_full else charge_color
 	if shot_strength > 0.0:
 		accent = accent.lerp(shot_color, shot_strength)
 	var core_color: Color = idle_color.lerp(accent, minf(1.0, shot_strength + move_strength * 0.45))
+	var shadow: Color = Color(0.025, 0.043, 0.068, 0.92)
+
+	# 浅色细环叠深色外描边：穿过亮字或深背景都保留轮廓。
+	draw_circle(center, center_ring_radius * (1.0 + shot_strength * 0.18), shadow, false, center_line_width + contrast_halo_width, true)
 	draw_circle(center, center_ring_radius * (1.0 + shot_strength * 0.18), core_color, false, center_line_width, true)
+	draw_arc(center, radius, -PI * 0.5, PI * 1.5, 96, shadow, outer_ring_width + contrast_halo_width, true)
 	draw_arc(center, radius, -PI * 0.5, PI * 1.5, 96, track_color, outer_ring_width, true)
-	var visible_progress: float = _charge_display
-	if _charge_full:
-		visible_progress = 1.0
+
+	var visible_progress: float = 1.0 if _charge_full else _charge_display
 	if visible_progress > 0.001:
 		draw_arc(center, radius, -PI * 0.5, -PI * 0.5 + TAU * visible_progress, 96, accent, outer_ring_width + shot_strength * 1.2, true)
+	if move_strength > 0.01:
+		var locate: Color = idle_color
+		locate.a = 0.58 * move_strength
+		var move_radius: float = minf(radius + 6.0 * (1.0 - move_strength), visual_diameter * 0.5 - 1.5)
+		draw_arc(center, move_radius, -PI * 0.5, PI * 1.5, 96, locate, 2.0, true)
 	if shot_strength > 0.0:
-		draw_arc(center, radius + 4.0 * shot_strength, -PI * 0.5, PI * 1.5, 96, Color(1.0, 1.0, 1.0, shot_strength * 0.65), 1.5, true)
+		var flash_radius: float = minf(radius + 4.0 * shot_strength, visual_diameter * 0.5 - 1.5)
+		draw_arc(center, flash_radius, -PI * 0.5, PI * 1.5, 96, Color(1.0, 1.0, 1.0, shot_strength * 0.65), 1.5, true)
