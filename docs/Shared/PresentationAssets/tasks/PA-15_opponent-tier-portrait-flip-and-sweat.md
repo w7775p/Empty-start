@@ -25,6 +25,12 @@
 
 `{opponent}` 按当前关的外星人 `alien`、Kiwi `kiwi`、狐狸 `fox` 等稳定角色类型选择。美术文件名里的 `tier_01` 是变化版本 1，并非战斗 T1。
 
+## 最新策划配置来源（2026-10-10）
+- `02_主播关卡.portrait_set_id` 关联 `23_对手立绘配置.portrait_set_id`；23表每组记录所属 `streamer_id`、idle、tier_01～03、defeat、可选击败过渡图与 `defeat_effect_id`。
+- 当前已登记 `portrait_alien`、`portrait_kiwi`、`portrait_fox` 三组正式素材路径；第四关 `frog` 的阶段图片与专属演出由策划、美术后续补充。
+- 按23表的阶段图实际加载纹理并在 T1/T2/T3/T4/T5/T6 映射中使用；从现有 `LevelProfile.streamer_portrait`、`OpponentPortraitArt`、PA-14动效层复用入口。
+- 阶段图标识是图片变化版本，不作为额外战斗Tier；当前关角色类型来源为02.`streamer_id`。
+
 ## 本卡程序美术
 ### 1. T2 漫画流汗
 - 当对手进入 T2，在待机立绘头部附近绘制**一到两滴醒目的漫画水滴状汗珠**，使用程序绘制带高光 / 描边的水滴、多帧透明度和少量下滑，表现对手开始紧张。
