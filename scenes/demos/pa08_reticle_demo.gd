@@ -204,18 +204,25 @@ func _run_capture_sequence() -> void:
 	_reticle.restore_mouse_aim(Vector2(995, 496))
 	await get_tree().create_timer(0.30).timeout
 	_status.text = "VISUAL STATE : IDLE     CHARGE : 0%"
+	await RenderingServer.frame_post_draw
 	_save_capture("idle")
 	_reticle.set_charge_visual_state(0.58, true, false)
+	_slider.set_value_no_signal(0.58)
 	await get_tree().create_timer(0.24).timeout
 	_status.text = "VISUAL STATE : CHARGING     CHARGE : 58%"
+	await RenderingServer.frame_post_draw
 	_save_capture("charging")
 	_reticle.set_charge_visual_state(1.0, true, true)
+	_slider.set_value_no_signal(1.0)
 	await get_tree().create_timer(0.20).timeout
 	_status.text = "VISUAL STATE : FULL     CHARGE : 100%"
+	await RenderingServer.frame_post_draw
 	_save_capture("full")
 	_reticle.play_shot_feedback()
+	_slider.set_value_no_signal(0.0)
 	await get_tree().create_timer(0.045).timeout
 	_status.text = "VISUAL STATE : FIRE     SHOT FLASH"
+	await RenderingServer.frame_post_draw
 	_save_capture("firing")
 	await get_tree().create_timer(0.25).timeout
 	if _fire_finished_count != 1:
