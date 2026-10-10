@@ -10,7 +10,10 @@
 - 后续验收：BG-38；演出消费者 PA-06、PA-09
 
 ## 已经实现的功能
-当前 _submit_arrival_to_hit_resolution() 会同时结算正常目标与遮挡，Sandbox 也会结束正常实例；且反弹与遮挡同实例时 TraitResult 优先反弹，需按 occlusion 特性存在事实触发本规则。
+`AttackChargeInput._submit_arrival_to_hit_resolution()` 将释放快照提交给 `HitResolution`；`BattleAttemptFlow` 消费正式提交并逐目标调用 `BarrageArea.end_barrage()`。反弹与遮挡同实例时现有 `TraitResult` 优先反弹，本卡需依据同一整发快照里的遮挡事实处理整发规则。
+
+## INT-10 / S3 接口交接（2026-10-11）
+本卡继续由 CombatAttack / HitResolution 所有者实现遮挡判定。Sandbox 根场景不新增命中业务；流程整合消费者订阅 `BattleAttemptFlow.shot_resolved(snapshot, submission, current_tier, repeat_stats)`，BG-38 通过该正式结果回归实例结束。
 
 ## 本次任务
 准心区域包含遮挡则整发按落空处理。

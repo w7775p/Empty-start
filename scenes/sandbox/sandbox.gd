@@ -57,6 +57,8 @@ func _ready() -> void:
 	add_child(opponent_pk_bar)
 	_barrage_area.barrage_generated.connect(_on_barrage_generated)
 	_attack_charge_input.configure_target_query(_aim_reticle, _barrage_area)
+	# 战斗 HUD 只订阅正式释放快照播放立绘动作，不自行判断命中结果。
+	_battle_hud.bind_portrait_attack(_attack_charge_input)
 	_rest_result_view = REST_RESULT_VIEW_SCENE.instantiate() as RestResultView
 	add_child(_rest_result_view)
 	# 创建时注入一次准心，休息及历史页面统一冻结输入，隐藏时恢复。
@@ -102,6 +104,8 @@ func _on_attempt_started(current_level: LevelProfile, _hit: HitResolution, _stag
 	_battle_hud.reset_for_attempt()
 	var player_name: String = SaveManager.data.streamer_name
 	_battle_hud.configure_streamers(player_name if not player_name.is_empty() else "玩家主播", current_level.streamer_name)
+	# 每次启动尝试都按当前关的稳定主播 ID 切换立绘待机配置。
+	_battle_hud.configure_portrait_character(str(current_level.streamer_id))
 	_battle_hud.configure_streamer_assets(
 		PRESENTATION_ASSETS.player_streamer_portrait,
 		PRESENTATION_ASSETS.player_live_background,
