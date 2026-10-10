@@ -1,6 +1,6 @@
 # PA-09 战斗结果 UI 提示：局部反馈与主播受击漫画提示
 
-> 状态：需求已定，待实施
+> 状态：2026-10-11 三套 Godot 独立视觉预览已交付，待策划人工选型；正式战斗接线仍待实施
 > 类型：P0 / PresentationAssets
 > 依赖：PA-06 命中材质反馈；现有 CombatAttack、BarrageTraits、HitResolution 与战斗 HUD
 
