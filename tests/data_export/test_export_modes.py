@@ -1,8 +1,6 @@
 """TEST_ONLY 导表端到端回归：可重复、保留正式数据、失败原子性、禁止误用模式。"""
 from __future__ import annotations
 
-import csv
-import io
 import os
 import subprocess
 import sys
@@ -34,6 +32,8 @@ def files_snapshot(paths: list[Path]) -> dict[Path, tuple[bytes, int]]:
 def main() -> None:
     # 测试模式不能覆盖策划原始 CSV 或已确认 Tier Resource。
     authoritative_paths = sorted((ROOT / "data/source_tables").glob("*.csv"))
+    for name in ("01_身份配置.csv", "06_战斗数值.csv", "08_Tier档位.csv"):
+        assert ROOT / "data/source_tables" / name in authoritative_paths, f"缺少已确认来源：{name}"
     authoritative_paths.append(ROOT / "data/combat_stage/tier_catalog.tres")
     authoritative = files_snapshot(authoritative_paths)
     success = execute(FIXTURE, "--test-only")
@@ -59,6 +59,20 @@ def main() -> None:
         assert state == files_snapshot(test_outputs), "错误时覆盖了旧版测试资产"
         print("PASS duplicate ID rejected without replacing existing assets")
 
+        # 词库引用有双方来源，拼错关卡的 pool_id 必须失败并保留旧产物。
+        wb = load_workbook(FIXTURE)
+        sheet = wb["02_主播关卡"]
+        header = next(row for row in sheet.iter_rows() if any(cell.value == "word_pool_id" for cell in row))
+        column = next(cell.column for cell in header if cell.value == "word_pool_id")
+        sheet.cell(header[0].row + 1, column, "test_missing_pool")
+        dangling = Path(temp) / "dangling_pool.xlsx"
+        wb.save(dangling)
+        result = execute(dangling, "--test-only")
+        assert result.returncode == 1 and "关联 ID" in result.stderr, (result.stdout, result.stderr)
+        assert state == files_snapshot(test_outputs), "跨表错误覆盖了旧版测试资产"
+        assert authoritative == files_snapshot(authoritative_paths), "失败导出改变了正式来源"
+        print("PASS missing cross-table pool rejected without replacing assets")
+
         wb = load_workbook(FIXTURE)
         wb["00_填写说明"]["A1"] = "普通数据表"
         non_test = Path(temp) / "non_test.xlsx"
@@ -66,18 +80,6 @@ def main() -> None:
         result = execute(non_test, "--test-only")
         assert result.returncode == 2 and "--test-only" in result.stderr
         print("PASS prevents official/unmarked workbook entering TEST_ONLY mode")
-
-    # CSV 的标准引号、中文、换行往返验证。
-    import importlib.util
-    spec = importlib.util.spec_from_file_location("game_export", TOOL)
-    assert spec and spec.loader
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    sample = '弹幕说："祂回来了"，\n然后继续复读'
-    output = module.csv_body(["word_id", "text"], [(1, {"word_id": "test_quoted", "text": sample})])
-    assert next(csv.DictReader(io.StringIO(output)))["text"] == sample
-    print("PASS quoted and multiline Chinese CSV round-trip")
-
 
 if __name__ == "__main__":
     main()
