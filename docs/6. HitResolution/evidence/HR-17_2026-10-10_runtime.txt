@@ -1,0 +1,34 @@
+HR-17 | Lane D | 2026-10-10 | base ce36565
+Godot 4.7.2.stable.steam.ed1daf0bf; Windows headless CLI; no Scene, Node, Resource, or Sandbox source changes.
+
+=== HR-17 targeted test EXIT=0 ===
+Command: --headless --path D:\Godot\agent-D-hr17-1010 --script res://tests/hit_resolution/test_hr_17_negative_cap.gd
+stdout:
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+PASS HR-17 negative shot contribution cap and legacy default
+stderr: (empty)
+
+The mixed case used positive contributions +0.35/+0.25 with cap 0.4, negative contributions -0.10/-0.08, one obstruction penalty -0.01, and negative cap 0.15. The net was +0.25 from initial PK 0.5, final PK 0.75, with one PK update. A separate under-cap bounce case confirmed -0.02 target contribution plus one -0.01 anomaly penalty equals -0.03. The legacy case used the old three-argument constructor and confirmed +0.30 -0.04 -0.01 = +0.25.
+
+=== HR-16 regression EXIT=0 ===
+Command: --headless --path D:\Godot\agent-D-hr17-1010 --script res://tests/hit_resolution/test_hr_16_positive_cap.gd
+stdout:
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+PASS HR-16 positive shot contribution cap and legacy default
+stderr: (empty)
+
+=== HR-05 regression EXIT=0 ===
+Command: --headless --path D:\Godot\agent-D-hr17-1010 --script res://tests/hit_resolution/test_hr_05_shot_aggregate.gd
+stdout:
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+PASS HR-05 aggregate target deltas before one PK update
+stderr: (empty)
+
+=== Sandbox scene smoke EXIT=0 ===
+Command: --headless --path D:\Godot\agent-D-hr17-1010 --quit-after 8 res://scenes/sandbox/sandbox.tscn
+stdout:
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+stderr: (empty)
+
+=== Editor import attempt ===
+Status: UNVERIFIED. --headless --editor --import remained at 50% while creating autoload scripts. The global script class cache was generated. The two import processes for this worktree were terminated to prevent concurrent cache writes; the targeted tests and scene smoke above then completed independently with exit code 0.

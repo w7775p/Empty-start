@@ -8,13 +8,18 @@
 
 真、假矛盾命中均创建有限复读，等队列与场上可见矛盾复读全部结束；真击破再经过原 0.5 秒静音进入神谕，未击破提交普通历史与倾向后交付 `pk_win_unbroken` Rest。空命中或十秒超时没有矛盾复读，可直接交接。结果通知保留唯一判定，重复发射及通知不会再生成复读或提交成果。Windows 实景和准确退出码见 INT-08 日志。
 
-## 2026-10-09 现行实现核对与任务状态
+## 2026-10-11 CB-13 实现状态
 
-**现行阶段：** T5 的 PK 满值进入独立矛盾击破阶段，UI 表现名为 T6/Paradox。当前代码使用真/假数组和 Paradox 倍率持续轮换生成；最新确认的目标是固定 **1 真 + 5 假** 六句（CB-13）。已有 10 秒窗口、1 发机会、真假结果与后续复读/神谕/休息流程继续沿用。
+T5 满 PK 后进入独立矛盾击破阶段，UI 表现名为 T6/Paradox。`ContradictionBreakSystem.get_fixed_paradox_candidates()` 按当前关卡顺序取第一条有效真句，再取五个有效假句；假句条目不足五条时循环复用现有原句 ID 与文本，不生成正式内容。阶段协调方把候选分组后交给 `BarrageArea`，后者一次性显示六个实例，按候选集合数量独立限容，不占普通前景容量，也不再轮换后续批次。
+
+当前 `level_001.tres` 示例资源只有一条真矛盾和一条假矛盾，因此该示例运行时会显示一条真句实例与五条同 ID 的假句实例。项目尚无最终对手矛盾文本池，本实现不能证明最终正式文本具备五条不同假句；`tests/fixtures/contradiction_break/test_cb_13_six_candidates_level.tres` 用六个不同 `test_` ID 验证完整内容路径。没有修改关卡源表、导表器或正式关卡 Resource。
+
+现有 10 秒窗口、一发正式射击、释放快照冻结的原句事实、真/假结果与后续复读/神谕/休息流程保持原规则。CB-14 的减速运动仍待实施。
 
 | 卡片 | 按实际代码核对后的唯一功能 | 状态 |
 | --- | --- | --- |
-| [CB-13](tasks/CB-13_six-fixed-contradictions.md) | T6 一真五假固定六句 | 待开发 |
+| [CB-13](tasks/CB-13_six-fixed-contradictions.md) | T6 固定一真五假候选集；数据不足时复用有效假句 | 已实现；现行 LevelProfile 示例仅提供一个假句 ID |
+| [CB-14](tasks/CB-14_contradiction-ease-out-motion.md) | 六句减速停止，运动时可射击 | 待开发 |
 
 本节是当前派工依据；历史章节中的旧默认值与旧任务说明保留用来追溯已有系统演变。开发时以单卡现行版和本节为准。
 
@@ -71,7 +76,7 @@
 
 CB-01 等 8. CombatStage。
 CB-02 可在 2. LevelConfiguration 数据完成后做。
-CB-03 使用 BG-12 的 `BarrageArea.start_contradiction_generation()`；Sandbox 在满 PK 清理后，调用 `ContradictionBreakSystem.load_level_content()` 读取当前关真假矛盾并传给弹幕系统。Paradox 配置独立指定每批数量 ×2、生成频率 ×3、移动速度 ×2.5 和 10 秒寿命；弹幕实例保存稳定原句 ID，真伪判定仍归本系统。
+CB-13 使用 BG-12 的 `BarrageArea.start_contradiction_generation()`；`ContradictionBreakSystem` 读取当前关内容并创建固定候选集，阶段协调方传入一条真句与五条假句。`BarrageArea` 保存稳定原句 ID、矛盾标记与空 TraitSet，按六个矛盾实例独立限容并仅生成初始集合；真假判定仍归本系统。
 CB-04 由 Sandbox 从 `contradiction_window_config.tres` 启动 10 秒窗口，攻击系统满蓄释放的 `shot_snapshot_created` 通知本系统登记一次发射。矛盾模式不提交普通 PK 与倾向。
 CB-05 由 Sandbox 从释放瞬间冻结的 `AttackTargetSnapshot.get_contradiction_facts()` 读取稳定原句 ID，一发合并成 `Array[String]` 立即调用 `resolve_shot_hit_ids()`；落空传空数组。目标在飞行期间移动或消失不改变结果，飞行只做演出；命中的矛盾视图由弹幕区域结束，不进入普通结算。
 CB-07 由 Sandbox 订阅 `outcome_locked`，一旦结果固定便禁止新攻击并清理剩余矛盾弹幕；后续成功与未击破分支均读取 `get_outcome()`。
@@ -93,5 +98,5 @@ T6 / Paradox 保留 **1 真 + 5 假** 的六句构成。六句在出现后先移
 
 | 任务卡 | 单功能 | 状态 |
 | --- | --- | --- |
-| [CB-13](tasks/CB-13_six-fixed-contradictions.md) | 一真五假六句 | 待开发 |
+| [CB-13](tasks/CB-13_six-fixed-contradictions.md) | 固定一真五假初始集合 | 已实现；缺少不同假句时复用现有有效条目 |
 | [CB-14](tasks/CB-14_contradiction-ease-out-motion.md) | 六句逐渐减速至停止，运动时可射击 | 待开发 |

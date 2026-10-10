@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/demos/pa04_glass_demo.tscn" id="1_demo"]
+
+[node name="PA04Capture" type="Node"]
+
+[node name="FullHDViewport" type="SubViewport" parent="."]
+size = Vector2i(1920, 1080)
+render_target_update_mode = 4
+
+[node name="Demo" parent="FullHDViewport" instance=ExtResource("1_demo")]

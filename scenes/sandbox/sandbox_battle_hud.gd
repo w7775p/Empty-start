@@ -53,9 +53,7 @@ func _ready() -> void:
 		Callable(self, "show_dialogue_bubble"),
 		Callable(self, "_clear_bubble_stack")
 	)
-	_dialogue_queue.connect(
-		"sequence_completed", Callable(self, "_on_dialogue_sequence_completed")
-	)
+	_dialogue_queue.connect("sequence_completed", Callable(self, "_on_dialogue_sequence_completed"))
 	add_child(_dialogue_queue)
 	var parent_control: Control = get_parent() as Control
 	parent_control.resized.connect(_fit_parent_size)
@@ -119,9 +117,7 @@ func play_player_shot(snapshot: AttackTargetSnapshot) -> void:
 func set_opponent_portrait_connected(connected: bool) -> void:
 	_opponent_connected = connected
 	if _dialogue_queue != null:
-		_dialogue_queue.call(
-			"set_side_enabled", BubbleDialogueEntry.SpeakerSide.OPPONENT, connected
-		)
+		_dialogue_queue.call("set_side_enabled", BubbleDialogueEntry.SpeakerSide.OPPONENT, connected)
 	_opponent_portrait.visible = connected and _opponent_portrait.texture != null
 	_opponent_portrait_placeholder.visible = connected and _opponent_portrait.texture == null
 
@@ -143,12 +139,10 @@ func show_dialogue_bubble(entry: BubbleDialogueEntry) -> StreamerBubbleView:
 	return null
 
 
-# 后续事件消费者使用队列入口；同侧顺序、容量和优先级由 SD-03 单一持有。
 func enqueue_dialogue_bubble(entry: BubbleDialogueEntry) -> bool:
 	return bool(_dialogue_queue.call("enqueue_entry", entry)) if _dialogue_queue != null else false
 
 
-# 关键剧情序列返回稳定本场 ID，完成时由 dialogue_sequence_completed 通知 CS-23。
 func enqueue_dialogue_sequence(
 	entries: Array[BubbleDialogueEntry], sequence_id: StringName = &""
 ) -> StringName:
@@ -157,7 +151,6 @@ func enqueue_dialogue_sequence(
 	return StringName(_dialogue_queue.call("enqueue_sequence", entries, sequence_id))
 
 
-# 重开、关卡更换和场景离开前可显式清理指定侧或双方队列。
 func clear_dialogue_bubbles(side: int = -1) -> void:
 	if _dialogue_queue != null:
 		_dialogue_queue.call("clear_side", side)
@@ -165,7 +158,6 @@ func clear_dialogue_bubbles(side: int = -1) -> void:
 		_clear_bubble_stack(side)
 
 
-# Queue 不持有 Stack 节点，只经 HUD 回调清理对应侧的显示对象。
 func _clear_bubble_stack(side: int) -> void:
 	if side == -1 or side == BubbleDialogueEntry.SpeakerSide.PLAYER:
 		_player_bubble_stack.clear_bubbles()

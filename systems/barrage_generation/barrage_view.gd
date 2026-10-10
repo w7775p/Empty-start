@@ -1,6 +1,18 @@
-## 显示单条弹幕，并按自己的截止时间和所属区域管理自然结束。
+## 单条弹幕的运行与外观。保留 Label 根节点及原有攻击/阶段接口。
 class_name BarrageView
 extends Label
+
+@export_group("文字玻璃统一样式")
+@export_range(14, 42, 1) var visual_font_size: int = 24
+@export_range(5, 26, 1) var horizontal_padding: int = 19
+@export_range(4, 24, 1) var vertical_padding: int = 12
+@export_range(150, 860, 10) var max_glass_width: float = 550.0
+@export_range(1, 7, 1) var foreground_outline_size: int = 2
+@export var foreground_font_color: Color = Color("#fffdf2")
+@export var repeat_font_color: Color = Color("#b8bfcb")
+@export var outline_color: Color = Color("#162131")
+@export var text_shadow_color: Color = Color(0.03, 0.07, 0.13, 0.50)
+@export_range(0, 5, 1) var text_shadow_offset: int = 2
 
 var runtime_record: BarrageRuntimeRecord
 var _move_speed_pixels_per_second: float = 0.0
@@ -9,21 +21,31 @@ var _pause_started_msec: int = -1
 var _presentation_tween: Tween
 var _presentation_base_scale: Vector2
 var _presentation_trait_ids: Array[StringName] = []
+var _visual_bbcode: String = ""
 
-## 特性只影响 Label 配色；按冻结 ID 顺序取首个显式颜色，缺正式样式时沿用 Theme。
+
+# 进入树后让 Label 内部最小尺寸缓存完成，再按文字真实收缩宽度。
+func _ready() -> void:
+	if runtime_record != null:
+		_fit_visual_to_sentence(runtime_record.text)
+		_apply_special_text_layout()
+
+
+# 终局原有特性表现入口，仍按冻结的颜色优先级覆盖文字而不改变弹幕事实。
 func apply_terminal_trait_presentation(trait_ids: Array[StringName], trait_colors: Dictionary) -> void:
 	_presentation_trait_ids = trait_ids.duplicate()
 	for trait_id: StringName in _presentation_trait_ids:
 		if trait_colors.get(trait_id) is Color:
-			add_theme_color_override("font_color", trait_colors[trait_id])
+			_set_visual_font_color(trait_colors[trait_id])
 			break
 
-## 表现 ID 返回副本，与攻击和结算读取的运行记录 TraitSet 分开。
+
+# 返回冻结的表现 ID 副本。
 func get_presentation_trait_ids() -> Array[StringName]:
 	return _presentation_trait_ids.duplicate()
 
 
-## 仅缩放现有样式；连续输入重播同一峰值，保持原句、移动、判定尺寸和截止时间。
+# 缩放视觉本体，不更改实际话语、移动参数、弹幕判定与绝对寿命。
 func pulse_presentation(scale_multiplier: float, return_seconds: float) -> bool:
 	if not is_inside_tree() or is_queued_for_deletion() or get_tree().paused:
 		return false
@@ -34,21 +56,171 @@ func pulse_presentation(scale_multiplier: float, return_seconds: float) -> bool:
 	else:
 		_presentation_base_scale = scale
 	scale = _presentation_base_scale * scale_multiplier
-	# BarrageView 为补偿寿命使用 ALWAYS；表现 Tween 单独遵守全局暂停，离树释放随节点自动取消。
 	_presentation_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_STOP)
 	_presentation_tween.tween_property(self, "scale", _presentation_base_scale, return_seconds)
 	return true
 
-## 绑定本次弹幕的运行记录、移动速度和实际所属区域。
+
+# 在添加到区域之前即可配置尺寸和材质，保证生成排布读取的是实际显示范围。
 func setup(barrage_record: BarrageRuntimeRecord, move_speed_pixels_per_second: float, active_area: Control) -> void:
 	runtime_record = barrage_record
 	text = barrage_record.text
 	_move_speed_pixels_per_second = move_speed_pixels_per_second
 	_active_area = active_area
-	# 继续观察全局暂停状态，移动和寿命仍由本函数显式冻结。
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# 层级只在弹幕区域内部比较：复读最低，前景留给后续特性更高层级。
+	z_index = 0 if barrage_record.is_repeat else 1
+	autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_visual_bbcode = ""
+	_set_visual_material()
+	_fit_visual_to_sentence(barrage_record.text)
+	# PA-05 只读取现有实例 TraitSet，选择外观不改变战斗结算或命中对象。
+	var special: BarrageSpecialSurface = get_glass_surface() as BarrageSpecialSurface
+	if special != null and barrage_record.trait_set != null and not barrage_record.is_repeat:
+		special.configure_traits(barrage_record.trait_set.get_trait_ids(), barrage_record.text, get_theme_font("font"))
+	_apply_special_text_layout()
 
-## 暂停时记录起点；恢复后按暂停时长补偿截止时间。
+
+# 独立视觉富文本接口。由 BG-28 的正式局部样式数据接入时调用，复读保留纯文本。
+func set_visual_bbcode(bbcode: String) -> bool:
+	if runtime_record == null or runtime_record.is_repeat or _uses_fake_repeat_appearance() or get_special_material() == &"retaliation_copy":
+		return false
+	var rich: RichTextLabel = get_node_or_null("RichBody") as RichTextLabel
+	if rich == null:
+		return false
+	_visual_bbcode = bbcode
+	rich.visible = not bbcode.is_empty()
+	text = "" if rich.visible else runtime_record.text
+	if rich.visible:
+		rich.text = bbcode
+	_fit_visual_to_sentence(runtime_record.text)
+	return true
+
+
+# 外部可读取原句显示事实，不受富文本标签切换影响。
+func get_visual_plain_text() -> String:
+	return runtime_record.text if runtime_record != null else text
+
+
+# 单个实例的材质选择，可供 PA-06 命中演出读取，无需重算 TraitSet。
+func get_special_material() -> StringName:
+	var special: BarrageSpecialSurface = get_glass_surface() as BarrageSpecialSurface
+	return special.get_main_material() if special != null else &"glass"
+
+
+# 透明字形依靠 Godot Label 的描边字形层，复制板内部小字由同一个 GlassSurface 绘制。
+# 真假复读共用一套排版与颜色；假复读的 TraitSet/前景判定仍独立。
+func _uses_fake_repeat_appearance() -> bool:
+	if runtime_record == null or runtime_record.trait_set == null or runtime_record.is_repeat:
+		return false
+	var traits: BarrageTraitSet = runtime_record.trait_set
+	return traits.has_trait(BarrageTraitSet.FAKE_CARD) \
+		and not traits.has_trait(BarrageTraitSet.REFLECT) \
+		and not traits.has_trait(BarrageTraitSet.OCCLUSION)
+
+
+func _apply_special_text_layout() -> void:
+	if runtime_record == null or runtime_record.trait_set == null or runtime_record.is_repeat:
+		return
+	if runtime_record.trait_set.has_trait(BarrageTraitSet.UNSELECTABLE):
+		# 文字内芯保持接近透明，扩大笔画轮廓的可辨认面积并增加暗色投影。
+		add_theme_font_size_override("font_size", visual_font_size + 4)
+		add_theme_color_override("font_color", Color(0.96, 0.985, 1.0, 0.08))
+		add_theme_color_override("font_outline_color", Color("#F5F9FF"))
+		add_theme_constant_override("outline_size", 3)
+		add_theme_color_override("font_shadow_color", Color(0.0, 0.04, 0.09, 0.96))
+		add_theme_constant_override("shadow_offset_x", 1)
+		add_theme_constant_override("shadow_offset_y", 1)
+		_fit_visual_to_sentence(runtime_record.text)
+	if get_special_material() == &"reflect":
+		# 软胶有实体厚度，特性弹幕的显示/命中区域同步增高，文字仍保持居中稳定。
+		custom_minimum_size = Vector2(maxf(size.x, 188.0), maxf(size.y, 78.0))
+		reset_size()
+	if get_special_material() == &"retaliation_copy":
+		# 一个整体 Panel 对应同一条 BarrageView，扩大的 rect 继续由现有攻击命中几何使用。
+		custom_minimum_size = Vector2(maxf(size.x, 460.0), 144.0)
+		reset_size()
+		text = ""
+		var rich: RichTextLabel = get_node_or_null("RichBody") as RichTextLabel
+		if rich != null:
+			rich.visible = false
+
+
+# 演示和集成验收读取材质参数，不承担玩法计算。
+func get_glass_surface() -> BarrageGlassSurface:
+	return get_node_or_null("GlassSurface") as BarrageGlassSurface
+
+
+# 用对应文字类型配置默认填充、阴影、描边与 RichTextLabel 可选覆盖层。
+func _set_visual_material() -> void:
+	var repeat: bool = runtime_record != null and (runtime_record.is_repeat or _uses_fake_repeat_appearance())
+	var surface: BarrageGlassSurface = get_glass_surface()
+	if surface != null and runtime_record != null:
+		surface.configure(runtime_record.tendency_id, 1 if repeat else roundi(runtime_record.strength), repeat)
+	_set_visual_font_color(repeat_font_color if repeat else foreground_font_color)
+	add_theme_color_override("font_outline_color", Color.TRANSPARENT if repeat else outline_color)
+	var strong: bool = not repeat and runtime_record != null and roundi(runtime_record.strength) >= 3
+	add_theme_constant_override("outline_size", 0 if repeat else foreground_outline_size + (1 if strong else 0))
+	# S3 只加重文字笔画，不改变字号和已确定的气泡尺寸规则。
+	if strong:
+		var thick_font := FontVariation.new()
+		thick_font.base_font = get_theme_font("font")
+		thick_font.variation_embolden = 0.34
+		add_theme_font_override("font", thick_font)
+	add_theme_color_override("font_shadow_color", Color.TRANSPARENT if repeat else text_shadow_color)
+	add_theme_constant_override("shadow_offset_x", 0 if repeat else text_shadow_offset)
+	add_theme_constant_override("shadow_offset_y", 0 if repeat else text_shadow_offset)
+	add_theme_font_size_override("font_size", visual_font_size if not repeat else visual_font_size - 3)
+	var rich: RichTextLabel = get_node_or_null("RichBody") as RichTextLabel
+	if rich != null:
+		rich.bbcode_enabled = true
+		rich.scroll_active = false
+		rich.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		rich.visible = false
+		rich.add_theme_color_override("default_color", repeat_font_color if repeat else foreground_font_color)
+		rich.add_theme_color_override("font_outline_color", Color.TRANSPARENT if repeat else outline_color)
+		rich.add_theme_constant_override("outline_size", 0 if repeat else foreground_outline_size + (1 if strong else 0))
+		rich.add_theme_color_override("font_shadow_color", Color.TRANSPARENT if repeat else text_shadow_color)
+		rich.add_theme_constant_override("shadow_offset_x", 0 if repeat else text_shadow_offset)
+		rich.add_theme_constant_override("shadow_offset_y", 0 if repeat else text_shadow_offset)
+		rich.add_theme_font_size_override("normal_font_size", visual_font_size if not repeat else visual_font_size - 3)
+		rich.add_theme_font_size_override("bold_font_size", visual_font_size + 2)
+		rich.add_theme_font_override("normal_font", get_theme_font("font"))
+
+
+# 外部文字配色覆盖同步到已有富文本层。
+func _set_visual_font_color(color: Color) -> void:
+	add_theme_color_override("font_color", color)
+	var rich: RichTextLabel = get_node_or_null("RichBody") as RichTextLabel
+	if rich != null:
+		rich.add_theme_color_override("default_color", color)
+
+
+# 通过当前 Theme 字体真实测量，短文本自动缩窄，长文本折行后提高命中矩形高度。
+func _fit_visual_to_sentence(sentence: String) -> void:
+	var font: Font = get_theme_font("font")
+	var font_size: int = visual_font_size
+	if runtime_record != null and (runtime_record.is_repeat or _uses_fake_repeat_appearance()):
+		font_size = maxi(14, visual_font_size - 3)
+	elif runtime_record != null and runtime_record.trait_set != null and runtime_record.trait_set.has_trait(BarrageTraitSet.UNSELECTABLE):
+		font_size = visual_font_size + 4
+	var font_width: float = font.get_string_size(sentence, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+	var content_width: float = clampf(font_width + 4.0, 100.0, max_glass_width - float(horizontal_padding) * 2.0)
+	var multi_size: Vector2 = font.get_multiline_string_size(sentence, HORIZONTAL_ALIGNMENT_LEFT, content_width, font_size)
+	var new_size: Vector2 = Vector2(content_width + horizontal_padding * 2.0, maxf(48.0, multi_size.y + vertical_padding * 2.0))
+	custom_minimum_size = new_size
+	reset_size()
+	var rich: RichTextLabel = get_node_or_null("RichBody") as RichTextLabel
+	if rich != null:
+		rich.position = Vector2(horizontal_padding, vertical_padding * 0.5)
+		rich.size = Vector2(new_size.x - horizontal_padding * 2.0, new_size.y - vertical_padding)
+		rich.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+
+
+# 暂停时记录起点；恢复后继续沿用原有的毫秒级到期补偿。
 func _update_pause_compensation(is_tree_paused: bool, current_time_msec: int) -> bool:
 	if is_tree_paused:
 		if _pause_started_msec < 0:
@@ -58,7 +230,9 @@ func _update_pause_compensation(is_tree_paused: bool, current_time_msec: int) ->
 		runtime_record.expires_at_msec += current_time_msec - _pause_started_msec
 		_pause_started_msec = -1
 	return false
-## 暂停时跳过移动与移除；运行时到期或离开区域后释放节点。
+
+
+# 移动与自然结束继续只由区域和运行记录负责，外观不另建计时状态。
 func _process(delta: float) -> void:
 	if runtime_record == null:
 		return
@@ -68,7 +242,6 @@ func _process(delta: float) -> void:
 	if current_time_msec >= runtime_record.expires_at_msec:
 		queue_free()
 		return
-
 	position.x -= _move_speed_pixels_per_second * delta
 	if not is_instance_valid(_active_area):
 		queue_free()

@@ -4,6 +4,7 @@ extends RefCounted
 signal opponent_tier_state_changed(pullback_multiplier: float, tier5_desperation_active: bool)
 signal barrage_generation_multipliers_changed(count_multiplier: float, frequency_multiplier: float, movement_speed_multiplier: float)
 signal barrage_lifetime_multiplier_changed(lifetime_multiplier: float)
+signal barrage_foreground_slot_count_changed(foreground_slot_count: int)
 signal neutral_weight_multiplier_changed(multiplier: float)
 signal tier_state_changed(current_tier: int)
 signal audio_event_requested(event_id: StringName)
@@ -84,7 +85,10 @@ func bind_barrage_area(barrage_area: BarrageArea) -> void:
 	var neutral_callback: Callable = Callable(barrage_area, "set_neutral_weight_multiplier")
 	if not neutral_weight_multiplier_changed.is_connected(neutral_callback):
 		neutral_weight_multiplier_changed.connect(neutral_callback)
-	_publish_barrage_multipliers()
+	var foreground_slot_callback: Callable = Callable(barrage_area, "set_foreground_slot_count")
+	if not barrage_foreground_slot_count_changed.is_connected(foreground_slot_callback):
+		barrage_foreground_slot_count_changed.connect(foreground_slot_callback)
+	_publish_barrage_state()
 
 
 func bind_audio_manager(audio_manager: Node) -> void:
@@ -145,7 +149,7 @@ func update_tier_for_pk(final_player_pk: float) -> bool:
 func _publish_current_tier_state() -> void:
 	# 先确定唯一当前 Tier，再把同一配置分别交给各系统。
 	_publish_opponent_tier_state()
-	_publish_barrage_multipliers()
+	_publish_barrage_state()
 	tier_state_changed.emit(_current_tier)
 
 
@@ -158,8 +162,8 @@ func _publish_opponent_tier_state() -> void:
 	)
 
 
-func _publish_barrage_multipliers() -> void:
-	# 弹幕系统只接收倍率，具体生成、速度和寿命应用由 BarrageArea 负责。
+func _publish_barrage_state() -> void:
+	# BarrageArea 接收当前档位配置；具体容量规则仍由弹幕生成任务消费名额。
 	var current_config: CombatStageTierConfig = _tier_catalog.get_tier_config(_current_tier)
 	barrage_generation_multipliers_changed.emit(
 		current_config.generation_count_multiplier,
@@ -169,3 +173,4 @@ func _publish_barrage_multipliers() -> void:
 	barrage_lifetime_multiplier_changed.emit(current_config.lifetime_multiplier)
 	# Neutral 只按当前档位影响下一次普通话语抽取，不改写关卡基础权重。
 	neutral_weight_multiplier_changed.emit(current_config.neutral_weight_multiplier)
+	barrage_foreground_slot_count_changed.emit(current_config.foreground_slot_count)

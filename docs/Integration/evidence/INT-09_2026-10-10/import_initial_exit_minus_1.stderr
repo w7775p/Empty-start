@@ -1,0 +1,18 @@
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2582)
+ERROR: Failed loading resource: res://assets/audio/sfx/magical/magical_1.ogg.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Failed loading resource: res://assets/audio/sfx/magical/magical_2.ogg.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Failed loading resource: res://assets/audio/sfx/magical/magical_3.ogg.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Failed loading resource: res://assets/audio/sfx/magical/magical_4.ogg.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Failed loading resource: res://assets/audio/sfx/magical/magical_5.ogg.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Failed loading resource: res://assets/audio/sfx/magical/magical_6.ogg.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Failed loading resource: res://assets/audio/sfx/magical/magical_7.ogg.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Failed loading resource: res://assets/audio/sfx/interface/confirmation_001.ogg.
+   at: _load (core/io/resource_loader.cpp:317)

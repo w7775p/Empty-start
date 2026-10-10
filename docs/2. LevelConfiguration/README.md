@@ -184,3 +184,7 @@ LevelProfile 新增可选 normal_speech_pool_source: LevelSpeechPool，使用 ge
 ## 2026-10-10 新版主播粉丝团名称
 
 策划总表的 `02_主播关卡.fan_group_name` 用于该关对手直播间**主播名右侧**的 `❤粉丝团名❤` 文字，原字段名 `fan_badge_text` 已弃用。PA-20 将把此名称接入 `LevelProfile` 和正式 BattleHud，玩家侧仍直接读取 `SaveData.fan_group_name`。对手 `fan_badge_id / fan_badge_texture` 与玩家共享资源 `player_fan_badge` 继续用于 LD-15 直播评论内粉丝身份标记。参见 `docs/Shared/PresentationAssets/tasks/PA-20_header-fan-group-name.md`。
+
+## 2026-10-10 LC-14 普通导表来源隔离
+
+`tools/export_game_data.py` 在普通导表和 `--test-only` 模式共用 `00_填写说明!A1` 的 TEST_ONLY 来源标记。普通模式发现该标记时，在解析和写盘前返回退出码 2，并保留现有正式 CSV；已标记工作簿继续由 `--test-only` 写入测试目录。`--output-root <目录>` 可将导出产物写入隔离根目录，默认仍为当前项目根目录。此修复只处理导表来源隔离；LC-10 正式关卡数据联调仍按对应任务卡暂停状态执行。

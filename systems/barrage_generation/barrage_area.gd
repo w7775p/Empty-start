@@ -17,13 +17,14 @@ var _current_level_profile: LevelProfile
 var _normal_generation_enabled: bool = false
 var _contradiction_generation_enabled: bool = false
 var _contradiction_lines: Array[LevelContradiction] = []
-var _next_contradiction_index: int = 0
+var _contradiction_initial_set_spawned: bool = false
 var _contradiction_config: ContradictionWindowConfig
 var _count_multiplier: float = 1.0
 var _frequency_multiplier: float = 1.0
 var _movement_speed_multiplier: float = 1.0
 var _lifetime_multiplier: float = 1.0
 var _neutral_weight_multiplier: float = 1.0
+var _foreground_slot_count: int = 0
 ## 普通话语与陷阱共用的容量账本。
 var _normal_capacity_ledger: BarrageCapacityLedger = BarrageCapacityLedger.new()
 var _repeat_capacity_ledger: BarrageCapacityLedger = BarrageCapacityLedger.new()
@@ -64,40 +65,41 @@ func start_normal_generation(level_profile: LevelProfile) -> bool:
 	_restart_spawn_timer()
 	return true
 
-## 矛盾阶段读取 Paradox 专属倍率和窗口寿命，不复用普通档位参数。
+## 矛盾阶段一次性显示协调方提供的固定候选集，并沿用 Paradox 速度与寿命配置。
 func start_contradiction_generation(
 	level_profile: LevelProfile,
 	true_lines: Array[LevelContradiction],
 	false_lines: Array[LevelContradiction],
 	config: ContradictionWindowConfig
 ) -> bool:
-	if level_profile == null or level_profile.base_spawn_interval_seconds <= 0.0 or config == null:
+	if level_profile == null or config == null:
 		return false
-	if config.duration_seconds <= 0.0 or config.generation_count_multiplier <= 0.0 or config.generation_frequency_multiplier <= 0.0 or config.movement_speed_multiplier <= 0.0:
+	if config.duration_seconds <= 0.0 or config.movement_speed_multiplier <= 0.0:
+		return false
+	if true_lines.size() != ContradictionWindowConfig.PARADOX_TRUE_CANDIDATE_COUNT or false_lines.size() != ContradictionWindowConfig.PARADOX_FALSE_CANDIDATE_COUNT:
 		return false
 	var lines: Array[LevelContradiction] = []
 	for line: LevelContradiction in true_lines + false_lines:
 		if line == null or line.original_sentence_id.is_empty() or line.text.is_empty():
-			continue
+			return false
 		lines.append(line)
-	if lines.is_empty():
-		return false
 	stop_normal_generation()
 	stop_contradiction_generation()
 	_current_level_profile = level_profile
 	_contradiction_lines = lines
 	_contradiction_config = config
-	_next_contradiction_index = 0
 	_contradiction_generation_enabled = true
-	_spawn_contradiction_batch()
-	_restart_spawn_timer()
+	if not _spawn_contradiction_batch():
+		stop_contradiction_generation()
+		return false
 	return true
 
 
-## 离开矛盾阶段时停止后续批次；已生成实例由场景协调方决定何时清理。
+## 离开矛盾阶段时关闭矛盾生成入口；已生成实例由场景协调方决定何时清理。
 func stop_contradiction_generation() -> void:
 	_contradiction_generation_enabled = false
 	_contradiction_lines.clear()
+	_contradiction_initial_set_spawned = false
 	_contradiction_config = null
 	_spawn_timer.stop()
 
@@ -116,12 +118,29 @@ func set_lifetime_multiplier(lifetime_multiplier: float) -> void:
 func set_neutral_weight_multiplier(multiplier: float) -> void:
 	_neutral_weight_multiplier = maxf(multiplier, 0.0)
 
+## 接收 CombatStage 发布的当前 Tier 名额；配额变化后重算因容量暂停的批次 Timer。
+func set_foreground_slot_count(slot_count: int) -> void:
+	_foreground_slot_count = slot_count
+	_restart_spawn_timer()
+
+## 为后续前景容量逻辑提供当前 Tier 名额；0 表示 T0 数值尚未确定。
+func get_foreground_slot_count() -> int:
+	return _foreground_slot_count
+
+## T0 使用关卡普通容量 fallback；矛盾实例走候选集自身的独立容量。
+func _get_foreground_capacity_limit(level_profile: LevelProfile) -> int:
+	if level_profile == null:
+		return 0
+	if _contradiction_generation_enabled or _foreground_slot_count == 0:
+		return level_profile.normal_barrage_screen_cap
+	return _foreground_slot_count
+
 ## 申请普通弹幕共享容量；未设置当前关卡或容量满时返回 false。
 func try_register_normal_capacity_occupant(occupant: Object) -> bool:
 	# 普通话语由内部入口登记；终局拒绝外部陷阱共享占位请求。
 	if _terminal_presentation_only or _current_level_profile == null:
 		return false
-	return _try_register_normal_capacity_occupant(occupant, _current_level_profile.normal_barrage_screen_cap)
+	return _try_register_normal_capacity_occupant(occupant, _get_foreground_capacity_limit(_current_level_profile))
 
 ## 释放占位对象；普通弹幕节点离树时会自动调用此入口。
 func release_normal_capacity_occupant(occupant: Object) -> bool:
@@ -280,7 +299,8 @@ func spawn_normal_barrage(
 		push_error("BarrageArea: 未配置弹幕表现 Scene。")
 		return null
 
-	if not _normal_capacity_ledger.has_capacity(level_profile.normal_barrage_screen_cap):
+	var capacity_limit: int = _get_foreground_capacity_limit(level_profile)
+	if not _normal_capacity_ledger.has_capacity(capacity_limit):
 		_pause_normal_generation_timer()
 		return null
 
@@ -305,7 +325,7 @@ func spawn_normal_barrage(
 	view.setup(barrage_record, effective_move_speed, self)
 	if _terminal_presentation_only:
 		view.apply_terminal_trait_presentation(_terminal_trait_ids, _terminal_trait_colors)
-	if not _try_register_normal_capacity_occupant(view, level_profile.normal_barrage_screen_cap):
+	if not _try_register_normal_capacity_occupant(view, capacity_limit):
 		view.free()
 		return null
 	add_child(view)
@@ -317,12 +337,12 @@ func spawn_normal_barrage(
 	return view
 
 
-## 单条矛盾沿用区域容量与定位，但速度和寿命只读取 Paradox 配置。
+## 单条矛盾沿用区域定位；完整候选集成功后才统一发布生成通知。
 func spawn_contradiction_barrage(level_profile: LevelProfile, line: LevelContradiction) -> BarrageView:
-	if level_profile == null or line == null or barrage_view_scene == null or _contradiction_config == null:
+	if level_profile == null or line == null or barrage_view_scene == null or _contradiction_config == null or not _contradiction_generation_enabled or _contradiction_initial_set_spawned:
 		return null
-	if not _normal_capacity_ledger.has_capacity(level_profile.normal_barrage_screen_cap):
-		_pause_normal_generation_timer()
+	# Paradox 容量只按当前矛盾视图和固定候选数计算，不占用普通前景容量账本。
+	if int(get_current_barrage_counts().get("contradiction", 0)) >= _contradiction_lines.size():
 		return null
 	var barrage_record := BarrageRuntimeRecord.new()
 	# 真 / 假矛盾使用新记录自带的独立空 TraitSet；不复制普通特性，真假由 12 按原句 ID 判断。
@@ -336,14 +356,10 @@ func spawn_contradiction_barrage(level_profile: LevelProfile, line: LevelContrad
 	if view == null:
 		return null
 	view.setup(barrage_record, level_profile.base_move_speed_pixels_per_second * _contradiction_config.movement_speed_multiplier, self)
-	if not _try_register_normal_capacity_occupant(view, level_profile.normal_barrage_screen_cap):
-		view.free()
-		return null
 	add_child(view)
 	if not _place_new_barrage(view):
 		end_barrage(view.get_instance_id())
 		return null
-	barrage_generated.emit(view)
 	return view
 
 ## 把 RepeatPlan 的单条请求显示为场上复读；容量满时返回 null 供 Repeat 处理溢出。
@@ -466,23 +482,29 @@ func _spawn_normal_batch(allow_when_stopped: bool = false) -> int:
 	return generated_count
 
 
-## 每批轮换当前关真假矛盾；同一稳定 ID 可再次出现，但真假归属只由关卡定义。
-func _spawn_contradiction_batch() -> void:
-	if not _contradiction_generation_enabled or _current_level_profile == null or _contradiction_config == null or _contradiction_lines.is_empty():
-		return
-	if not _has_normal_capacity_for(_current_level_profile):
-		_pause_normal_generation_timer()
-		return
-	var batch_count: int = roundi(float(_current_level_profile.base_batch_count) * _contradiction_config.generation_count_multiplier)
-	for _index in range(maxi(batch_count, 0)):
-		var line: LevelContradiction = _contradiction_lines[_next_contradiction_index]
-		if spawn_contradiction_barrage(_current_level_profile, line) == null:
-			return
-		_next_contradiction_index = (_next_contradiction_index + 1) % _contradiction_lines.size()
+## 一次性生成完整候选集；放置失败时撤销本次新增实例，避免留下不完整阶段。
+func _spawn_contradiction_batch() -> bool:
+	if _contradiction_initial_set_spawned:
+		_spawn_timer.stop()
+		return false
+	if not _contradiction_generation_enabled or _current_level_profile == null or _contradiction_config == null or _contradiction_lines.size() != ContradictionWindowConfig.PARADOX_CANDIDATE_COUNT:
+		return false
+	var spawned_views: Array[BarrageView] = []
+	for line: LevelContradiction in _contradiction_lines:
+		var view: BarrageView = spawn_contradiction_barrage(_current_level_profile, line)
+		if view == null:
+			for spawned_view: BarrageView in spawned_views:
+				end_barrage(spawned_view.get_instance_id())
+			return false
+		spawned_views.append(view)
+	_contradiction_initial_set_spawned = true
+	for spawned_view: BarrageView in spawned_views:
+		barrage_generated.emit(spawned_view)
+	return true
 
-## 按传入关卡的上限判断普通话语与陷阱的共享容量。
+## 按当前 Tier 名额或 T0 关卡 fallback 判断普通弹幕容量。
 func _has_normal_capacity_for(level_profile: LevelProfile) -> bool:
-	return level_profile != null and _normal_capacity_ledger.has_capacity(level_profile.normal_barrage_screen_cap)
+	return level_profile != null and _normal_capacity_ledger.has_capacity(_get_foreground_capacity_limit(level_profile))
 
 ## 根据当前频率倍率更新时间间隔；零频率时保留已开启状态并暂停 Timer。
 func _restart_spawn_timer() -> void:
@@ -495,7 +517,7 @@ func _restart_spawn_timer() -> void:
 func _get_effective_spawn_interval() -> float:
 	return _current_level_profile.base_spawn_interval_seconds / _active_frequency_multiplier()
 
-## 普通战斗使用档位频率；Paradox 生成始终使用自身频率。
+## 普通战斗使用当前档位频率；Paradox 没有后续批次 Timer。
 func _active_frequency_multiplier() -> float:
 	if _contradiction_generation_enabled and _contradiction_config != null:
 		return _contradiction_config.generation_frequency_multiplier
