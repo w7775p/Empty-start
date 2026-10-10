@@ -11,6 +11,15 @@ var _failures: Array[String] = []
 var _check_count: int = 0
 var _snapshots: Array[AttackTargetSnapshot] = []
 var _submissions: Array[Dictionary] = []
+var _flow_shot_events: Array[Dictionary] = []
+var _flow_tier_events: Array[Dictionary] = []
+var _last_attempt_failure: Dictionary = {}
+var _last_attempt_restart: Dictionary = {}
+var _attempt_failed_events: int = 0
+var _attempt_restarted_events: int = 0
+var _pk_maximum_events: int = 0
+var _normal_completed_events: int = 0
+var _contradiction_entered_events: int = 0
 var _mouse_position: Vector2 = Vector2.ZERO
 
 
@@ -33,6 +42,13 @@ func _ready() -> void:
 	_aim = _sandbox.get_node("%AimReticle") as AimReticle
 	_attack.shot_snapshot_created.connect(_on_snapshot)
 	_attack.shot_hit_resolution_submitted.connect(_on_submission)
+	_flow().shot_resolved.connect(_on_flow_shot_resolved)
+	_flow().tier_changed.connect(_on_flow_tier_changed)
+	_flow().attempt_failed.connect(_on_flow_attempt_failed)
+	_flow().attempt_restarted.connect(_on_flow_attempt_restarted)
+	_flow().pk_maximum_reached.connect(_on_flow_pk_maximum_reached)
+	_flow().normal_combat_completed.connect(_on_flow_normal_combat_completed)
+	_flow().contradiction_entered.connect(_on_flow_contradiction_entered)
 	await _verify_layout_and_generation()
 	await _verify_real_attack_and_repeat()
 	await _verify_tier_and_new_barrage_parameters()
@@ -62,7 +78,7 @@ func _verify_layout_and_generation() -> void:
 	var first_view: BarrageView = opening_views[0]
 	var opening_x: float = first_view.position.x
 	var opening_pk: float = _hit().get_player_pk()
-	await _wait(1.08)
+	await _wait(1.50)
 	_check(is_instance_valid(first_view) and first_view.position.x < opening_x, "普通弹幕持续移动")
 	_check(_views(false).size() > opening_views.size(), "普通弹幕持续生成")
 	_check(_hit().get_player_pk() < opening_pk, "真实回拉按帧降低 PK")
@@ -111,6 +127,8 @@ func _verify_real_attack_and_repeat() -> void:
 	_check(SaveManager.data.tendency_state.orthodox_total == 11, "此前已提交倾向保持")
 	var queue: RepeatDelayQueue = _queue()
 	_check(_stage().get_current_tier() == 1, "普通命中收益实际触发 Tier 上升")
+	_check(_flow_shot_events.size() == 1 and int(_flow_shot_events.back().get("current_tier", -1)) == 1
+		and _flow_shot_events.back().get("repeat_stats") == queue.get_generation_stats(), "单发事件发布升档后的 Tier 与同一复读统计")
 	var comment_before: int = SaveManager.data.live_session.comment_count
 	await _wait(3.12)
 	var repeats: Array[BarrageView] = _views(true)
@@ -137,6 +155,7 @@ func _verify_real_attack_and_repeat() -> void:
 	_check(not is_instance_valid(repeat_target) or not repeat_target.is_inside_tree(), "命中的复读实例真实结束")
 	_check(is_equal_approx(_hit().get_player_pk(), pk_before) and _attempt_tendency_total() == tendency_before, "复读命中 PK 与倾向均为零收益")
 	_check(_hit().get_normal_hit_history() == history_before, "复读命中不写普通历史")
+	_check(_flow_shot_events.size() == submissions_before + 1 and bool(_flow_shot_events.back().get("is_repeat_hit", false)), "复读命中事件保留零收益事实")
 
 
 # 将 PK 边界通过唯一所有者推进，核实倍率影响新实例且保留既有快照。
@@ -146,8 +165,11 @@ func _verify_tier_and_new_barrage_parameters() -> void:
 	_opponent().stop_pullback()
 	var old_view: BarrageView = _spawn_test_normal()
 	var old_expiry: int = old_view.runtime_record.expires_at_msec
+	var tier_event_count_before: int = _flow_tier_events.size()
 	_hit().apply_player_pk_delta(0.22)
 	_check(_stage().get_current_tier() == 3, "PK 更新同步跨档到 Tier 3")
+	_check(_flow_tier_events.size() == tier_event_count_before + 1 and int(_flow_tier_events.back().get("tier", -1)) == 3,
+		"Tier 公开事件只发布稳定后的当前档位")
 	_check((_sandbox.get_node("%Tier") as Label).text.contains("3"), "中央顶部同步显示当前 Tier")
 	var tier: CombatStageTierConfig = TIER_CATALOG.get_tier_config(3)
 	var before_spawn_msec: int = Time.get_ticks_msec()
@@ -174,6 +196,7 @@ func _verify_tier_and_new_barrage_parameters() -> void:
 	_opponent().resume_pullback()
 	await _wait(0.18)
 	_check(_stage().get_current_tier() == 2, "真实回拉跨降档阈值后 Tier 下降")
+	_check(int(_flow_tier_events.back().get("tier", -1)) == 2, "降档结果沿用同一 Tier 公开事件")
 
 
 # 暂停真实 SceneTree，逐段验证蓄力、飞行、硬直与场上移动/回拉同时冻结。
@@ -224,18 +247,29 @@ func _verify_failure_restart_and_full_pk() -> void:
 	await _fire_at(target)
 	_check(_attempt_tendency_total() > 0, "失败前存在本场倾向")
 	var save_before: SaveData = SaveManager.data
-	var run_before: LevelRunState = _sandbox.get("_run_state") as LevelRunState
+	var level_before: LevelProfile = _flow().get_current_level_profile()
+	var failures_before: int = _attempt_failed_events
+	var restarts_before: int = _attempt_restarted_events
 	_hit().apply_player_pk_delta(0.00002 - _hit().get_player_pk())
 	_opponent().resume_pullback()
 	await _wait(0.12)
-	_check(_opponent().has_attempt_failed() and not bool(_sandbox.get("_normal_combat_active")), "PK 归零进入真实失败状态")
+	_check(_opponent().has_attempt_failed() and not _flow().is_normal_combat_active(), "PK 归零进入真实失败状态")
 	_check(_sandbox.get_node("%FailureOverlay").visible, "失败遮罩可见")
 	_check(_attempt_tendency_total() == 0, "失败回滚本场倾向")
+	_check(_attempt_failed_events == failures_before + 1
+		and _last_attempt_failure.get("level") == level_before
+		and int(_last_attempt_failure.get("loss_streak_count", 0)) == 1
+		and _last_attempt_failure.get("hit_resolution") == _hit(), "失败事件只通知一次并交付结果")
 	_check(_views(false).is_empty() and _views(true).is_empty() and not _attack.can_start_charging(), "失败停止生成与攻击并清场")
 	(_sandbox.get_node("%RestartButton") as Button).pressed.emit()
+	_check(_attempt_restarted_events == restarts_before + 1
+		and _last_attempt_restart.get("level") == level_before
+		and _last_attempt_restart.get("hit_resolution") == _hit()
+		and _last_attempt_restart.get("combat_stage") == _stage()
+		and _last_attempt_restart.get("repeat_queue") == _queue(), "重开事件交付新尝试状态")
 	_check(is_equal_approx(_hit().get_player_pk(), 0.5) and _stage().get_current_tier() == 0, "重开恢复初始 PK 和 Tier 0")
 	_check(_attack.can_start_charging() and _attempt_tendency_total() == 0, "重开恢复 READY 并重置本场暂存")
-	_check(SaveManager.data == save_before and (_sandbox.get("_run_state") as LevelRunState) == run_before, "重开保留同一周目及当前关对象")
+	_check(SaveManager.data == save_before and _flow().get_current_level_profile() == level_before, "重开保留同一周目及当前关对象")
 	_check(SaveManager.data.tendency_state.orthodox_total == 11 and SaveManager.data.assimilation_data.defeated_streamer_ids.has(&"test_previous_streamer"), "重开保留已提交周目成果")
 	_check(SaveManager.data.live_session.fan_count == 77 and SaveManager.data.live_session.viewer_count == 0 and SaveManager.data.live_session.like_count == 0 and SaveManager.data.live_session.comment_count == _views(false).size(), "重开直播表现归零后只计新开局实际评论")
 	_check(_opponent().get_loss_streak_count() == 1 and not _opponent().has_attempt_failed(), "重开保留连败次数并清除本场失败标记")
@@ -247,8 +281,13 @@ func _verify_failure_restart_and_full_pk() -> void:
 	_hit().apply_player_pk_delta(0.9995 - _hit().get_player_pk())
 	target = _spawn_test_normal()
 	var tendency_before: int = _attempt_tendency_total()
+	var pk_maximum_before: int = _pk_maximum_events
+	var normal_complete_before: int = _normal_completed_events
+	var contradiction_entered_before: int = _contradiction_entered_events
 	await _fire_at(target)
-	_check(is_equal_approx(_hit().get_player_pk(), 1.0) and not bool(_sandbox.get("_normal_combat_active")), "真实普通命中使 PK 满值并停止普通战斗")
+	_check(is_equal_approx(_hit().get_player_pk(), 1.0) and not _flow().is_normal_combat_active(), "真实普通命中使 PK 满值并停止普通战斗")
+	_check(_pk_maximum_events == pk_maximum_before + 1 and _normal_completed_events == normal_complete_before + 1
+		and _contradiction_entered_events == contradiction_entered_before + 1, "PK 满值、普通结束和进入矛盾各通知一次")
 	_check(bool(_sandbox.get_contradiction_oracle_flow().is_contradiction_active()), "满值只进入一次矛盾阶段")
 	var contradiction_ids: Array[String] = []
 	for view: BarrageView in _views(false):
@@ -437,23 +476,27 @@ func _views(is_repeat: bool) -> Array[BarrageView]:
 
 
 func _hit() -> HitResolution:
-	return _sandbox.get("_hit_resolution") as HitResolution
+	return _flow().get_hit_resolution()
 
 
 func _stage() -> CombatStage:
-	return _sandbox.get("_combat_stage") as CombatStage
+	return _flow().get_combat_stage()
 
 
 func _opponent() -> OpponentPKBar:
-	return _sandbox.get("_opponent_pk_bar") as OpponentPKBar
+	return _flow().get_opponent_pk_bar()
 
 
 func _queue() -> RepeatDelayQueue:
-	return _sandbox.get("_repeat_queue") as RepeatDelayQueue
+	return _flow().get_repeat_queue()
 
 
 func _level() -> LevelProfile:
-	return (_sandbox.get("_run_state") as LevelRunState).get_current_level_profile()
+	return _flow().get_current_level_profile()
+
+
+func _flow() -> BattleAttemptFlow:
+	return _sandbox.get_battle_attempt_flow()
 
 
 func _attempt_tendency_total() -> int:
@@ -471,6 +514,47 @@ func _on_snapshot(snapshot: AttackTargetSnapshot) -> void:
 
 func _on_submission(_snapshot: AttackTargetSnapshot, submission: Dictionary) -> void:
 	_submissions.append(submission)
+
+
+func _on_flow_shot_resolved(snapshot: AttackTargetSnapshot, submission: Dictionary, current_tier: int, repeat_stats: RepeatGenerationStats) -> void:
+	var result: Dictionary = submission.get("hit_resolution_result", {})
+	var repeat_hit: bool = false
+	for target_result: Dictionary in result.get("target_results", []):
+		if bool(target_result.get("is_repeat", false)) and bool(target_result.get("is_valid_hit", false)):
+			repeat_hit = true
+	_flow_shot_events.append({
+		"snapshot": snapshot,
+		"submission": submission,
+		"current_tier": current_tier,
+		"repeat_stats": repeat_stats,
+		"is_repeat_hit": repeat_hit,
+	})
+
+
+func _on_flow_tier_changed(current_tier: int, player_pk: float) -> void:
+	_flow_tier_events.append({"tier": current_tier, "player_pk": player_pk})
+
+
+func _on_flow_attempt_failed(level: LevelProfile, loss_streak_count: int, hit: HitResolution, stats: RepeatGenerationStats) -> void:
+	_attempt_failed_events += 1
+	_last_attempt_failure = {"level": level, "loss_streak_count": loss_streak_count, "hit_resolution": hit, "repeat_stats": stats}
+
+
+func _on_flow_attempt_restarted(level: LevelProfile, hit: HitResolution, stage: CombatStage, queue: RepeatDelayQueue) -> void:
+	_attempt_restarted_events += 1
+	_last_attempt_restart = {"level": level, "hit_resolution": hit, "combat_stage": stage, "repeat_queue": queue}
+
+
+func _on_flow_pk_maximum_reached(_level: LevelProfile, _hit: HitResolution, _stats: RepeatGenerationStats) -> void:
+	_pk_maximum_events += 1
+
+
+func _on_flow_normal_combat_completed(_level: LevelProfile, _hit: HitResolution, _stats: RepeatGenerationStats) -> void:
+	_normal_completed_events += 1
+
+
+func _on_flow_contradiction_entered(_level: LevelProfile, _hit: HitResolution, _stats: RepeatGenerationStats) -> void:
+	_contradiction_entered_events += 1
 
 
 func _check(condition: bool, description: String) -> void:

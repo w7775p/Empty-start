@@ -1,0 +1,36 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: AMD - AMD Radeon(TM) Graphics
+
+INT04 ROUTE BEGIN empty_history=false
+INT04 aim target=(1355.0, 148.5) raw_input=(813.0001, 89.10001) viewport_mouse=(678064960.0, -266.6667) actual_aim=(1355.0, 148.5)
+INT04 before release held=true full=true phase=0
+INT04 shot targets=[116014451120] expected=116014451120 facts=[]
+INT04 LEVEL BEGIN empty_history=false level=0
+INT04 aim target=(1355.0, 148.5) raw_input=(813.0001, 89.10001) viewport_mouse=(678064960.0, -266.6667) actual_aim=(1355.0, 148.5)
+INT04 before release held=true full=true phase=0
+INT04 shot targets=[120762403201] expected=120762403201 facts=[]
+INT04 aim target=(1223.0, 148.5) raw_input=(733.8, 89.10001) viewport_mouse=(678064960.0, -266.6667) actual_aim=(1223.0, 148.5)
+INT04 before release held=true full=true phase=0
+INT04 shot targets=[124956707315] expected=124956707315 facts=[{ "target_instance_id": 124956707315, "original_sentence_id": "test_contra_true_01", "original_sentence_text": "我从未删过评论，但所有评论都被我删除。" }]
+INT04 aim target=(960.0, 452.0) raw_input=(576.0, 271.2) viewport_mouse=(678064960.0, -266.6667) actual_aim=(960.0, 452.0)
+INT04 before release held=true full=true phase=0
+INT04 shot targets=[134033181183] expected=134033181183 facts=[]
+INT04 LEVEL BEGIN empty_history=false level=1
+INT04 aim target=(1331.0, 148.5) raw_input=(798.6, 89.10001) viewport_mouse=(678064960.0, -266.6667) actual_aim=(1331.0, 148.5)
+INT04 before release held=true full=true phase=0
+INT04 shot targets=[140056201614] expected=140056201614 facts=[]
+INT04 aim target=(1319.0, 148.5) raw_input=(791.4, 89.10001) viewport_mouse=(678064960.0, -266.6667) actual_aim=(1319.0, 148.5)
+INT04 before release held=true full=true phase=0
+INT04 shot targets=[143076100625] expected=143076100625 facts=[{ "target_instance_id": 143076100625, "original_sentence_id": "test_contra_false_02", "original_sentence_text": "请再发一次刚才的弹幕。" }]
+INT04 ROUTE PASS empty_history=false facts={ "identity": &"identity_orthodox_1", "fans": 14, "tendency": [6, 0, 0], "history": [{ "original_sentence_id": "test_word_01", "tendency": "orthodox", "hit_count": 1, "first_committed_hit_order": 1 }, { "original_sentence_id": "test_word_09", "tendency": "orthodox", "hit_count": 1, "first_committed_hit_order": 2 }], "scripture": 1, "cards": 1, "assimilation": { "inherited_word_weights": { &"test_int04_pool_test_level_01": 1.0 }, "inherited_trait_ids": [&"occlusion"] } }
+INT04 ROUTE BEGIN empty_history=true
+INT04 LEVEL BEGIN empty_history=true level=0
+INT04 aim target=(1343.0, 148.5) raw_input=(805.8, 89.10001) viewport_mouse=(678064960.0, -266.6667) actual_aim=(1343.0, 148.5)
+INT04 before release held=true full=true phase=0
+INT04 shot targets=[198726125930] expected=198726125930 facts=[{ "target_instance_id": 198726125930, "original_sentence_id": "test_contra_false_01", "original_sentence_text": "今天直播间非常吵。" }]
+INT04 LEVEL BEGIN empty_history=true level=1
+INT04 aim target=(1319.0, 148.5) raw_input=(791.4, 89.10001) viewport_mouse=(678064960.0, -266.6667) actual_aim=(1319.0, 148.5)
+INT04 before release held=true full=true phase=0
+INT04 shot targets=[210453400037] expected=210453400037 facts=[{ "target_instance_id": 210453400037, "original_sentence_id": "test_contra_false_02", "original_sentence_text": "请再发一次刚才的弹幕。" }]
+INT04 ROUTE PASS empty_history=true facts={ "identity": &"identity_orthodox_1", "fans": 14, "tendency": [0, 0, 0], "history": [], "scripture": 0, "cards": 0, "assimilation": { "inherited_word_weights": {  }, "inherited_trait_ids": [] } }
+PASS INT-04 full run checks=96 top_level_routes=10 DD_completed=1

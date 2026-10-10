@@ -23,7 +23,7 @@ func _execute() -> void:
 	flow.commit_failed.connect(func(reason): _errors.append(reason))
 	var level: LevelProfile = _sandbox.level_catalog.profiles[0]
 	var run: SaveData = SaveManager.data
-	_sandbox._hit_resolution.record_normal_word_hit(level.get_normal_speech_pool()[0].original_sentence_id, "orthodox")
+	_sandbox.get_battle_attempt_flow().get_hit_resolution().record_normal_word_hit(level.get_normal_speech_pool()[0].original_sentence_id, "orthodox")
 	run.tendency_state.record_normal_speech_tendency("orthodox", 3)
 	_sandbox.debug_set_player_pk(1.0)
 	await _frames()
@@ -66,7 +66,7 @@ func _execute() -> void:
 	var original_assimilation: Dictionary = run.assimilation_data.get_current_content_snapshot()
 	_sandbox.restart_current_attempt()
 	# 复现 review：新 HitResolution 再命中一次，旧神谕复用时不得将新暂存入账。
-	_sandbox._hit_resolution.record_normal_word_hit(level.get_normal_speech_pool()[0].original_sentence_id, "orthodox")
+	_sandbox.get_battle_attempt_flow().get_hit_resolution().record_normal_word_hit(level.get_normal_speech_pool()[0].original_sentence_id, "orthodox")
 	run.tendency_state.record_normal_speech_tendency("orthodox", 3)
 	_sandbox.debug_set_player_pk(1.0)
 	await _frames()
@@ -97,7 +97,7 @@ func _execute() -> void:
 	# 确认完成后同帧重开，旧帧尾 Rest 交接必须失效；已提交成果仍保留。
 	_sandbox.restart_current_attempt()
 	var second_level: LevelProfile = _sandbox.level_catalog.profiles[1]
-	_sandbox._hit_resolution.record_normal_word_hit(second_level.get_normal_speech_pool()[0].original_sentence_id, "orthodox")
+	_sandbox.get_battle_attempt_flow().get_hit_resolution().record_normal_word_hit(second_level.get_normal_speech_pool()[0].original_sentence_id, "orthodox")
 	_sandbox.debug_set_player_pk(1.0)
 	await _frames()
 	system = flow.get_contradiction_system()

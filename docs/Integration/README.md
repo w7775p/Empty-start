@@ -11,6 +11,27 @@ INT-07 / INT-08 已合并，下一张 Sandbox 任务优先做 `BattleAttemptFlow
 
 INT-10 合并后按计划 S3 核对所有后续任务卡的真实前置、Owner 和公开事件接口，再接线 CA/CS/SD/LD/PA/UI；其他 Lane 当前已投入的独立功能和画面稿予以保留。新表字段适配、正式资源映射及 LC-10 四关联调统一安排在功能/场景稳定之后，不能将 TEST_ONLY 的整局冒烟称为正式四关联调。
 
+## INT-09 普通战斗尝试流程（2026-10-10）
+
+`Sandbox` 组合运行时子节点 `BattleAttemptFlow`，负责 T0～T5 单关尝试的创建、启动、推进、失败、重开和 PK 满值交接。PK、Tier、复读统计仍由同一场的 `HitResolution`、`CombatStage`、`RepeatGenerationStats` 持有；`LevelRunState` 继续持有关卡进度。没有新增 Autoload、配置类型、Scene 或 Resource。
+
+`Sandbox.get_battle_attempt_flow()` 是后续流程和集成测试的稳定入口。流程公开事件如下：
+
+- `attempt_started(level, hit_resolution, combat_stage, repeat_queue)`：一次尝试成功启动；每次新建或重建都会发出。
+- `attempt_restarted(level, hit_resolution, combat_stage, repeat_queue)`：失败重开或 Rest 下一关完成重建后发出。
+- `shot_resolved(snapshot, submission, current_tier, repeat_stats)`：有效目标移除、倾向暂存和复读计划登记完成后发出；`submission` 保留原 `HitResolution` 整发结果。
+- `tier_changed(current_tier, player_pk)`、`pk_feedback_changed(player_pk, current_tier)`、`battle_state_changed(text)`：分别提供稳定档位、PK/HUD 与战斗提示事实。
+- `attempt_failed(level, loss_streak_count, hit_resolution, repeat_stats)`：失败回滚已完成后发出。
+- `pk_maximum_reached(level, hit_resolution, repeat_stats)`、`normal_combat_completed(level, hit_resolution, repeat_stats)`、`contradiction_entered(level, hit_resolution, repeat_stats)`：顺序标记普通 PK 满值、普通阶段结算完成及矛盾流程成功启动。
+
+整发顺序为：`AttackChargeInput → HitResolution → CombatStage 同步更新 Tier → BattleAttemptFlow 移除命中目标 / 暂存倾向 / 登记复读 → shot_resolved → 正常阶段结束 → ContradictionOracleFlow.start`。PK 满值时立即冻结普通结算、回拉和普通生成；延迟完成回调确保最后一发的复读计划先登记。矛盾流程收到同一 `HitResolution`、`CombatStage` 与 `RepeatDelayQueue`。失败沿用原倾向、普通历史和复读历史回滚；已提交周目成果由各自原所有者保存。
+
+阶段接线可读取 `get_current_level_profile()`、`get_hit_resolution()`、`get_combat_stage()`、`get_repeat_queue()`、`get_repeat_generation_stats()`、`get_current_tier()` 与 `is_normal_combat_active()`；`clear_pending_normal_repeats()`、`clear_barrages_for_stage_transition()`、`complete_current_level()` 提供清屏、清旧复读和下一关收尾入口。CS-18 可先清旧复读请求，再由 CS-14 调用清屏入口。
+
+直播统计仍写入原 `SaveData.live_session`：成功生成评论继续由 Sandbox 的 `BarrageArea.barrage_generated` 入口累计，`LiveDataHud` 继续绑定同一 Resource；不新增观众、点赞或评论业务规则。Sandbox 订阅 flow 的 PK、状态与失败事件，并交给 `SandboxBattleHud` 显示。INT-01、INT-04、INT-08 和 TT-13 读取普通战斗状态时使用公开 flow getter，不再读 Sandbox 的尝试私有字段。
+
+INT-10 直接从 `get_battle_attempt_flow()` 订阅上述事实并使用公开阶段入口；终局接线继续使用 `get_divine_descent_flow()`，矛盾/神谕继续使用 `get_contradiction_oracle_flow()`。本卡不改 INT-07/08 的流程接口、不做 INT-10，也不触碰正式 XLSX/CSV 字段或正式关卡。
+
 ## INT-08 矛盾 / 神谕与 Rest 交接（2026-10-10）
 
 `Sandbox` 组合运行时子节点 `ContradictionOracleFlow`，持有本次 `ContradictionBreakSystem`、静音过渡 Timer、`FinalOracleSession`、选择计时和准备好的 `RestSession`。同周目确认状态由流程复用；正常重开、换关与终局均显式 `stop()`，离树作最终清理。没有增加 Autoload 或修改生产 Scene / Resource。
