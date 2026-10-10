@@ -1,0 +1,89 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scenes/demos/pa09_style_compare_demo.gd" id="1_demo"]
+[ext_resource type="Script" path="res://scenes/demos/pa09_demo_stage.gd" id="2_stage"]
+[ext_resource type="Script" path="res://scenes/demos/pa09_feedback_overlay.gd" id="3_feedback"]
+[ext_resource type="Texture2D" path="res://assets/environment/live/player_live_temp.png" id="4_bg"]
+[ext_resource type="Texture2D" path="res://assets/characters/player/hamster_idle.png" id="5_player"]
+[ext_resource type="Texture2D" path="res://assets/characters/opponents/kiwi/kiwi_idle.png" id="6_kiwi"]
+
+[node name="PA09StyleCompare" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_demo")
+
+[node name="BattleBackground" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("4_bg")
+modulate = Color(0.64, 0.70, 0.83, 0.93)
+expand_mode = 1
+stretch_mode = 6
+
+[node name="DarkOverlay" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.018, 0.028, 0.060, 0.77)
+
+[node name="Stage" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_stage")
+
+[node name="PlayerPortrait" type="TextureRect" parent="."]
+offset_left = 21.0
+offset_top = 242.0
+offset_right = 370.0
+offset_bottom = 735.0
+mouse_filter = 2
+texture = ExtResource("5_player")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="OpponentPortrait" type="TextureRect" parent="."]
+offset_left = 1546.0
+offset_top = 246.0
+offset_right = 1887.0
+offset_bottom = 730.0
+mouse_filter = 2
+texture = ExtResource("6_kiwi")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BarrageZone" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Feedback" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_feedback")
