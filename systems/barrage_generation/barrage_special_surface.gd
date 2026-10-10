@@ -10,6 +10,16 @@ extends "res://systems/barrage_generation/barrage_glass_surface.gd"
 @export var crack_color: Color = Color(0.92, 0.96, 1.0, 0.77)
 @export_range(0.5, 4.0, 0.5) var crack_line_width: float = 1.5
 
+@export_group("假复读 / 椭圆")
+@export var fake_rim_color: Color = Color("#FFE1BC")
+@export_range(0.2, 1.0, 0.05) var fake_saturation: float = 0.82
+
+@export_group("水军反击 / 单块刷屏")
+@export var retaliation_base: Color = Color("#2B3143")
+@export var retaliation_edge: Color = Color("#E8A6A1")
+@export_range(12, 24, 1) var retaliation_font_size: int = 16
+@export_range(0.0, 14.0, 0.5) var retaliation_notch: float = 8.0
+
 @export_group("反弹 / 果冻")
 @export_range(0.0, 8.0, 0.5) var jelly_wobble: float = 3.0
 @export_range(0.0, 9.0, 0.1) var jelly_frequency: float = 3.5
@@ -18,17 +28,21 @@ extends "res://systems/barrage_generation/barrage_glass_surface.gd"
 
 var _main_material: StringName = &"glass"
 var _phase: float = 0.0
+var _source_line: String = ""
+var _text_font: Font
 var _metal_style: StyleBoxFlat = StyleBoxFlat.new()
 
 
 # 只消费已有稳定特性 ID；材质优先级与战斗结果顺序保持一致。
-func configure_traits(traits: Array[StringName]) -> void:
+func configure_traits(traits: Array[StringName], source_line: String = "", drawing_font: Font = null) -> void:
 	_main_material = &"glass"
 	for id: StringName in [&"reflect", &"occlusion", &"fake_card", &"retaliation_copy", &"split"]:
 		if traits.has(id):
 			_main_material = id
 			break
 	_phase = 0.0
+	_source_line = source_line
+	_text_font = drawing_font
 	set_process((_main_material == &"reflect") or (_strength == 3 and not _is_repeat))
 	queue_redraw()
 
@@ -57,6 +71,10 @@ func _draw() -> void:
 			_draw_metal()
 		&"reflect":
 			_draw_jelly()
+		&"fake_card":
+			_draw_fake_repeat()
+		&"retaliation_copy":
+			_draw_retaliation_panel()
 		&"split":
 			super._draw()
 			_draw_cracked_glass()
@@ -129,3 +147,61 @@ func _draw_jelly() -> void:
 	inside.a *= 0.65 + 0.25 * sin(_phase)
 	draw_arc(Vector2(middle.x, middle.y + 1.0), minf(rx, ry) * 0.72, PI * 1.06, PI * 1.87, 32, inside, 3.0, true)
 	draw_line(Vector2(24, size.y - 8), Vector2(size.x - 24, size.y - 8), Color(0.1, 0.15, 0.27, 0.25), 2.2, true)
+
+
+
+# 鲜艳的椭圆气泡与普通灰色复读同属气泡家族，轮廓清楚且保持前景文字。
+func _draw_fake_repeat() -> void:
+	var center: Vector2 = size * 0.5
+	var radius: Vector2 = size * 0.5
+	var outside: PackedVector2Array = PackedVector2Array()
+	var inside: PackedVector2Array = PackedVector2Array()
+	for index in range(49):
+		var theta: float = TAU * float(index) / 48.0
+		var ray: Vector2 = Vector2(cos(theta), sin(theta))
+		outside.append(center + ray * (radius - Vector2(1.5, 1.5)))
+		inside.append(center + ray * (radius - Vector2(4.0, 4.0)))
+	var tint: Color = get_base_tint()
+	var color: Color = tint.lerp(Color.WHITE, 1.0 - fake_saturation)
+	color.a = 0.92
+	draw_colored_polygon(outside, fake_rim_color)
+	draw_colored_polygon(inside, color)
+	var light: Color = Color.WHITE
+	light.a = 0.32
+	draw_arc(center + Vector2(0, 3), minf(radius.x, radius.y) * 0.55, PI * 1.15, PI * 1.8, 22, light, 2.0, true)
+
+
+# 同一个命中矩形对应一块不规则板；多处小字都由本 CanvasItem 绘制。
+func _draw_retaliation_panel() -> void:
+	var w: float = size.x
+	var h: float = size.y
+	var notch: float = retaliation_notch
+	var polygon: PackedVector2Array = PackedVector2Array([
+		Vector2(notch + 5, 0), Vector2(w * 0.55, 0), Vector2(w * 0.59, 5),
+		Vector2(w - notch - 3, 3), Vector2(w, notch + 5), Vector2(w - 4, h * 0.43),
+		Vector2(w, h - notch), Vector2(w - notch - 8, h),
+		Vector2(w * 0.51, h - 3), Vector2(w * 0.43, h),
+		Vector2(notch + 6, h - 2), Vector2(0, h - notch - 4),
+		Vector2(4, h * 0.41), Vector2(0, notch + 6), Vector2(notch + 5, 0)
+	])
+	var shade: Color = retaliation_base.lerp(get_base_tint(), 0.24)
+	shade.a = 0.95
+	draw_colored_polygon(polygon, shade)
+	draw_polyline(polygon, retaliation_edge, 3.0, true)
+	draw_line(Vector2(18, 10), Vector2(w - 18, 11), Color(1.0, 0.95, 0.93, 0.35), 1.6, true)
+	if _text_font == null or _source_line.is_empty():
+		return
+	var offsets: Array[Vector2] = [
+		Vector2(18, 36), Vector2(w * 0.48, 30),
+		Vector2(38, 78), Vector2(w * 0.47, 69),
+		Vector2(17, 116), Vector2(w * 0.51, 108)
+	]
+	var colors: Array[Color] = [
+		Color("#FFE7EA"), Color("#F6BFC5"), Color("#D9E1F4"),
+		Color("#FFE2DD"), Color("#EDB5BD"), Color("#F5E9F0")
+	]
+	for index in range(offsets.size()):
+		var pos: Vector2 = offsets[index]
+		var max_width: float = w * 0.47 - 20.0
+		draw_string(_text_font, pos, _source_line, HORIZONTAL_ALIGNMENT_LEFT,
+			max_width, retaliation_font_size, colors[index])

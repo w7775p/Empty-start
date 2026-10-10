@@ -28,6 +28,7 @@ var _visual_bbcode: String = ""
 func _ready() -> void:
 	if runtime_record != null:
 		_fit_visual_to_sentence(runtime_record.text)
+		_apply_special_text_layout()
 
 
 # 终局原有特性表现入口，仍按冻结的颜色优先级覆盖文字而不改变弹幕事实。
@@ -79,12 +80,13 @@ func setup(barrage_record: BarrageRuntimeRecord, move_speed_pixels_per_second: f
 	# PA-05 只读取现有实例 TraitSet，选择外观不改变战斗结算或命中对象。
 	var special: BarrageSpecialSurface = get_glass_surface() as BarrageSpecialSurface
 	if special != null and barrage_record.trait_set != null and not barrage_record.is_repeat:
-		special.configure_traits(barrage_record.trait_set.get_trait_ids())
+		special.configure_traits(barrage_record.trait_set.get_trait_ids(), barrage_record.text, get_theme_font("font"))
+	_apply_special_text_layout()
 
 
 # 独立视觉富文本接口。由 BG-28 的正式局部样式数据接入时调用，复读保留纯文本。
 func set_visual_bbcode(bbcode: String) -> bool:
-	if runtime_record == null or runtime_record.is_repeat:
+	if runtime_record == null or runtime_record.is_repeat or get_special_material() == &"retaliation_copy":
 		return false
 	var rich: RichTextLabel = get_node_or_null("RichBody") as RichTextLabel
 	if rich == null:
@@ -101,6 +103,31 @@ func set_visual_bbcode(bbcode: String) -> bool:
 # 外部可读取原句显示事实，不受富文本标签切换影响。
 func get_visual_plain_text() -> String:
 	return runtime_record.text if runtime_record != null else text
+
+
+# 单个实例的材质选择，可供 PA-06 命中演出读取，无需重算 TraitSet。
+func get_special_material() -> StringName:
+	var special: BarrageSpecialSurface = get_glass_surface() as BarrageSpecialSurface
+	return special.get_main_material() if special != null else &"glass"
+
+
+# 透明字形依靠 Godot Label 的描边字形层，复制板内部小字由同一个 GlassSurface 绘制。
+func _apply_special_text_layout() -> void:
+	if runtime_record == null or runtime_record.trait_set == null or runtime_record.is_repeat:
+		return
+	if runtime_record.trait_set.has_trait(BarrageTraitSet.UNSELECTABLE):
+		add_theme_color_override("font_color", Color(1, 1, 1, 0))
+		add_theme_color_override("font_outline_color", Color("#EAF5FC"))
+		add_theme_constant_override("outline_size", 3)
+		add_theme_color_override("font_shadow_color", Color.TRANSPARENT)
+	if get_special_material() == &"retaliation_copy":
+		# 一个整体 Panel 对应同一条 BarrageView，扩大的 rect 继续由现有攻击命中几何使用。
+		custom_minimum_size = Vector2(maxf(size.x, 460.0), 144.0)
+		reset_size()
+		text = ""
+		var rich: RichTextLabel = get_node_or_null("RichBody") as RichTextLabel
+		if rich != null:
+			rich.visible = false
 
 
 # 演示和集成验收读取材质参数，不承担玩法计算。
