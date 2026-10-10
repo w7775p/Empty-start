@@ -20,6 +20,7 @@ var _attempt_restarted_events: int = 0
 var _pk_maximum_events: int = 0
 var _normal_completed_events: int = 0
 var _contradiction_entered_events: int = 0
+var _player_portrait_shot_motion_events: int = 0
 var _mouse_position: Vector2 = Vector2.ZERO
 
 
@@ -40,6 +41,13 @@ func _ready() -> void:
 	_area = _sandbox.get_node("%BarrageArea") as BarrageArea
 	_attack = _sandbox.get_node("%AttackChargeInput") as AttackChargeInput
 	_aim = _sandbox.get_node("%AimReticle") as AimReticle
+	var battle_hud: Control = _sandbox.get_node("%BattleHud") as Control
+	var player_portrait_motion: StreamerPortraitMotion = battle_hud.get("player_portrait_motion") as StreamerPortraitMotion
+	var opponent_portrait_motion: StreamerPortraitMotion = battle_hud.get("opponent_portrait_motion") as StreamerPortraitMotion
+	player_portrait_motion.shot_motion_started.connect(_on_player_portrait_shot_motion_started)
+	var initial_level: LevelProfile = _flow().get_current_level_profile()
+	_check(initial_level != null and is_equal_approx(opponent_portrait_motion.idle_period,
+		_expected_portrait_idle_period(initial_level.streamer_id)), "尝试启动按当前主播 ID 配置对手立绘待机")
 	_attack.shot_snapshot_created.connect(_on_snapshot)
 	_attack.shot_hit_resolution_submitted.connect(_on_submission)
 	_flow().shot_resolved.connect(_on_flow_shot_resolved)
@@ -81,7 +89,7 @@ func _verify_layout_and_generation() -> void:
 	await _wait(1.50)
 	_check(is_instance_valid(first_view) and first_view.position.x < opening_x, "普通弹幕持续移动")
 	_check(_views(false).size() > opening_views.size(), "普通弹幕持续生成")
-	_check(_hit().get_player_pk() < opening_pk, "真实回拉按帧降低 PK")
+	_check(is_equal_approx(_hit().get_player_pk(), opening_pk), "T0 等待对手连线时 PK 保持稳定")
 	_check(_live_comment_label().get_parsed_text() == "🔊" + str(SaveManager.data.live_session.comment_count), "Comment HUD 自动刷新")
 	var pause_menu: Node = _sandbox.get_node("%PauseMenu")
 	pause_menu.pause_game()
@@ -117,6 +125,7 @@ func _verify_real_attack_and_repeat() -> void:
 	var tendency_before: int = _attempt_tendency_total()
 	await _fire_at(target)
 	_check(_submissions.size() == 1 and _snapshots.size() == 1, "满蓄产生唯一一发并实际提交")
+	_check(_player_portrait_shot_motion_events == 1, "正式释放快照驱动玩家立绘射击动作")
 	if _snapshots.is_empty() or _submissions.is_empty():
 		return
 	_check(_snapshots[0].get_target_instance_ids().has(target_id), "快照包含准心罩住的真实普通弹幕")
@@ -203,6 +212,9 @@ func _verify_tier_and_new_barrage_parameters() -> void:
 func _verify_pause_in_each_attack_phase() -> void:
 	_sandbox.restart_current_attempt()
 	_area.clear_barrages()
+	_sandbox.call("debug_set_player_pk", 0.6)
+	await get_tree().process_frame
+	_check(_stage().get_current_tier() == 1, "进入 T1 后启用对手回拉")
 	var target: BarrageView = _spawn_test_normal()
 	_aim_at(target)
 	_mouse_button(true)
@@ -250,7 +262,7 @@ func _verify_failure_restart_and_full_pk() -> void:
 	var level_before: LevelProfile = _flow().get_current_level_profile()
 	var failures_before: int = _attempt_failed_events
 	var restarts_before: int = _attempt_restarted_events
-	_hit().apply_player_pk_delta(0.00002 - _hit().get_player_pk())
+	_sandbox.call("debug_set_player_pk", 0.0)
 	_opponent().resume_pullback()
 	await _wait(0.12)
 	_check(_opponent().has_attempt_failed() and not _flow().is_normal_combat_active(), "PK 归零进入真实失败状态")
@@ -273,9 +285,10 @@ func _verify_failure_restart_and_full_pk() -> void:
 	_check(SaveManager.data.tendency_state.orthodox_total == 11 and SaveManager.data.assimilation_data.defeated_streamer_ids.has(&"test_previous_streamer"), "重开保留已提交周目成果")
 	_check(SaveManager.data.live_session.fan_count == 77 and SaveManager.data.live_session.viewer_count == 0 and SaveManager.data.live_session.like_count == 0 and SaveManager.data.live_session.comment_count == _views(false).size(), "重开直播表现归零后只计新开局实际评论")
 	_check(_opponent().get_loss_streak_count() == 1 and not _opponent().has_attempt_failed(), "重开保留连败次数并清除本场失败标记")
+	_sandbox.call("debug_set_player_pk", 0.6)
 	var pk_before: float = _hit().get_player_pk()
 	await _wait(0.06)
-	_check(_hit().get_player_pk() < pk_before, "重开后真实回拉恢复")
+	_check(_hit().get_player_pk() < pk_before, "重开后进入 T1 恢复真实回拉")
 	_area.clear_barrages()
 	_opponent().stop_pullback()
 	_hit().apply_player_pk_delta(0.9995 - _hit().get_player_pk())
@@ -510,6 +523,23 @@ func _live_comment_label() -> RichTextLabel:
 
 func _on_snapshot(snapshot: AttackTargetSnapshot) -> void:
 	_snapshots.append(snapshot)
+
+
+func _on_player_portrait_shot_motion_started() -> void:
+	_player_portrait_shot_motion_events += 1
+
+
+func _expected_portrait_idle_period(character_id: String) -> float:
+	# 示例 streamer_id 暂未与正式角色 ID 对齐；按动效配置的公开预设映射计算预期周期。
+	match character_id:
+		"alien":
+			return 3.8
+		"kiwi":
+			return 2.9
+		"fox":
+			return 4.1
+		_:
+			return 3.4
 
 
 func _on_submission(_snapshot: AttackTargetSnapshot, submission: Dictionary) -> void:

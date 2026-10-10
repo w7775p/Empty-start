@@ -11,6 +11,9 @@
 ## 已经实现的功能
 - 现有战斗状态、命中与主播画面由对应系统维护。已完成的 `SD-01` 提供 `data/streamer_bubble_dialogue/` 资源与条目读取接口；其他 SD 前置功能按系统 README、最新日志及当前代码确认。
 
+## INT-10 / S3 接口交接（2026-10-11）
+Lane B 负责对白事件选择和 SD-03 高优先级队列。普通战斗从 `Sandbox.get_battle_attempt_flow()` 订阅 `attempt_started`、`tier_changed`、`shot_resolved`、`attempt_failed` 等事实；Paradox / Rest 从 `get_contradiction_oracle_flow()` 订阅 `outcome_resolved`、`oracle_opened`、`rest_ready`。`battle_state_changed(text)` 仅供状态栏显示；本卡与 CS-22/27 约定稳定语义事件 ID，不解析显示文案。
+
 ## 本次任务
 根据连线、Tier、输赢状态播放配置对白。
 
