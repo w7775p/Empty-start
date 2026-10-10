@@ -171,7 +171,8 @@ LevelProfile 新增可选 normal_speech_pool_source: LevelSpeechPool，使用 ge
 
 当前策划 Google Sheets：`02_主播关卡` 已确定 `level_001/alien`、`level_002/kiwi`、`level_003/frog`、`level_004/fox`，四关均为正式PK，首关负责新手教学。战斗数值保留现有可调入口，待策划函数建模。
 
-- **02表现行16列：**`level_id, level_order, streamer_id, streamer_name, portrait_set_id, tutorial_config_id, story_config_id, live_theme, fan_badge_text, background_asset_id, word_pool_id, contradiction_set_id, enabled, notes, fan_badge_asset_id, 新需求对接状态`。原 `avatar_asset_id`、`special_play_id`、`loser_card_id` 已从策划表移除；败者卡用 `streamer_id`、反击池用 `streamer_id + tier`。
+- **02表现行16列：**`level_id, level_order, streamer_id, streamer_name, portrait_set_id, tutorial_config_id, story_config_id, live_theme, fan_group_name, background_asset_id, word_pool_id, contradiction_set_id, enabled, notes, fan_badge_asset_id, 新需求对接状态`。原 `avatar_asset_id`、`special_play_id`、`loser_card_id` 已从策划表移除；败者卡用 `streamer_id`、反击池用 `streamer_id + tier`。
+- **03_普通词库：**用于中央可击中的普通战斗弹幕，按 `pool_id` 构造 `LevelSpeechPool`，由02.`word_pool_id` 关联；正式源池归属与 `source_streamer_id` 映射按 LC-10 未决事项处理，保持与19直播评论和20事件对白分离。
 - **23_对手立绘配置：**通过 `portrait_set_id` 关联 `streamer_id`，包含 idle、tier_01～03、defeat、可选过渡图和击败效果ID。已有 `alien`、`kiwi`、`fox` 记录，`frog` 的美术与演出之后补齐。由 PA-15/17 消费。
 - **24_新手教学配置：**通过 `tutorial_config_id` 关联首关，提供步骤ID、顺序、触发事件、提示文本、完成事件与启用标记。当前三步为未启用草案；新增 [LC-13](tasks/LC-13_first-level-tutorial-steps.md) 负责读取真实输入事实并按事件推进。
 - **05_关卡生成：**新增可选 `special_instance_screen_cap`，留空沿用06.`special_foreground_instance_cap`。对战前景总容量仍归08 Tier配置（CS-24）。
