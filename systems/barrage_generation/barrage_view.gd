@@ -112,7 +112,14 @@ func _set_visual_material() -> void:
 		surface.configure(runtime_record.tendency_id, roundi(runtime_record.strength), repeat)
 	_set_visual_font_color(repeat_font_color if repeat else foreground_font_color)
 	add_theme_color_override("font_outline_color", Color.TRANSPARENT if repeat else outline_color)
-	add_theme_constant_override("outline_size", 0 if repeat else foreground_outline_size)
+	var strong: bool = not repeat and runtime_record != null and roundi(runtime_record.strength) >= 3
+	add_theme_constant_override("outline_size", 0 if repeat else foreground_outline_size + (1 if strong else 0))
+	# S3 只加重文字笔画，不改变字号和已确定的气泡尺寸规则。
+	if strong:
+		var thick_font := FontVariation.new()
+		thick_font.base_font = get_theme_font("font")
+		thick_font.variation_embolden = 0.34
+		add_theme_font_override("font", thick_font)
 	add_theme_color_override("font_shadow_color", Color.TRANSPARENT if repeat else text_shadow_color)
 	add_theme_constant_override("shadow_offset_x", 0 if repeat else text_shadow_offset)
 	add_theme_constant_override("shadow_offset_y", 0 if repeat else text_shadow_offset)
@@ -125,7 +132,7 @@ func _set_visual_material() -> void:
 		rich.visible = false
 		rich.add_theme_color_override("default_color", repeat_font_color if repeat else foreground_font_color)
 		rich.add_theme_color_override("font_outline_color", Color.TRANSPARENT if repeat else outline_color)
-		rich.add_theme_constant_override("outline_size", 0 if repeat else foreground_outline_size)
+		rich.add_theme_constant_override("outline_size", 0 if repeat else foreground_outline_size + (1 if strong else 0))
 		rich.add_theme_color_override("font_shadow_color", Color.TRANSPARENT if repeat else text_shadow_color)
 		rich.add_theme_constant_override("shadow_offset_x", 0 if repeat else text_shadow_offset)
 		rich.add_theme_constant_override("shadow_offset_y", 0 if repeat else text_shadow_offset)

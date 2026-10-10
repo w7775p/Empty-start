@@ -1,36 +1,56 @@
 class_name BarrageGlassSurface
 extends Control
 
-@export_group("四种倾向")
-@export var orthodox_color: Color = Color("#46bed6")
-@export var heretical_color: Color = Color("#e75988")
-@export var absurd_color: Color = Color("#f3bc5e")
-@export var neutral_color: Color = Color("#96a4c8")
-@export var repeat_color: Color = Color("#8894a6")
+@export_group("倾向色 / GLASS NOIR")
+@export var orthodox_color: Color = Color("#1658A2")
+@export var heretical_color: Color = Color("#B9502D")
+@export var absurd_color: Color = Color("#B7865B")
+@export var neutral_color: Color = Color("#ADA4A3")
+@export var repeat_color: Color = Color("#8894A6")
+@export var glass_base_color: Color = Color("#101622")
 
-@export_group("玻璃底板")
+@export_group("玻璃尺寸与反光")
 @export_range(4.0, 26.0, 1.0) var corner_radius: float = 13.0
-@export_range(0.1, 1.0, 0.05) var glass_alpha: float = 0.75
-@export_range(0.0, 1.0, 0.05) var highlight_alpha: float = 0.30
+@export_range(0.0, 1.0, 0.05) var highlight_alpha: float = 0.23
 @export_range(0.0, 1.0, 0.05) var repeat_alpha: float = 0.24
 @export_range(1.0, 6.0, 0.5) var max_border_width: float = 3.0
+
+@export_group("强度 S1 / S2 / S3")
+# Vector3 的 X / Y / Z 分别对应 S1 / S2 / S3，整组参数可在 Inspector 修改。
+@export var stage_fill_alpha: Vector3 = Vector3(0.66, 0.84, 0.95)
+@export var stage_tint_amount: Vector3 = Vector3(0.16, 0.38, 0.62)
+@export var stage_border_alpha: Vector3 = Vector3(0.36, 0.77, 1.0)
+@export var stage_glow_radius: Vector3 = Vector3(0.0, 8.0, 17.0)
+@export var stage_glow_alpha: Vector3 = Vector3(0.0, 0.34, 0.63)
+@export_range(0.0, 1.0, 0.05) var glow_lighten: float = 0.38
+
+@export_group("S3 呼吸")
+@export_range(0.0, 8.0, 0.1) var breathing_speed: float = 3.4
+@export_range(1.0, 30.0, 1.0) var breathing_refresh_rate: float = 24.0
+@export var s3_glow_radius_range: Vector2 = Vector2(13.0, 20.0)
+@export var s3_glow_alpha_range: Vector2 = Vector2(0.40, 0.72)
 
 var _tendency: String = "neutral"
 var _strength: int = 1
 var _is_repeat: bool = false
+var _pulse_clock: float = 0.0
+var _redraw_elapsed: float = 0.0
 var _glass_style: StyleBoxFlat = StyleBoxFlat.new()
 
 
-# 从运行记录读取倾向、强度和复读标识，重算当前玻璃材质，不复制战斗事实。
+# 根据同一份弹幕运行记录确定倾向、强度和普通复读的玻璃表现。
 func configure(tendency: String, strength: int, is_repeat: bool) -> void:
 	_tendency = tendency
 	_strength = clampi(strength, 1, 3)
 	_is_repeat = is_repeat
+	_pulse_clock = 0.0
+	_redraw_elapsed = 0.0
 	_rebuild_style()
+	set_process(_strength == 3 and not _is_repeat)
 	queue_redraw()
 
 
-# 导出只读的展示色，供外侧 Label 与富文本使用一致的材质家族。
+# 颜色入口直接暴露给 Inspector，换色后所有档位跟随对应倾向。
 func get_base_tint() -> Color:
 	if _is_repeat:
 		return repeat_color
@@ -45,38 +65,53 @@ func get_base_tint() -> Color:
 			return neutral_color
 
 
-# 玻璃颜色与边框随强度变化，普通复读保持灰色低对比。
+# 只给 S3 更新慢速呼吸；暂停时保留当前亮度。
+func _process(delta: float) -> void:
+	if get_tree().paused:
+		return
+	_pulse_clock += delta
+	_redraw_elapsed += delta
+	if _redraw_elapsed >= 1.0 / maxf(1.0, breathing_refresh_rate):
+		_redraw_elapsed = 0.0
+		queue_redraw()
+
+
+# 一套底板颜色对应三档材质权重；复读始终使用低对比灰色玻璃。
 func _rebuild_style() -> void:
 	var tint: Color = get_base_tint()
-	var intensity: float = float(_strength - 1) / 2.0
-	var fill: Color = Color("#0a1325").lerp(tint, 0.32 + intensity * 0.20)
-	fill.a = repeat_alpha if _is_repeat else glass_alpha + intensity * (1.0 - glass_alpha) * 0.62
-	var edge: Color = tint.lightened(0.19 + intensity * 0.17)
-	edge.a = 0.33 if _is_repeat else 0.55 + intensity * 0.35
+	var tier: int = _strength - 1
+	var fill: Color = glass_base_color.lerp(tint, _tier_value(stage_tint_amount, tier))
+	fill.a = repeat_alpha if _is_repeat else _tier_value(stage_fill_alpha, tier)
+	var edge: Color = tint.lightened(0.12 if _is_repeat else [0.18, 0.39, 0.60][tier])
+	edge.a = 0.30 if _is_repeat else _tier_value(stage_border_alpha, tier)
 	_glass_style.bg_color = fill
 	_glass_style.border_color = edge
-	var width: int = 1 if _is_repeat else roundi(1.0 + intensity * (max_border_width - 1.0))
-	_glass_style.set_border_width_all(width)
+	_glass_style.set_border_width_all(1 if _is_repeat else roundi(1.0 + float(tier) * (max_border_width - 1.0) / 2.0))
 	_glass_style.set_corner_radius_all(roundi(corner_radius))
-	_glass_style.shadow_color = Color(tint.r * 0.25, tint.g * 0.25, tint.b * 0.25, 0.12 + intensity * 0.18)
-	_glass_style.shadow_size = 1 + int(intensity * 3.0)
+	var bloom: Color = tint.lightened(glow_lighten)
+	bloom.a = 0.0 if _is_repeat else _tier_value(stage_glow_alpha, tier)
+	_glass_style.shadow_color = bloom
+	_glass_style.shadow_size = 0 if _is_repeat else roundi(_tier_value(stage_glow_radius, tier))
+	_glass_style.shadow_offset = Vector2.ZERO
 
 
-# 圆角玻璃、内高光、厚度与纵向层次使用轻量 CanvasItem 绘制。
+# Vector3 颜色/强度字段只在一个地方读取，避免 S1-S3 产生不同数据来源。
+func _tier_value(values: Vector3, tier: int) -> float:
+	return [values.x, values.y, values.z][tier]
+
+
+# 程序绘制完整的玻璃亮面和柔光；取消斜刻痕、双层硬框与左侧竖条。
 func _draw() -> void:
 	if _glass_style.bg_color.a <= 0.001 or size.x < 26.0 or size.y < 22.0:
 		return
+	if _strength == 3 and not _is_repeat:
+		var pulse: float = 0.5 + 0.5 * sin(_pulse_clock * breathing_speed)
+		var glow: Color = _glass_style.shadow_color
+		glow.a = lerpf(s3_glow_alpha_range.x, s3_glow_alpha_range.y, pulse)
+		_glass_style.shadow_color = glow
+		_glass_style.shadow_size = roundi(lerpf(s3_glow_radius_range.x, s3_glow_radius_range.y, pulse))
 	draw_style_box(_glass_style, Rect2(Vector2.ZERO, size))
-	var tint: Color = get_base_tint()
-	var strength_factor: float = float(_strength - 1) * 0.5
-	var light: Color = Color.WHITE
-	light.a = (highlight_alpha + strength_factor * 0.16) * (0.50 if _is_repeat else 1.0)
-	# 高光位于圆角内侧，给透明彩色塑料形成一条清楚的顶部亮带。
-	draw_line(Vector2(corner_radius + 3.0, 5.5), Vector2(size.x - corner_radius - 3.0, 5.5), light, 2.0, true)
-	var gloss: Color = tint.lightened(0.60)
-	gloss.a = light.a * 0.27
-	draw_rect(Rect2(9.0, 9.0, maxf(2.0, size.x - 18.0), maxf(2.0, size.y * 0.24)), gloss)
-	# 内底缘沿用色系，玻璃厚度只占一条细线，避免文字受干扰。
-	var bottom: Color = tint.darkened(0.30)
-	bottom.a = 0.20 if _is_repeat else 0.32 + strength_factor * 0.15
-	draw_line(Vector2(corner_radius + 2.0, size.y - 5.0), Vector2(size.x - corner_radius - 2.0, size.y - 5.0), bottom, 1.5, true)
+	var top_light: Color = Color.WHITE
+	top_light.a = highlight_alpha * ([0.30, 0.65, 1.0][_strength - 1]) * (0.5 if _is_repeat else 1.0)
+	var inset: float = maxf(12.0, corner_radius + 5.0)
+	draw_rect(Rect2(inset, 6.0, maxf(1.0, size.x - inset * 2.0), 2.5), top_light)
