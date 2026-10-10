@@ -10,6 +10,7 @@ func _run_component_test() -> void:
 	var profile: LevelProfile = LevelProfile.new()
 	profile.base_batch_count = 0
 	profile.base_spawn_interval_seconds = 60.0
+	profile.base_move_speed_pixels_per_second = 0.0
 	profile.normal_barrage_screen_cap = 1
 
 	var barrage_area: BarrageArea = BARRAGE_AREA_SCENE.instantiate() as BarrageArea
@@ -43,11 +44,22 @@ func _run_component_test() -> void:
 	extra_normal_speech.original_sentence_id = "bg10_extra_normal"
 	extra_normal_speech.text = "额外普通话语"
 	var extra_normal_rejected: bool = barrage_area.spawn_normal_barrage(profile, extra_normal_speech) == null
-	var passed: bool = normal_view != null and repeat_view != null and deadline_preserved and original_line_preserved and display_text_preserved and extra_normal_rejected
+	# 释放普通实例后复读仍满；释放复读后可再次生成，两组真实容量互不串扰。
+	var normal_reopened: bool = false
+	var repeat_stays_full: bool = false
+	var repeat_reopened: bool = false
+	if normal_view != null and repeat_view != null:
+		barrage_area.end_barrage(normal_view.get_instance_id())
+		normal_reopened = barrage_area.spawn_normal_barrage(profile, extra_normal_speech) != null
+		repeat_stays_full = barrage_area.spawn_repeat_barrage(plan) == null
+		barrage_area.end_barrage(repeat_view.get_instance_id())
+		repeat_reopened = barrage_area.spawn_repeat_barrage(plan) != null
+	var passed: bool = normal_view != null and repeat_view != null and deadline_preserved and original_line_preserved and display_text_preserved and extra_normal_rejected and normal_reopened and repeat_stays_full and repeat_reopened
 	if passed:
 		print("PASS: 普通容量满时复读仍生成并保留原句与寿命。")
 	else:
-		push_error("FAIL: 普通容量满时复读未按计划生成。")
-	barrage_area.stop_normal_generation()
+		push_error("FAIL: 复读计划或容量隔离失败; normal_reopened=%s repeat_stays_full=%s repeat_reopened=%s" % [normal_reopened, repeat_stays_full, repeat_reopened])
+	barrage_area.clear_barrages()
 	barrage_area.queue_free()
+	await process_frame
 	quit(0 if passed else 1)
