@@ -58,3 +58,15 @@ Windows 验证命令（Godot 4.7.2）：
 ## 2026-10-10 当前主播对白接线
 
 Google Sheets `02_主播关卡.story_config_id` 指向 `20_主播气泡对白.story_config_id`；两个表的 `streamer_id` 同时用于对手身份校验。四关预留 `story_level_001`～`story_level_004`，正式对白尚待策划填写。20表保留 `trigger_type`（`hit_word / connect / tier_up / tier_down / win / lose / timed`）、`trigger_key`、`source_word_id`、`trigger_time_s`、发言方、显示时长与优先级，并新增 `line_order` 让相同事件触发的多条剧情对白明确播放顺序。SD-01已完成配置和查询入口；新增 [SD-08](tasks/SD-08_per-streamer-dialogue-table-binding.md) 按当前关剧情配置ID把20表转换为既有 `BubbleDialogueConfig`，由SD-03～07消费事件。
+
+## SD-02 当前实现（2026-10-10）
+
+玩家、对手立绘区各挂一份 `StreamerBubbleStack`；[SandboxBattleHud](../../scenes/sandbox/sandbox_battle_hud.gd) 公开 `show_dialogue_bubble(entry: BubbleDialogueEntry)`，按 `entry.side` 转发 SD-01 条目。浮层仅渲染传入条目，不选择对白或处理战斗事件；同侧按调用顺序由上到下同时显示，气泡到期后回收并重排。
+
+- [StreamerBubbleStack](../../ui/streamer_bubble_dialogue/streamer_bubble_stack.gd) 使用全锚点贴合当前 `448×432` 立绘区，窗口缩放继续沿用 HUD 的整体设计缩放；浮层忽略鼠标并裁切到主播画面。
+- [StreamerBubbleView](../../ui/streamer_bubble_dialogue/streamer_bubble_view.gd) 使用 `_draw()` 绘制椭圆填色、深色描边、阴影和尾巴；玩家尾巴向右、对手尾巴向左，均指向画面内的主播。每侧的颜色、描边、尾巴位置/宽度、最大气泡宽度、文字边距、弹出/上浮/渐隐时长可在对应浮层 Inspector 单独调整。
+- 文字沿用项目 Theme 的字体，由 `RichTextLabel` 自动换行。文本宽度按字体测量后限制在可调宽度内，气泡高度按测量行数增加。
+- HUD 重开尝试时显式清空两侧显示。显示时长读取 `BubbleDialogueEntry.display_duration_seconds`；当前正式对白仍为空，未写入临时验收台词。
+- 可见 GUI 回归入口为 [SD-02 smoke 场景](../../tests/streamer_bubble_dialogue/sd02_bubble_view_smoke.tscn)，将实际 `Sandbox` 场景嵌入测试窗，通过公开 HUD 接口在内存中注入左右各三条 TEST_ONLY 条目，并将 Godot Viewport PNG 暂存到 `.godot/sd02/`。已提交的 1920 窗口与 1280 小窗口截图见 [SD-02 视觉证据](evidence/SD-02_2026-10-10/)。窗口/Viewport 尺寸、渲染器、实际台词、命令和测试边界见 [SD-02 完成日志](双主播气泡对话系统_SD-02_2026-10-10_log.md)。
+
+本卡没有实现 SD-03 队列策略、优先级调度、命中/状态/定时事件消费者或随机闲聊。PA-03 当前样例没有对手立绘资源，验收画面保留现有对手占位区域。
