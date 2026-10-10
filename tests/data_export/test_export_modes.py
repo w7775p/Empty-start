@@ -14,11 +14,17 @@ TOOL = ROOT / "tools/export_game_data.py"
 FIXTURE = ROOT / "tests/fixtures/data_export/test_only_data.xlsx"
 
 
-def execute(path: Path, *flags: str) -> subprocess.CompletedProcess:
+def execute(
+    path: Path, *flags: str, output_root: Path | None = None,
+) -> subprocess.CompletedProcess:
     """运行真实入口，并锁定 UTF-8 控制台输出，避免 Windows 本地代码页乱码。"""
     env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+    command = [sys.executable, str(TOOL), "--input", str(path)]
+    if output_root is not None:
+        command.extend(("--output-root", str(output_root)))
+    command.extend(flags)
     return subprocess.run(
-        [sys.executable, str(TOOL), "--input", str(path), *flags],
+        command,
         cwd=ROOT, capture_output=True, encoding="utf-8", env=env,
         check=False,
     )
@@ -30,31 +36,35 @@ def files_snapshot(paths: list[Path]) -> dict[Path, tuple[bytes, int]]:
 
 
 def main() -> None:
-    # 测试模式不能覆盖策划原始 CSV 或已确认 Tier Resource。
+    # 所有导出写入独立临时根目录，同时核对仓库正式来源与 Tier Resource 未变。
     authoritative_paths = sorted((ROOT / "data/source_tables").glob("*.csv"))
     for name in ("01_身份配置.csv", "06_战斗数值.csv", "08_Tier档位.csv"):
         assert ROOT / "data/source_tables" / name in authoritative_paths, f"缺少已确认来源：{name}"
     authoritative_paths.append(ROOT / "data/combat_stage/tier_catalog.tres")
     authoritative = files_snapshot(authoritative_paths)
-    success = execute(FIXTURE, "--test-only")
-    assert success.returncode == 0, (success.stdout, success.stderr)
-    test_outputs = sorted((ROOT / "data/test_only/source_tables").glob("*.csv"))
-    test_outputs += sorted((ROOT / "data/test_only/generated").rglob("*.tres"))
-    assert len(test_outputs) == 20, len(test_outputs)
-    state = files_snapshot(test_outputs)
-    success = execute(FIXTURE, "--test-only")
-    assert success.returncode == 0, (success.stdout, success.stderr)
-    assert state == files_snapshot(test_outputs)
-    assert authoritative == files_snapshot(authoritative_paths)
-    print("PASS TEST_ONLY repeatable output: 15 CSV + 5 Resource; source unchanged")
-
     with tempfile.TemporaryDirectory() as temp:
+        temp_root = Path(temp)
+        test_root = temp_root / "test-output"
+
+        success = execute(FIXTURE, "--test-only", output_root=test_root)
+        assert success.returncode == 0, (success.stdout, success.stderr)
+        test_outputs = sorted((test_root / "data/test_only/source_tables").glob("*.csv"))
+        test_outputs += sorted((test_root / "data/test_only/generated").rglob("*.tres"))
+        assert len(test_outputs) == 20, len(test_outputs)
+        state = files_snapshot(test_outputs)
+        success = execute(FIXTURE, "--test-only", output_root=test_root)
+        assert success.returncode == 0, (success.stdout, success.stderr)
+        assert state == files_snapshot(test_outputs)
+        assert authoritative == files_snapshot(authoritative_paths)
+        print("PASS TEST_ONLY repeatable output: 15 CSV + 5 Resource; source unchanged")
+
         # A3 原有 test_word_01，复制到第二条数据制造重复 ID。
         wb = load_workbook(FIXTURE)
         wb["03_普通词库"]["A4"] = "test_word_01"
-        duplicate = Path(temp) / "duplicate.xlsx"
+        duplicate = temp_root / "duplicate.xlsx"
         wb.save(duplicate)
-        result = execute(duplicate, "--test-only")
+        wb.close()
+        result = execute(duplicate, "--test-only", output_root=test_root)
         assert result.returncode == 1 and "稳定 ID 重复" in result.stderr
         assert state == files_snapshot(test_outputs), "错误时覆盖了旧版测试资产"
         print("PASS duplicate ID rejected without replacing existing assets")
@@ -65,9 +75,10 @@ def main() -> None:
         header = next(row for row in sheet.iter_rows() if any(cell.value == "word_pool_id" for cell in row))
         column = next(cell.column for cell in header if cell.value == "word_pool_id")
         sheet.cell(header[0].row + 1, column, "test_missing_pool")
-        dangling = Path(temp) / "dangling_pool.xlsx"
+        dangling = temp_root / "dangling_pool.xlsx"
         wb.save(dangling)
-        result = execute(dangling, "--test-only")
+        wb.close()
+        result = execute(dangling, "--test-only", output_root=test_root)
         assert result.returncode == 1 and "关联 ID" in result.stderr, (result.stdout, result.stderr)
         assert state == files_snapshot(test_outputs), "跨表错误覆盖了旧版测试资产"
         assert authoritative == files_snapshot(authoritative_paths), "失败导出改变了正式来源"
@@ -75,11 +86,52 @@ def main() -> None:
 
         wb = load_workbook(FIXTURE)
         wb["00_填写说明"]["A1"] = "普通数据表"
-        non_test = Path(temp) / "non_test.xlsx"
+        non_test = temp_root / "non_test.xlsx"
         wb.save(non_test)
-        result = execute(non_test, "--test-only")
+        wb.close()
+        result = execute(non_test, "--test-only", output_root=test_root)
         assert result.returncode == 2 and "--test-only" in result.stderr
         print("PASS prevents official/unmarked workbook entering TEST_ONLY mode")
+
+        # 普通模式拒绝 TEST_ONLY 来源时，既存 CSV 的字节、mtime 与目录文件集合都保持。
+        normal_root = temp_root / "normal-rejection-output"
+        source_dir = normal_root / "data/source_tables"
+        source_dir.mkdir(parents=True)
+        previous = source_dir / "02_主播关卡.csv"
+        legacy = source_dir / "legacy.csv"
+        previous.write_bytes(b"level_id,level_order\r\nold_level,1\r\n")
+        legacy.write_bytes(b"legacy\r\n")
+        preserved_mtime = 1_700_000_000_123_456_789
+        os.utime(previous, ns=(preserved_mtime, preserved_mtime))
+        before_rejection = files_snapshot([previous, legacy])
+        rejected = execute(FIXTURE, output_root=normal_root)
+        assert rejected.returncode == 2, (rejected.returncode, rejected.stdout, rejected.stderr)
+        assert "普通导表模式拒绝" in rejected.stderr and "TEST_ONLY" in rejected.stderr
+        assert files_snapshot([previous, legacy]) == before_rejection
+        assert sorted(path.name for path in source_dir.glob("*.csv")) == ["02_主播关卡.csv", "legacy.csv"]
+        print("PASS ordinary mode rejects TEST_ONLY before writes: exit=2; existing CSV bytes/mtime preserved")
+
+        # 将现有结构夹具转成未标记、字段关联有效的普通输入，验证正式输出路径仍可用。
+        wb = load_workbook(FIXTURE)
+        for worksheet in wb.worksheets:
+            for row in worksheet.iter_rows():
+                for cell in row:
+                    if isinstance(cell.value, str):
+                        cell.value = cell.value.replace("TEST_ONLY", "正式").replace("test_", "formal_")
+        wb["00_填写说明"]["A1"] = "正式策划工作簿"
+        official_input = temp_root / "unmarked_formal.xlsx"
+        wb.save(official_input)
+        wb.close()
+        official_root = temp_root / "normal-success-output"
+        normal_success = execute(official_input, output_root=official_root)
+        assert normal_success.returncode == 0, (normal_success.stdout, normal_success.stderr)
+        official_csvs = sorted((official_root / "data/source_tables").glob("*.csv"))
+        assert len(official_csvs) == 20, len(official_csvs)
+        assert "formal_level_01" in (official_root / "data/source_tables/02_主播关卡.csv").read_text(encoding="utf-8")
+        assert not (official_root / "data/test_only/source_tables").exists()
+        assert authoritative == files_snapshot(authoritative_paths)
+        print("PASS validated unmarked workbook uses ordinary source path: exit=0; 20 CSV; repository source unchanged")
+
 
 if __name__ == "__main__":
     main()

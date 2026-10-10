@@ -29,6 +29,8 @@ python tools/export_game_data.py --input "策划数据总表.xlsx"
 
 产物：data/source_tables/ 下 20 个原字段 CSV；06 拆分战斗数值、生命周期、基础参数；Tier 生成到 data/test_only/sheet_preview/combat_stage/tier_catalog.tres 供比对。游戏运行时只使用 data/combat_stage/tier_catalog.tres；只有正式评审确认新 Tier 数值后才更新该唯一入口。尚未定稿的普通词库只能生成到 data/test_only/sheet_preview/level_configuration/pool_streamer_a.tres，保留全部 344 条供读取测试，暂时不能作为正式关卡词库。
 
+普通模式与 `--test-only` 共用 `00_填写说明!A1` 的 TEST_ONLY 来源标记。普通模式发现该标记后会在解析和写盘前拒绝输入，返回退出码 2；测试来源必须显式使用 `--test-only`，写入独立 TEST_ONLY 目录。
+
 ### 2. 生成一组可直接联调的 TEST_ONLY 数据
 
 ~~~powershell
@@ -52,7 +54,7 @@ python tools/export_game_data.py --input "tests/fixtures/data_export/test_only_d
 
 后续确定正式配置：更新 Google Sheets → 下载 XLSX → 运行正常导表命令 → Agent 根据正式 data/source_tables/ 建立相应 Resource。LevelProfile 已新增 normal_speech_pool_source: LevelSpeechPool 和 get_normal_speech_pool()；正式词库只需重新挂载资源，弹幕选择、经文和 Sandbox 已统一读取这个入口。原有 normal_speech_pool 继续兼容旧关卡。
 
-正常模式与 TEST_ONLY 模式使用不同输出目录；未标记 TEST_ONLY 的工作簿不能使用 --test-only。当前普通模式仍可能接收带 TEST_ONLY 标记的工作簿并写入正式来源目录，输入来源反向隔离需按 D-EXPORT-01 单独修复。当前尚未实现全部业务表的正式 Godot 导入器；TEST_ONLY 模式只实现了联调必需的 02/03/04/05 → LevelProfile 和 LevelCatalog，其他表已准备 CSV，可由对应系统 Agent 使用。
+正常模式与 TEST_ONLY 模式使用不同输出目录；未标记 TEST_ONLY 的工作簿不能使用 `--test-only`，带标记的工作簿也不能进入普通模式。可用 `--output-root <目录>` 将导出产物重定向到隔离根目录；省略时继续写入当前项目根目录，引用校验仍读取当前项目中的正式来源数据。当前尚未实现全部业务表的正式 Godot 导入器；TEST_ONLY 模式只实现了联调必需的 02/03/04/05 → LevelProfile 和 LevelCatalog，其他表已准备 CSV，可由对应系统 Agent 使用。
 
 ## 字段映射
 
