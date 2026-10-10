@@ -55,6 +55,9 @@ func _run_smoke() -> void:
 		_check(player_bubbles[1].size.y > player_bubbles[0].size.y, "玩家侧长文本自动换行并增加气泡高度")
 		_check(player_bubbles[0].tail_direction == StreamerBubbleView.TailDirection.RIGHT, "玩家尾巴朝向主播内侧")
 		_check(player_bubbles[0].float_progress > 0.0, "气泡随显示时长持续上浮")
+	if player_bubbles.size() == 3:
+		_check(absf(player_bubbles[1].size.y - player_bubbles[1].custom_minimum_size.y) < 0.5,
+			"历史气泡缩小时实际高度与目标高度一致")
 	await _capture("player_left")
 	player_stack.clear_bubbles()
 	for entry: BubbleDialogueEntry in opponent_lines:
