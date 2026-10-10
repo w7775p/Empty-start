@@ -125,6 +125,12 @@ PA-02 负责把正式美术资产导入工程并接到对应 Resource；PA-03 �
 
 普通弹幕使用原有 `systems/barrage_generation/barrage_view.tscn` 与独立 `BarrageGlassSurface` 材质节点。**2026-10-10 正式定稿：01 GLASS NOIR**（正统 `#1658A2`、异端 `#B9502D`、荒谬 `#B7865B`、Neutral `#ADA4A3`），S1 轻薄玻璃、S2 明亮柔光、S3 更亮并缓慢呼吸；取消刻痕、左侧竖条及双层硬内框。底板倾向色、三级强度参数全部暴露在 `BarrageGlassSurface` Inspector；S3 文字加重在 `BarrageView` 配置，不增加色板 Resource。`BarrageView.setup()` 按运行记录决定外观，`set_visual_bbcode(bbcode)` 保留富文本接口。独立演示 `scenes/demos/pa04_glass_demo.tscn`，1920×1080 真实 GPU 截图（含同屏重叠）与最小冒烟见 `docs/Shared/PresentationAssets/previews/` 及 `表现资产_PA-04_2026-10-10_log.md`。正式 BG-28 富文本配表、RP 复读规则与 Sandbox 接线按对应系统后续集成，PA-05 可复用已定稿玻璃材质。
 
+## PA-05 六种特殊弹幕视觉组件（2026-10-10）
+
+继承 PA-04 的 `BarrageGlassSurface`，由 `BarrageSpecialSurface` 依据 `BarrageView.runtime_record.trait_set.get_trait_ids()` 选择唯一主材质：`reflect → occlusion → fake_card → retaliation_copy → split → glass`，`unselectable` 叠加空心字。正式入口沿用 `systems/barrage_generation/barrage_view.tscn`，`setup()` 自动接线，不新建战斗状态与可命中对象；通过 `get_special_material()` 查询表现类型。铁质、预裂玻璃、持续 Q 弹果冻、透明内芯描边字、鲜艳椭圆假复读与单实例多处小字水军板均在 Godot 4.7.2 实际绘制；果冻最多约 24Hz 重绘。普通复读继续使用灰色圆角玻璃与零描边；分裂子句进入普通无特性视图时自动使用小尺寸普通玻璃。可调颜色、裂痕、果冻幅度、刷屏字号集中在 `barrage_special_surface.gd` 的 Inspector。
+
+独立演示：`res://scenes/demos/pa05_special_barrage_demo.tscn`；全高清截图入口：`res://scenes/demos/pa05_capture_1920.tscn -- --capture-pa05`；画面与日志见 `docs/Shared/PresentationAssets/previews/pa05_*.jpg` 和 [PA-05 完成日志](表现资产_PA-05_2026-10-10_log.md)。PA-06 继续负责命中碎裂、回弹和硬质碰撞的事件演出；此处只有常态材质与果冻微动。
+
 ## PA-08 独立视觉组件交付（2026-10-10）
 
 `systems/combat_attack/aim_reticle.gd` 已具备小空心圆、环形蓄力、满蓄、发射和运动反馈。2026-10-10 按策划表确认 PC 视觉范围 96×96、实际圆形命中包络框 144×144，分别由 `visual_diameter` 与 `reticle_diameter` 设置；美术双层明暗描边保持可调。触屏仍通过 `MobileAttackInputConfig` 注入独立判定直径。集成方用 `set_charge_visual_state(progress, held, full)` 传入原有攻击进度，在 `shot_snapshot_created` 事实发出后调用 `play_shot_feedback()`；可通过 `animation_finished`、`reset_visual_state()`、`set_visual_paused()` 协调表现生命周期。现有准星命中几何接口保留。独立演示为 `scenes/demos/pa08_reticle_demo.tscn`，固定分辨率截图入口为 `scenes/demos/pa08_capture_1920.tscn`，四状态截图位于 `docs/Shared/PresentationAssets/previews/`；完整接口与测试见 `表现资产_PA-08_2026-10-10_log.md`。Sandbox 接线等待重构后的场景集成任务。
