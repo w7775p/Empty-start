@@ -152,9 +152,9 @@ LevelProfile 新增可选 normal_speech_pool_source: LevelSpeechPool，使用 ge
 
 测试场景为 tests/fixtures/data_export/test_only_sandbox.tscn，注入测试关卡目录；正常主场景默认继续使用原关卡目录。导表方法、已实现映射、策划确认后的替换方式详见 tools/README.md。
 
-## 待办：LC-10 正式导表与新增需求联调（未完成）
+## 2026-10-08 阶段记录：LC-10 正式导表待办（未完成）
 
-当前导表工具已完成 Excel/XLSX → CSV 数据校验及 TEST_ONLY 02/03/04/05 → Godot 关卡 Resource 的联调路径。正式关卡与矛盾表尚无有效记录，生成数值仍待填写；正式运行关卡仍用占位配置。正式数据绑定和跨系统联调尚未完成。**本系统先暂停新增需求讨论与开发；等待其他系统新增任务卡及策划正式数据确定后，再补充 LC-10 的具体实施和验收。**详见 `tasks/LC-10_pending-data-import-and-integration.md`。
+当前导表工具已完成 Excel/XLSX → CSV 数据校验及 TEST_ONLY 02/03/04/05 → Godot 关卡 Resource 的联调路径。正式关卡与矛盾表尚无有效记录，生成数值仍待填写；正式运行关卡仍用占位配置。正式数据绑定和跨系统联调尚未完成。**此为旧阶段的暂停记录；现行字段、拆卡和开工条件以下方 2026-10-10 新需求和最新版 LC-10/LC-13 为准。**详见 `tasks/LC-10_pending-data-import-and-integration.md`。
 
 ## 2026-10-09 新确认规则与单功能任务卡
 
