@@ -57,6 +57,7 @@
 | ID-09 | 三步开局流程：主播取名 → 12 身份卡 → 粉丝团取名，最终提交已实现，房间接入 BLOCKED_RS12 | 复用原有存档测试与真实流程 smoke；RS-12 负责开局房间入口 |
 | ID-10 | 单张身份卡独立翻开，二次点击选择，回退保留本轮状态（已实现） | Godot 4.7.2 Windows GUI / headless 事件 smoke，既有身份回归通过 |
 | ID-11 | 一键翻开十二张身份卡，保留选择并继续现有保存流程（已实现） | Godot 4.7.2 Windows GUI 合成事件 smoke、身份映射回归通过 |
+| ID-12 | 独立漫画分镜计时、点击推进、末格确认与暂停恢复（已实现） | Godot 4.7.2 runtime TEST_ONLY 三格流程 smoke |
 
 ## ID-08 可复用身份步骤（2026-10-09）
 
@@ -109,9 +110,9 @@ ID-07 完成后，本周目的主播名、粉丝团名和身份使用稳定数�
 - 已存正式 / 旧三身份重新打开时显示第三页且锁定，不转换旧 ID；未知身份锁住且禁止继续。直接启动场景而没有 SaveData 时，第一步显示主菜单提示并禁止前进。
 - RS-12 已在页面连接 `opening_saved`，经 `SceneRouter.goto_opening_room()` 打开独立真实房间。成功期间保持忙碌锁；路由失败后按钮变为“重试进入房间”，仅重试路由，保留已存同一周目和身份。房间读取真实倾向与名称；显式开播才调用原 `goto_game()`，没有战后 RestSession。
 - RS-12 已补齐 ID-09 的房间与首战验收：三倾向各一张正式卡完成三步保存 → 房间 → 主动开播；房间 / 开播失败重试和连点保护通过。Android 实机触控未验证。
-## 漫画式开场新提案（暂不派工）
+## 漫画式开场分镜状态
 
-本系统的 ID-09 三步身份流程已实现；策划拟在主播名输入与身份卡之间插入主角动机的漫画分镜，在身份卡与粉丝团名之间保留可选演出节点，素材由美术绘制。正式原画分层、脚本和操作节奏待讨论，详见 [开场分镜草案](../Original/2026-10-09_开场漫画分镜流程_待讨论.md)。现有存档与 RS-12 房间跳转继续复用。
+ID-12 已提供独立的漫画播放控制 Node，按配置发出 1-based 分镜编号请求，并提供当前编号、点击推进、暂停 / 恢复和末格结束通知。正式分镜顺序、原画与内容仍待美术和策划确认；ID-13 负责把控制器接入开场流程，详见 [开场分镜草案](../Original/2026-10-09_开场漫画分镜流程_待讨论.md)。ID-12 未接入身份页面、存档或 SceneRouter。
 
 ## 2026-10-09 开场交互程序任务
 
@@ -139,3 +140,11 @@ ID-07 完成后，本周目的主播名、粉丝团名和身份使用稳定数�
 - 全部翻开后按钮显示“已全部翻开”并禁用。流程不改当前选中身份、不额外发出 `selection_changed`；下一步继续使用原有 `next_requested` 和 `identity_setup.gd` 接线。身份资源、SaveData、SaveManager 与 SceneRouter 均未改动。
 - Windows Godot `4.7.2.stable.steam.ed1daf0bf`、D3D12 / Forward+ 的 GUI smoke 通过，真实运行退出码为 0：从十二张背面一键翻开；再从主播名页进入身份页，先翻三张、选择第三张、执行一键翻开；验证选择保持、十二张正面、下一步显示所选身份、保存到磁盘并进入现有开局房间。
 - 自动操作使用 `Viewport.push_input()` 注入合成鼠标事件。实体键鼠、Android 触控未验收。截图和运行日志保存在忽略目录 `.godot/id11/`；详细结果与 MCP/导入边界见 [ID-11 日志](身份系统_ID-11_2026-10-10_log.md)。
+
+## ID-12 漫画分镜播放控制（2026-10-10）
+
+- `ui/identity_setup/comic_panel_playback_control.gd` 是独立 Node。调用方在 `start_playback()` 前配置 `panel_count` 与 `panel_interval_seconds`；启动立即发出第 1 格请求，之后由子 Timer 自动推进。`current_panel_number` 供外部读取，`panel_display_requested(panel_number)` 供外部美术组件选择素材。
+- `advance_on_click()` 在普通格立即请求下一格并重新计时；末格停止自动计时，保持当前编号，下一次点击发出一次 `playback_completed`。`pause_playback()` / `resume_playback()` 直接暂停和恢复 Timer，保留剩余时间。
+- `tests/identity_setup/id12_comic_panel_playback_test.tscn` 用 3 个显式 `TEST_ONLY_PANEL_n` 内容核对请求映射、自动 / 点击推进、暂停边界、末格停留与单次完成；内容占位可整体替换，不包含正式剧本文案或美术资源。
+- Windows Godot `4.7.2.stable.steam.ed1daf0bf` headless runtime 退出码为 0、stderr 为空。暂停前剩余期望约 617 ms，恢复后 611 ms 自动到达下一格；完整输出、环境隔离与边界说明见 [ID-12 日志](身份系统_ID-12_2026-10-10_log.md)。
+- 本卡未接 ID-09 开场流程，也未修改正式素材、身份数据、存档、导表器、四关数据或 SceneRouter。视觉与美术验收随正式分镜资源接入再进行。
