@@ -488,19 +488,28 @@ def make_test_only_levels(tables: dict, report: Report) -> dict[str, str]:
 def main() -> int:
     parser = argparse.ArgumentParser(description="一次性导出全部策划 Sheet 至分系统 CSV + 已接入的 Godot Resource")
     parser.add_argument("--input", type=Path, required=True, help="Google Sheets 下载的 .xlsx")
+    parser.add_argument("--output-root", type=Path, help="导出根目录；省略时写入当前项目根目录")
     parser.add_argument("--csv-only", action="store_true", help="仅导出 CSV，不更新已接入的 Resource")
     parser.add_argument("--test-only", action="store_true", help="输入测试工作簿；仅输出 TEST_ONLY CSV/词库，保留正式数据")
     args = parser.parse_args()
     source = args.input.expanduser().resolve()
+    output_root = args.output_root.expanduser().resolve() if args.output_root else ROOT
     if not source.is_file():
         print(f"错误：找不到输入 XLSX：{source}", file=sys.stderr)
         return 2
     report = Report()
     workbook = load_workbook(source, read_only=True, data_only=True)
-    # 防止误将正式策划源通过测试通道写入测试目录。
-    if args.test_only and ("00_填写说明" not in workbook.sheetnames
-                           or "TEST_ONLY" not in str(workbook["00_填写说明"]["A1"].value or "")):
+    # 两种模式共享 A1 来源标记判定，防止测试源和正式来源互相串写。
+    has_test_only_marker = (
+        "00_填写说明" in workbook.sheetnames
+        and "TEST_ONLY" in str(workbook["00_填写说明"]["A1"].value or "")
+    )
+    if args.test_only and not has_test_only_marker:
         print("错误：--test-only 只接受带 TEST_ONLY 声明的测试工作簿。", file=sys.stderr)
+        workbook.close()
+        return 2
+    if not args.test_only and has_test_only_marker:
+        print("错误：普通导表模式拒绝带 TEST_ONLY 声明的工作簿；请使用 --test-only。", file=sys.stderr)
         workbook.close()
         return 2
     tables: dict[str, tuple[list[str], list]] = {}
@@ -557,7 +566,7 @@ def main() -> int:
         return 1
     # 校验全部通过后才覆盖工具拥有的文件；同名之外的仓库资源绝不修改。
     for relative, content in outputs.items():
-        dest = ROOT / relative
+        dest = output_root / relative
         dest.parent.mkdir(parents=True, exist_ok=True)
         if dest.exists() and dest.read_text(encoding="utf-8") == content:
             print("[未变化]", relative)

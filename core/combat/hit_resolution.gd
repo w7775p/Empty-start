@@ -19,13 +19,24 @@ const _NORMAL_WORD_REWARDS_BY_STRENGTH: Dictionary = {
 var _player_pk: float = 0.0
 var _minimum_player_pk: float = 0.0
 var _maximum_player_pk: float = 1.0
+var _max_positive_pk_delta_per_shot: float = INF
+var _max_negative_pk_delta_per_shot: float = INF
 var _normal_hit_history: Array[Dictionary] = []
 var _normal_hit_order: int = 0
 var _normal_history_committed: bool = false
 var _normal_pk_resolution_enabled: bool = true
 
 
-func _init(initial_pk: float, minimum_pk: float, maximum_pk: float) -> void:
+func _init(
+	initial_pk: float,
+	minimum_pk: float,
+	maximum_pk: float,
+	max_positive_pk_delta_per_shot: float = INF,
+	max_negative_pk_delta_per_shot: float = INF
+) -> void:
+	# 策划定值前保留无上限默认；有限单发正负上限由调用方按配置注入。
+	_max_positive_pk_delta_per_shot = maxf(0.0, max_positive_pk_delta_per_shot)
+	_max_negative_pk_delta_per_shot = maxf(0.0, max_negative_pk_delta_per_shot)
 	# 创建本场唯一 PK 状态，并将配置初始值限制在配置范围内。
 	initialize_player_pk(initial_pk, minimum_pk, maximum_pk)
 
@@ -190,7 +201,8 @@ func resolve_shot_results(
 
 	# 特性已由 4 解析；6 按正式战斗数值表换算为内部 0–1 PK，并清掉特殊结果的普通收益。
 	var resolved_targets: Array[Dictionary] = target_results.duplicate(true)
-	var total_pk_delta: float = 0.0
+	var positive_pk_delta: float = 0.0
+	var negative_pk_delta: float = 0.0
 	for target_result: Dictionary in resolved_targets:
 		var trait_result := target_result.get("trait_result") as BarrageTraitResult
 		if trait_result != null and not trait_result.receives_normal_reward:
@@ -203,10 +215,19 @@ func resolve_shot_results(
 					target_result["pk_delta"] = -0.007
 				_:
 					target_result["pk_delta"] = 0.0
-		total_pk_delta += float(target_result.get("pk_delta", 0.0))
-	# 反弹 / 遮挡 / 落空每发只扣一次；最终反弹结果不会再叠加该目标的反击惩罚。
+		var target_pk_delta: float = float(target_result.get("pk_delta", 0.0))
+		if target_pk_delta > 0.0:
+			positive_pk_delta += target_pk_delta
+		elif target_pk_delta < 0.0:
+			negative_pk_delta += target_pk_delta
+	# 正负贡献分别按整发汇总；整发异常只扣一次并计入负向上限。
 	if shot_anomaly != ShotAnomaly.NONE:
-		total_pk_delta -= 0.01
+		negative_pk_delta -= 0.01
+	var capped_negative_pk_delta: float = maxf(
+		negative_pk_delta, -_max_negative_pk_delta_per_shot
+	)
+	var total_pk_delta: float = minf(positive_pk_delta, _max_positive_pk_delta_per_shot)
+	total_pk_delta += capped_negative_pk_delta
 
 	var final_player_pk: float = apply_player_pk_delta(total_pk_delta)
 	return {

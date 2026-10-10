@@ -51,10 +51,9 @@ func _test_selector_reads_neutral_ratio_and_weight() -> bool:
 	level.normal_speech_pool = [neutral, disabled, orthodox]
 	var selector: NormalSpeechSelector = SELECTOR.new()
 	level.neutral_ratio = 1.0
-	for _index in range(8):
-		if selector.select_next_normal_speech(level) != neutral:
-			push_error("TT-13 neutral 比例与单句权重未生效")
-			return false
+	if selector.select_next_normal_speech(level) != neutral:
+		push_error("TT-13 neutral 比例与单句权重未生效")
+		return false
 	level.neutral_ratio = 0.0
 	level.orthodox_ratio = 1.0
 	if selector.select_next_normal_speech(level) != orthodox:

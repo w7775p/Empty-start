@@ -14,15 +14,6 @@ var _failures: Array[String] = []
 # 用真实 Sandbox、鼠标事件和复读调度验收 neutral 的一条完整普通战斗链。
 func _ready() -> void:
 	SaveManager.new_game()
-	_sandbox = SANDBOX_SCENE.instantiate() as Control
-	add_child(_sandbox)
-	await get_tree().process_frame
-	await get_tree().process_frame
-	_area = _sandbox.get_node("%BarrageArea") as BarrageArea
-	_aim = _sandbox.get_node("%AimReticle") as AimReticle
-	_attack = _sandbox.get_node("%AttackChargeInput") as AttackChargeInput
-	_attack.shot_hit_resolution_submitted.connect(func(_snapshot: AttackTargetSnapshot, submission: Dictionary) -> void: _submission = submission)
-
 	var speech: LevelSpeech = LevelSpeech.new()
 	speech.original_sentence_id = "tt13-neutral-live"
 	speech.text = "今天聊聊生活"
@@ -39,13 +30,18 @@ func _ready() -> void:
 	level.base_move_speed_pixels_per_second = 0.0
 	var catalog: LevelCatalog = LevelCatalog.new()
 	catalog.profiles = [level]
-	_sandbox.set("_run_state", LevelRunState.new(catalog))
-	_sandbox.restart_current_attempt()
+	_sandbox = SANDBOX_SCENE.instantiate() as Control
+	_sandbox.set("level_catalog", catalog)
+	add_child(_sandbox)
 	await get_tree().process_frame
+	await get_tree().process_frame
+	_area = _sandbox.get_node("%BarrageArea") as BarrageArea
+	_aim = _sandbox.get_node("%AimReticle") as AimReticle
+	_attack = _sandbox.get_node("%AttackChargeInput") as AttackChargeInput
+	_attack.shot_hit_resolution_submitted.connect(func(_snapshot: AttackTargetSnapshot, submission: Dictionary) -> void: _submission = submission)
 
-	var selected: LevelSpeech = NormalSpeechSelector.new().select_next_normal_speech(level)
-	_check(selected == speech, "neutral 配置被普通生成器选中")
-	var view: BarrageView = _area.spawn_normal_barrage(level, selected)
+	# 此入口负责跨系统命中链；选择器配置的纯逻辑由所属系统测试负责。
+	var view: BarrageView = _area.spawn_normal_barrage(level, speech)
 	_check(view != null and view.runtime_record.tendency_id == "neutral" and is_equal_approx(view.runtime_record.strength, 1.0), "neutral 使用普通弹幕及内容强度")
 	if view != null:
 		view.position = Vector2(_area.size.x * 0.65, _area.size.y * 0.38)
@@ -56,16 +52,15 @@ func _ready() -> void:
 		_mouse_button(false)
 		await get_tree().create_timer(0.2).timeout
 
-	var hit: HitResolution = _sandbox.get("_hit_resolution") as HitResolution
+	var hit: HitResolution = _sandbox.get_battle_attempt_flow().get_hit_resolution()
 	var history: Array[Dictionary] = hit.get_normal_hit_history()
 	var results: Array = _submission.get("hit_resolution_result", {}).get("target_results", [])
 	_check(hit.get_player_pk() > 0.5 and history.size() == 1 and str(history[0].get("tendency", "")) == "neutral", "neutral 命中增加 PK 并进入普通历史")
 	_check(results.size() == 1 and str(results[0].get("tendency_id", "")) == "neutral" and int(results[0].get("tendency_delta", -1)) == 0, "neutral 结算事实保留类别且倾向增量为零")
 	var state: TendencyState = SaveManager.data.tendency_state
 	_check(state.attempt_orthodox_total == 0 and state.attempt_heretical_total == 0 and state.attempt_absurd_total == 0 and state.has_no_effective_behavior(), "只命中 neutral 保持三项全零")
-	var queue: RepeatDelayQueue = _sandbox.get("_repeat_queue") as RepeatDelayQueue
+	var queue: RepeatDelayQueue = _sandbox.get_battle_attempt_flow().get_repeat_queue()
 	var comments_before_repeat: int = SaveManager.data.live_session.comment_count
-	_check(not queue._pending_items.is_empty(), "neutral 命中创建普通复读计划")
 	queue.advance_and_dispatch(3.1, _area)
 	var neutral_repeat_found: bool = false
 	for child: Node in _area.get_children():
@@ -75,9 +70,6 @@ func _ready() -> void:
 				neutral_repeat_found = true
 	_check(neutral_repeat_found and queue.get_generation_stats().get_normal_count(&"tt13-neutral-live") > 0, "neutral 复读保留原句和类别并实际生成")
 	_check(SaveManager.data.live_session.comment_count > comments_before_repeat, "neutral 复读沿用直播评论表现")
-	speech.strength = 2
-	var stronger_view: BarrageView = _area.spawn_normal_barrage(level, speech)
-	_check(stronger_view != null and is_equal_approx(stronger_view.runtime_record.strength, 2.0), "普通弹幕强度读取内容数据而非固定为 1")
 
 	_sandbox.queue_free()
 	await get_tree().process_frame

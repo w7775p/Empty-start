@@ -8,7 +8,7 @@
 
 ## 2026-10-09 现行实现核对与任务状态
 
-**阶段结构：** `CombatStage` 现有 T0～T5 数据档，满 PK 后切入独立 `ContradictionBreak`，玩家看到 T6/Paradox（CS-25），普通 T5 继续战斗到满值。现有 `tier_state_changed` 在最终结算后发出，但本发 Sandbox 仍需完成命中处理；CS-14/CS-18 应在当发事实及队列协调后执行升档清屏、清旧请求。T0 回拉倍率改为 0（CS-19），T1 开场对白完成后再进入回拉与生成。T2～T5 每档仅在本场首次到达时抽取一项反击（CS-28）；已抽技能按当前 Tier 生效，降档暂停高档反击、回升恢复原抽取结果（CS-29），具体候选池后续确定。降至 T0 对手离线（CS-26），降至 T1 触发嘲讽（CS-27）。
+**阶段结构：** `CombatStage` 现有 T0～T5 数据档，满 PK 后切入独立 `ContradictionBreak`，玩家看到 T6/Paradox（CS-25），普通 T5 继续战斗到满值。现有 `tier_state_changed` 在最终结算后发出，但本发 Sandbox 仍需完成命中处理；CS-14/CS-18 应在当发事实及队列协调后执行升档清屏、清旧请求。T0 回拉倍率为 0（CS-19）；T1 开场对白完成后再进入回拉与生成，当前接线待 CS-22/23。T2～T5 每档仅在本场首次到达时抽取一项反击（CS-28）；已抽技能按当前 Tier 生效，降档暂停高档反击、回升恢复原抽取结果（CS-29），具体候选池后续确定。降至 T0 对手离线（CS-26），降至 T1 触发嘲讽（CS-27）。
 
 | 卡片 | 按实际代码核对后的唯一功能 | 状态 |
 | --- | --- | --- |
@@ -17,12 +17,12 @@
 | [CS-16](tasks/CS-16_tier-down-shake.md) | 降档统一震动（离线与嘲讽由 CS-26/27 叠加） | 待开发 |
 | [CS-17](tasks/CS-17_silence-and-burst.md) | 沉默爆发候选节点 | 待策划 |
 | [CS-18](tasks/CS-18_tier-up-clear-old-repeat-requests.md) | 现有队列清理升档接线 | 待接线 |
-| [CS-19](tasks/CS-19_tier0-zero-pullback.md) | T0 回拉倍率数值 0 | 数值调整 |
+| [CS-19](tasks/CS-19_tier0-zero-pullback.md) | T0 回拉倍率数值 0 | 配置完成；Sandbox T0/T1 现行回拉验证通过，对白后时点待 CS-22/23 |
 | [CS-20](tasks/CS-20_tier0-matching-status.md) | T0 搜索对手文案 | 已有 HUD |
 | [CS-21](tasks/CS-21_tier1-opponent-portrait.md) | T0/T1 对手立绘出现 | 已有资源 |
 | [CS-22](tasks/CS-22_tier1-bubble-dialogue.md) | T1 开场气泡对白 | 待开发 |
 | [CS-23](tasks/CS-23_tier1-resume-on-dialogue-end.md) | T1 对话后恢复战斗 | 待接线 |
-| [CS-24](tasks/CS-24_tier-foreground-slot-catalog.md) | Tier 唯一前景容量字段 | 待开发 |
+| [CS-24](tasks/CS-24_tier-foreground-slot-catalog.md) | Tier 唯一前景容量字段与 BarrageArea 读取接口 | 已完成 |
 | [CS-25](tasks/CS-25_paradox-tier6-stage-label.md) | T6/Paradox HUD 阶段标记 | 待接线 |
 
 本节是当前派工依据；历史章节中的旧默认值与旧任务说明保留用来追溯已有系统演变。开发时以单卡现行版和本节为准。
@@ -44,7 +44,9 @@ INT-01 已在正式 Sandbox 完成 HitResolution、BarrageArea、OpponentPKBar �
 
 ## 当前已实现数据
 
-`data/combat_stage/tier_catalog.tres` 为 Tier 0～5 的静态配置来源。`CombatStageTierCatalog.get_tier_config(tier)` 按档位读取各自的升/降档阈值、生成数量/频率/移动/寿命倍率、对手回拉倍率、每次命中复读数和对手立绘状态标识。
+`data/combat_stage/tier_catalog.tres` 为 Tier 0～5 的静态配置来源。`CombatStageTierCatalog.get_tier_config(tier)` 按档位读取各自的升/降档阈值、生成数量/频率/移动/寿命倍率、对手回拉倍率、每次命中复读数和对手立绘状态标识。正式对手回拉倍率 T0～T5 为 `0/1.3/1.6/1.8/2.0/2.2`；CS-19 的 Godot 4.7.2 Sandbox 运行测试确认 T0 玩家 PK 稳定、当前 T1 流程仍通过原 PK 所有者回拉。T1 开场对白完成后的时点待 CS-22/23 接线复验。
+
+CS-24 增加 `CombatStageTierConfig.foreground_slot_count`。正式配置 T0=0（尚待策划填写）、T1～T5=10/13/16/19/22；各档 Resource 可独立调整。CombatStage 在绑定 BarrageArea、开局和档位切换时通过 `barrage_foreground_slot_count_changed` 发布当前值；BarrageArea 通过 `set_foreground_slot_count()` 接收并由 `get_foreground_slot_count()` 提供受控读取。0 保留为未配置标记，后续 BG-16 应沿用 `LevelProfile.normal_barrage_screen_cap` 的现有行为；CS-24 不改变容量准入或生成逻辑。
 
 TT-14 在 `CombatStageTierConfig` 增加 `neutral_weight_multiplier`（默认 1.0）；正式 Tier 0～5 分别为 `1.00 / 0.99 / 0.70 / 0.40 / 0.15 / 0.00`。CombatStage 随当前 Tier 通过 `neutral_weight_multiplier_changed` 把该倍率交给 BarrageArea，绑定时也补发。它只改变后续普通话语类别抽取，不改动静态关卡比例或已有弹幕。
 

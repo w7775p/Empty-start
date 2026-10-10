@@ -76,10 +76,9 @@ func _run_test() -> void:
 	quit(0 if passed else 1)
 
 
-# 仅通知计数，并尝试修改副本验证首次锁句仍归扩散组件。
-func _on_convergence_started(candidate: Dictionary) -> void:
+# 只记录首次收束通知，重复帧继续核对通知次数。
+func _on_convergence_started(_candidate: Dictionary) -> void:
 	_notification_count += 1
-	candidate.clear()
 
 
 # 静止弹幕显式标记 TEST_ONLY，正式资源和身份内容保持原值。

@@ -16,10 +16,12 @@ var _opponent_connected: bool = false
 @onready var _player_live_background: TextureRect = $PlayerStreamerArea/PlayerPortraitPlaceholder/PlayerLiveBackground
 @onready var _player_fan_badge: TextureRect = $PlayerStreamerArea/PlayerInfoArea/PlayerFanBadge
 @onready var _player_portrait_placeholder: Label = $PlayerStreamerArea/PlayerPortraitPlaceholder/PlaceholderLabel
+@onready var _player_bubble_stack: StreamerBubbleStack = %PlayerBubbleStack
 @onready var _opponent_portrait: TextureRect = $OpponentStreamerArea/OpponentPortraitPlaceholder/OpponentPortraitArt
 @onready var _opponent_live_background: TextureRect = $OpponentStreamerArea/OpponentPortraitPlaceholder/OpponentLiveBackground
 @onready var _opponent_fan_badge: TextureRect = $OpponentStreamerArea/OpponentInfoArea/OpponentFanBadge
 @onready var _opponent_portrait_placeholder: Label = $OpponentStreamerArea/OpponentPortraitPlaceholder/PlaceholderLabel
+@onready var _opponent_bubble_stack: StreamerBubbleStack = %OpponentBubbleStack
 @onready var _player_pk_label: Label = %PlayerPK
 @onready var _opponent_pk_label: Label = $BattleArea/TopBattleStatus/PKBar/OpponentPK
 @onready var _pk_progress: ProgressBar = %PlayerShare
@@ -107,6 +109,17 @@ func configure_portrait_character(opponent_character_id: String) -> void:
 	opponent_portrait_motion.configure_character(opponent_character_id)
 
 
+# 组合方提交 SD-01 条目；HUD 只按发言侧转发给对应立绘区，不判断触发规则。
+func show_dialogue_bubble(entry: BubbleDialogueEntry) -> void:
+	if entry == null or entry.text.strip_edges().is_empty():
+		return
+	match entry.side:
+		BubbleDialogueEntry.SpeakerSide.PLAYER:
+			_player_bubble_stack.show_bubble(entry)
+		BubbleDialogueEntry.SpeakerSide.OPPONENT:
+			_opponent_bubble_stack.show_bubble(entry)
+
+
 # TextureRect 沿用当前设计框尺寸，背景裁切铺满，立绘和粉丝牌保留完整比例。
 func _set_texture_rect(texture_rect: TextureRect, texture: Texture2D, stretch_mode: int) -> void:
 	texture_rect.texture = texture
@@ -154,6 +167,8 @@ func show_failure() -> void:
 func reset_for_attempt() -> void:
 	player_portrait_motion.reset_shot()
 	opponent_portrait_motion.reset_shot()
+	_player_bubble_stack.clear_bubbles()
+	_opponent_bubble_stack.clear_bubbles()
 	player_portrait_motion.set_idle_strength(1.0)
 	opponent_portrait_motion.set_idle_strength(1.0)
 	set_opponent_portrait_connected(false)

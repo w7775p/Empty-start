@@ -1,0 +1,79 @@
+{
+  "engine": "4.7.2.stable.steam.ed1daf0bf",
+  "graphics": "Windows D3D12 12_0 / Forward+ / AMD Radeon(TM) Graphics",
+  "resolution": "1152x648",
+  "test_project": ".godot/int09/project (isolated SaveManager/SettingsManager paths; MCP editor plugin disabled)",
+  "input_source": "Synthetic Input.parse_input_event and existing button signals; physical mouse/keyboard not used",
+  "runs": [
+    {
+      "name": "editor_import",
+      "command": "--headless --editor --path .godot/int09/project --import --log-file .godot/int09/editor_import.log",
+      "exit_code": 0,
+      "stdout_file": "editor_import.stdout",
+      "stderr_file": "editor_import.stderr",
+      "stderr_summary": "Root certificate store read failure; 8 audio load messages during first import; CSV locale warnings; Steam editor_settings-4.7.tres write denied. No script parse error."
+    },
+    {
+      "name": "battle_attempt_flow_check_only",
+      "command": "--headless --path .godot/int09/project --check-only --script res://core/combat/battle_attempt_flow.gd --log-file .godot/int09/flow_check.log",
+      "exit_code": 0,
+      "stdout_file": "flow_check.stdout",
+      "stderr_file": "flow_check.stderr"
+    },
+    {
+      "name": "INT-01_GUI",
+      "command": "--path .godot/int09/project res://tests/integration/int_01_playable_battle_sandbox_test.tscn --resolution 1152x648 --quit-after 9000 --log-file .godot/int09/int01_gui.log",
+      "exit_code": 0,
+      "result": "INT-01 PASS: 85 checks, real Sandbox/InputEvent lifecycle",
+      "stdout_file": "int01_gui.stdout",
+      "stderr_file": "int01_gui.stderr",
+      "stderr_summary": "Root certificate store read failure only."
+    },
+    {
+      "name": "INT-04_GUI",
+      "command": "--path .godot/int09/project res://tests/integration/int_04_full_run.tscn --resolution 1152x648 --quit-after 9000 --log-file .godot/int09/int04_gui.log",
+      "exit_code": 0,
+      "result": "PASS INT-04 full run checks=96 top_level_routes=10 DD_completed=1; both empty_history routes passed",
+      "stdout_file": "int04_gui.stdout",
+      "stderr_file": "int04_gui.stderr",
+      "stderr_summary": "Root certificate store read failure only."
+    },
+    {
+      "name": "INT-08_flow_GUI",
+      "command": "--path .godot/int09/project res://tests/integration/int_08_flow_test.tscn --resolution 1152x648 --quit-after 9000 --log-file .godot/int09/int08_gui.log",
+      "exit_code": 0,
+      "result": "PASS INT-08 flow checks=23 rest_ready=3 expected_failures=1",
+      "stdout_file": "int08_gui.stdout",
+      "stderr_file": "int08_gui.stderr",
+      "stderr_summary": "Root certificate store read failure and one intentional ordinary-pool inheritance write failure under the test fixture."
+    },
+    {
+      "name": "TT-13_neutral_GUI",
+      "command": "--path .godot/int09/project res://tests/integration/tt_13_neutral_sandbox_test.tscn --resolution 1152x648 --quit-after 9000 --log-file .godot/int09/tt13_gui.log",
+      "exit_code": 0,
+      "result": "PASS TT-13 Sandbox: neutral generated, hit, repeated, recorded without tendency",
+      "stdout_file": "tt13_gui.stdout",
+      "stderr_file": "tt13_gui.stderr",
+      "stderr_summary": "Root certificate store read failure only."
+    }
+  ],
+  "preparation_attempts": [
+    {
+      "name": "isolated_import_without_editor_flag",
+      "exit_code": -1,
+      "outcome": "Stopped after the first filesystem scan remained resident; the subsequent --headless --editor --import run completed successfully.",
+      "stdout_file": "import_initial_exit_minus_1.stdout",
+      "stderr_file": "import_initial_exit_minus_1.stderr"
+    },
+    {
+      "name": "INT-04_initial_test_parse",
+      "exit_code": -1,
+      "stderr_summary": "SCRIPT ERROR: Parse Error: Identifier attempt_flow not declared in the current scope at the two post-loop checks. The test variable was moved to the enclosing scope; the final full GUI rerun passed."
+    }
+  ],
+  "screenshots": [
+    "int04_main_rest_0.png",
+    "int04_empty_ending.png",
+    "int04_main_full_screen_emphasis.png"
+  ]
+}

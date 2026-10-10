@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scenes/sandbox/sandbox.gd" id="1_sandbox"]
 [ext_resource type="PackedScene" path="res://ui/pause_menu/pause_menu.tscn" id="2_pause_menu"]
@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://scenes/sandbox/sandbox_battle_hud.gd" id="7_battle_hud"]
 [ext_resource type="PackedScene" path="res://ui/debug/debug_panel.tscn" id="8_debug_panel"]
 [ext_resource type="PackedScene" path="res://ui/final_oracle/final_oracle_candidate_display.tscn" id="9_oracle_candidate_display"]
+[ext_resource type="Script" path="res://ui/streamer_bubble_dialogue/streamer_bubble_stack.gd" id="10_bubble_stack"]
 
 [sub_resource type="StyleBoxFlat" id="PKOpponent"]
 bg_color = Color(0.65, 0.34, 0.39, 1)
@@ -157,6 +158,19 @@ theme_type_variation = &"MutedLabel"
 text = "主播画面\n美术资源待接入"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="PlayerBubbleStack" type="Control" parent="BattleHud/PlayerStreamerArea/PlayerPortraitPlaceholder"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+clip_contents = true
+script = ExtResource("10_bubble_stack")
+tail_direction = 1
 
 [node name="LiveDataHud" parent="BattleHud/PlayerStreamerArea" instance=ExtResource("4_live_data_hud")]
 unique_name_in_owner = true
@@ -431,6 +445,19 @@ theme_type_variation = &"MutedLabel"
 text = "主播画面\n美术资源待接入"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="OpponentBubbleStack" type="Control" parent="BattleHud/OpponentStreamerArea/OpponentPortraitPlaceholder"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+clip_contents = true
+script = ExtResource("10_bubble_stack")
+tail_direction = 0
 
 [node name="OpponentLiveDataHud" parent="BattleHud/OpponentStreamerArea" instance=ExtResource("4_live_data_hud")]
 unique_name_in_owner = true

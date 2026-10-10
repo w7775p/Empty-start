@@ -58,3 +58,29 @@ Windows 验证命令（Godot 4.7.2）：
 ## 2026-10-10 当前主播对白接线
 
 Google Sheets `02_主播关卡.story_config_id` 指向 `20_主播气泡对白.story_config_id`；两个表的 `streamer_id` 同时用于对手身份校验。四关预留 `story_level_001`～`story_level_004`，正式对白尚待策划填写。20表保留 `trigger_type`（`hit_word / connect / tier_up / tier_down / win / lose / timed`）、`trigger_key`、`source_word_id`、`trigger_time_s`、发言方、显示时长与优先级，并新增 `line_order` 让相同事件触发的多条剧情对白明确播放顺序。SD-01已完成配置和查询入口；新增 [SD-08](tasks/SD-08_per-streamer-dialogue-table-binding.md) 按当前关剧情配置ID把20表转换为既有 `BubbleDialogueConfig`，由SD-03～07消费事件。
+
+## SD-02 当前实现（2026-10-10）
+
+玩家、对手立绘区各挂一份 `StreamerBubbleStack`；[SandboxBattleHud](../../scenes/sandbox/sandbox_battle_hud.gd) 公开 `show_dialogue_bubble(entry: BubbleDialogueEntry)`，按 `entry.side` 转发 SD-01 条目。浮层仅渲染传入条目，不选择对白或处理战斗事件；同侧按调用顺序由上到下同时显示，气泡到期后回收并重排。
+
+- [StreamerBubbleStack](../../ui/streamer_bubble_dialogue/streamer_bubble_stack.gd) 使用全锚点贴合当前 `448×432` 立绘区，窗口缩放继续沿用 HUD 的整体设计缩放；浮层忽略鼠标并裁切到主播画面。
+- [StreamerBubbleView](../../ui/streamer_bubble_dialogue/streamer_bubble_view.gd) 使用 `_draw()` 绘制椭圆填色、深色描边、阴影和尾巴；玩家尾巴向右、对手尾巴向左，均指向画面内的主播。每侧的颜色、描边、尾巴位置/宽度、最大气泡宽度、文字边距、弹出/上浮/渐隐时长可在对应浮层 Inspector 单独调整。
+- 文字沿用项目 Theme 的字体，由 `RichTextLabel` 自动换行。文本宽度按字体测量后限制在可调宽度内，气泡高度按测量行数增加。
+- HUD 重开尝试时显式清空两侧显示。显示时长读取 `BubbleDialogueEntry.display_duration_seconds`；当前正式对白仍为空，未写入临时验收台词。
+- 可见 GUI 回归入口为 [SD-02 smoke 场景](../../tests/streamer_bubble_dialogue/sd02_bubble_view_smoke.tscn)，将实际 `Sandbox` 场景嵌入测试窗，通过公开 HUD 接口在内存中注入左右各三条 TEST_ONLY 条目，并将 Godot Viewport PNG 暂存到 `.godot/sd02/`。已提交的 1920 窗口与 1280 小窗口截图见 [SD-02 视觉证据](evidence/SD-02_2026-10-10/)。窗口/Viewport 尺寸、渲染器、实际台词、命令和测试边界见 [SD-02 完成日志](双主播气泡对话系统_SD-02_2026-10-10_log.md)。
+
+本卡没有实现 SD-03 队列策略、优先级调度、命中/状态/定时事件消费者或随机闲聊。PA-03 当前样例没有对手立绘资源，验收画面保留现有对手占位区域。
+
+## SD-02 气泡美术优化（2026-10-10，PR #131）
+
+依照策划反馈，在原 SD-02 分支更新为更饱满的乳白色漫画圆角椭圆气泡，并为当前发言提供向主播方向上扬的尖尾。仍由 `StreamerBubbleView._draw()` 程序绘制，继续使用 Theme + RichTextLabel，可直接通过 Inspector 调整两侧底色、字体/边距、最大宽度和持续时间；无需独立气泡 PNG。
+
+显示层级按调用顺序保留：**最新一条完整气泡、前两条收缩为实底紧凑历史气泡**，历史气泡去掉尾巴并缩小文字与轮廓，完整文字继续可读。固定的 `448×432` 立绘画面中从下向上沿外边缘排布，减少遮住主播眼睛和表情的时间；弹出 0.14s、缓浮 18px、渐隐 0.24s。SD-03 后续仍负责真正的队列最大数量、优先级和节奏。
+
+已修复 Godot `Control.custom_minimum_size` 导致历史长气泡无法缩小、面积虚高的缺陷；`sd02_bubble_view_smoke.gd` 新增实际尺寸回归。**1280×720 和 1920 宽 Windows Godot GUI 各 21 项 PASS / 0 failures**，新版实景截图见 [视觉优化证据](evidence/SD-02_2026-10-10-v2/)；与原版 [旧截图](evidence/SD-02_2026-10-10/) 可直接对比。仍待策划正式审美验收、对手立绘与 Android 真机。
+
+## SD-02 三种视觉方向实机预览（2026-10-10，PR #131）
+
+应策划要求增加 [三方案 Godot 对照预览](evidence/SD-02_2026-10-10-v3/README.md)，使用项目正式仓鼠立绘、三条相同对白、短中长三组文本，并在 1920×1080 与 1280×720 实际 GPU 渲染截图。A 轻量短句（深色对话框）、B 流行漫画侧边卡（高饱和错位卡片）、C 乳白漫画主气泡（仅最新句带尾）。预览入口 `res://scenes/demos/sd02_style_compare_demo.tscn`，按数字键 1/2/3 切换文本长度；截图入口 `res://scenes/demos/sd02_style_capture.gd`。
+
+**当前只有独立预览及截图，正式双主播 StreamerBubbleView / Stack 保持现状**。后续由策划从三套中选型，再决定是否采用单一方案或短句 A + 重要发言 C 的混合形式。

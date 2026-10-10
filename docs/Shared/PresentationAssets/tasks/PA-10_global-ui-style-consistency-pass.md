@@ -2,7 +2,7 @@
 
 > 状态：需求已定，待各 UI 集成后实施
 > 类型：后期整合 / PresentationAssets
-> 依赖：PA-03 主战斗界面美术接入；PA-04～PA-09、PA-11～PA-19、SD-02 及届时已完成的其他正式 UI 表现
+> 依赖：PA-03 主战斗界面美术接入；PA-04～PA-06、PA-08～PA-09、PA-11～PA-19、SD-02 及届时已完成的其他正式 UI 表现
 
 ## 开始前先阅读以下文档
 - docs/Original/任务卡模板.md、known_traps.md

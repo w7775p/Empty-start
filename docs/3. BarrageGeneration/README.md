@@ -3,13 +3,13 @@
 > **派工入口**：[2026-10-09 当前任务卡整合与依赖顺序](../开发计划_2026-10-09_任务卡依赖整合.md)。本系统的已完成旧卡保留作功能实现依据；下方历史讨论章节的旧数值以现行派工入口覆盖。
 
 
-## 2026-10-09 现行实现核对与任务状态
+## 2026-10-10 现行实现核对与任务状态
 
-**现行生成规则：** 前景普通话语与挂特性的特殊话语共用 T0～T5 各档少量容量，当前确认 T1=10/T2=13/T3=16，T4=19/T5=22 为当前递增规划，T0 待填。批次计时、随机抽词、实例容量和命中移除已存在，只需连接新 Tier 名额。复读另占独立容量，在中央战斗区随机静止生成、按寿命渐隐并固定底层；遮挡特性话语在战斗区随机静止生成且固定最高层。普通前景采用可读的多运动方式。Paradox 阶段按 CB-13 读取一真五假六句。
+**现行生成规则：** 前景普通话语与挂特性的特殊话语共用 T0～T5 各档少量容量，T1=10、T2=13、T3=16、T4=19、T5=22。T0 的 0 表示未填，普通阶段沿用 `LevelProfile.normal_barrage_screen_cap`。BG-16 已接入 CS-24 的 Tier 名额；普通话语与带特性话语共用同一账本，实例离树释放容量。Paradox 继续采用关卡上限，复读保留独立容量。复读在中央战斗区随机静止生成、按寿命渐隐并固定底层；遮挡特性话语在战斗区随机静止生成且固定最高层。普通前景采用可读的多运动方式。Paradox 阶段按 CB-13 读取一真五假六句。
 
 | 卡片 | 按实际代码核对后的唯一功能 | 状态 |
 | --- | --- | --- |
-| [BG-16](tasks/BG-16_high-density-cap.md) | 按 Tier 读取前景容量 | 待开发 |
+| [BG-16](tasks/BG-16_high-density-cap.md) | 按 Tier 读取前景容量 | 已合并 main；Tier 容量回归通过 |
 | [BG-17](tasks/BG-17_pc-android-performance.md) | 分层性能与可读性验收 | 待组合实测 |
 | [BG-42](tasks/BG-42_static-random-placement.md) | 复读和遮挡共用的中央区域随机静止落点 | 待开发 |
 | [BG-24](tasks/BG-24_overlap-pass-through.md) | 实例出生与运动允许重叠 | 待开发 |
@@ -20,14 +20,22 @@
 | [BG-31](tasks/BG-31_spatial-clusters.md) | 同句复读成批涌现（复用 RP-18） | 归档重复能力 |
 | [BG-32](tasks/BG-32_linked-faux-depth.md) | 伪纵深观感 | 候选暂缓 |
 | [BG-33](tasks/BG-33_impact-motion-wave.md) | 命中后的短时局部运动扰动 | 可选试玩后实施 |
-| [BG-34](tasks/BG-34_frequency-based-refill.md) | 既有定时批次与 Tier 名额接线 | 已有基础 |
+| [BG-34](tasks/BG-34_frequency-based-refill.md) | 既有定时批次按 Tier 名额补位 | T2=13 组件级计时回归通过；Sandbox 布局待联调 |
 | [BG-35](tasks/BG-35_special-instance-cap.md) | 特殊实例占用独立容量 | 待开发 |
-| [BG-36](tasks/BG-36_downgrade-count-grace.md) | 降档超额自然回落 | 待开发 |
+| [BG-36](tasks/BG-36_downgrade-count-grace.md) | 降档超额自然回落 | T3→T2 自然回落与计时补位实测通过 |
 | [BG-37](tasks/BG-37_foreground-text-outline.md) | 非复读文字描边 | 待开发 |
 | [BG-38](tasks/BG-38_effective-area-clear.md) | 现有命中结束目标接线回归 | 已有链路 |
 | [BG-39](tasks/BG-39_tier-motion-proportions.md) | 四种运动类型随 Tier 权重变化 | 待开发 |
 | [BG-40](tasks/BG-40_foreground-speed-ceiling.md) | 前景话语最大速度 | 待开发 |
 | [BG-41](tasks/BG-41_random-trait-selection.md) | 按已解锁池随机分配特性 | 技能池待定 |
+
+**BG-34（2026-10-10）** `CombatStage` 将 T2=13 发布给 `BarrageArea`。满槽后移除 4 条，现场数量回到 9；容量释放恢复现有 `SpawnTimer`，下一次批次经 `NormalSpeechSelector` 补到 13，额外普通生成由现有上限拦截。复读继续走独立账本。本卡确认现有 BG-16 接线已满足频率补位规则，并新增真实组件回归。
+
+`test_bg34_t2_timed_refill.gd` 使用当前 `BarrageArea` Scene、`CombatStage` 和 Tier Catalog。测试区为 1024×1200，为当前单列放置提供 13 个位置；1024×1008 实测可放 12 条。Sandbox 当前 BarrageArea 高 760px，完整同屏容量需在布局任务完成后实场复验。本卡未修改 Sandbox 或 PA 资产。
+
+**BG-36（2026-10-10）** `CombatStage` 从 T3 降到 T2 后，`BarrageArea` 发布 13 个新名额；已有 16 条 `BarrageView` 保持原实例、移动和生成时保存的寿命。共享账本仍满于新名额时暂停普通生成；数量降到 13 时继续停表，四条较早生成的测试视图自然到期至 12 后，现有 `SpawnTimer` 才恢复并按 T2 间隔补到 13。此行为复用 BG-16 / BG-34 的容量和 Timer 逻辑，无需改动生产脚本。
+
+`test_bg36_tier_downgrade_grace.gd` 使用真实 `CombatStage`、`BarrageArea`、`BarrageView` 与 `SpawnTimer`，逐项检查原实例 ID、绝对寿命截止值、运动、超额时停表、降到 12 后等待 timeout 再新增一条视图，以及补到 13 后停表。测试用 `LevelProfile` 和 `LevelSpeech` 均为脚本内构造的 TEST_ONLY 数据；这项组件级验证不代表 Sandbox 正式玩法验收。
 
 本节是当前派工依据；历史章节中的旧默认值与旧任务说明保留用来追溯已有系统演变。开发时以单卡现行版和本节为准。
 
@@ -138,7 +146,7 @@ BG-12 使用 Sandbox 的满 PK 阶段入口与 `ContradictionBreakSystem` 当前
 
 ## BG-12 矛盾生成接口
 
-`BarrageArea.start_contradiction_generation(level_profile, true_lines, false_lines, config)` 停止普通生成，轮换两组矛盾原句，按 Paradox 配置使用每批数量 ×2、生成频率 ×3、移动速度 ×2.5，以及 10 秒实例寿命，不沿用当前普通 Tier 倍率。每个实例保留稳定 `original_sentence_id` 和 `is_contradiction` 标识；真伪由 12 系统按照关卡列表判断，不在弹幕系统结算。`stop_contradiction_generation()` 只停止新批次，`clear_barrages()` 清理场上内容并同时停止两种生成模式。
+`BarrageArea.start_contradiction_generation(level_profile, true_lines, false_lines, config)` 停止普通生成，并一次性显示调用方提供的一条真句与五条假句。矛盾容量按本组候选数量独立计算，不共用普通前景账本；初始化失败会撤销本次生成的部分视图。实例沿用 Paradox 配置的移动速度与 10 秒寿命，保留稳定 `original_sentence_id` 和 `is_contradiction` 标识；真假由 12 系统判定，不在弹幕系统结算。`stop_contradiction_generation()` 停止矛盾阶段，`clear_barrages()` 清理场上内容并同时停止两种生成模式。
 
 复读实例额外保存 `is_contradiction_repeat`，`has_visible_contradiction_repeats()` 只读取当前仍在场的矛盾复读视图；等待队列是否为空继续由 10 系统负责。
 
@@ -182,7 +190,11 @@ BarrageArea 暴露可编辑的 `base_lifetime_seconds` 临时基础值（默认 
 
 ### BG-07 普通弹幕共享同屏上限
 
-BarrageArea 从 `LevelProfile.normal_barrage_screen_cap` 读取普通上限。普通话语创建时自动登记，节点离开场景树时自动释放；陷阱等普通容量占用者通过 `try_register_normal_capacity_occupant()` 和 `release_normal_capacity_occupant()` 复用同一账本。达到上限时普通批次 Timer 暂停，释放容量后恢复；Timer 已运行时保留当前剩余时间，普通命中或无位置撤销不会重设正在运行的周期。BG-07 不实现弹幕特性规则；到期和离屏移除仍由 BG-08 负责。
+BarrageArea 的普通容量在 Tier 名额大于 0 时采用当前 Tier 值；T0 的 0 沿用 `LevelProfile.normal_barrage_screen_cap`。普通话语与带特性话语由同一入口登记，陷阱等普通占用者通过 `try_register_normal_capacity_occupant()` 和 `release_normal_capacity_occupant()` 复用同一账本。实例离树自动释放；容量满时普通批次 Timer 暂停，释放后恢复。Paradox 继续使用关卡上限，复读继续使用独立账本。BG-07 管理共享账本与生命周期；Tier 名额接线由 BG-16 完成。
+
+### BG-16 按当前 Tier 控制前景容量
+
+`CombatStageTierConfig.foreground_slot_count` 通过 `CombatStage.bind_barrage_area()` 发布给 `BarrageArea.set_foreground_slot_count()`。普通阶段 T1～T5 分别使用 10、13、16、19、22 个前景名额；T0 的 0 继续回退到 `LevelProfile.normal_barrage_screen_cap`。普通话语、带兼容特性的普通话语及外部普通容量占用者共享这些名额，节点离树后释放。矛盾阶段保持原关卡容量，复读仍由独立容量账本控制。
 
 ### BG-08 到期与离开区域自然移除
 
@@ -208,7 +220,7 @@ BarrageArea 从 `LevelProfile.normal_barrage_screen_cap` 读取普通上限。�
 
 ### BT-12 矛盾记录的特性边界
 
-`start_contradiction_generation()` 的自动批次与 `spawn_contradiction_barrage()` 都通过新 `BarrageRuntimeRecord` 取得独立空 TraitSet；真 / 假实例保留矛盾标记、稳定原句 ID 和文本，生成入口不复制普通战斗特性。真假仍由 CB 根据当前关内容判断，普通 `fake_card` 等特性不承担真伪标记。BT-12 已通过真实 Sandbox 普通阶段到矛盾阶段输入 smoke 验证，没有改动生成行为或普通特性规则。
+`start_contradiction_generation()` 的初始固定集合与 `spawn_contradiction_barrage()` 都通过新 `BarrageRuntimeRecord` 取得独立空 TraitSet；真 / 假实例保留矛盾标记、稳定原句 ID 和文本，生成入口不复制普通战斗特性。真假仍由 CB 根据当前关内容判断，普通 `fake_card` 等特性不承担真伪标记。CB-13 后续不自动轮换或补位矛盾句，也不更改普通生成规则。
 
 ### BG-11 全局暂停生成与弹幕寿命
 
@@ -257,7 +269,7 @@ INT-02 采用静态 Scene 方案：`sandbox.tscn` 保存所有区域 Rect，编�
 | --- | --- | --- |
 | [BG-34](tasks/BG-34_frequency-based-refill.md) | 按生成频率补足前景话语 | 待实施 |
 | [BG-35](tasks/BG-35_special-instance-cap.md) | 限制携带特性的前景实例数量 | 待实施 |
-| [BG-36](tasks/BG-36_downgrade-count-grace.md) | 降档后让超额前景实例自然回落 | 待实施 |
+| [BG-36](tasks/BG-36_downgrade-count-grace.md) | 降档后让超额前景实例自然回落 | 已实施（2026-10-10） |
 | [BG-37](tasks/BG-37_foreground-text-outline.md) | 所有非复读话语文字描边 | 待实施 |
 | [BG-38](tasks/BG-38_effective-area-clear.md) | 有效攻击后清除命中区域全部话语 | 待实施 |
 | [BG-39](tasks/BG-39_tier-motion-proportions.md) | 按 Tier 改变前景运动类型权重 | 待实施 |

@@ -53,13 +53,6 @@ func _initialize() -> void:
     if tiers == null:
         _fail("Tier Resource 加载失败")
         return
-    var t3: CombatStageTierConfig = tiers.get_tier_config(3)
-    if t3 == null or not is_equal_approx(t3.upgrade_threshold, 0.79):
-        _fail("Tier 3 阈值转换失败")
-        return
-    if t3.repeat_count_per_hit != 12 or not is_equal_approx(t3.lifetime_multiplier, 0.6):
-        _fail("Tier 3 复读数量或生命周期倍率错误")
-        return
     # 运行期只能使用 data/combat_stage/tier_catalog.tres；生成预览用于逐档差异校验。
     var runtime_tiers: CombatStageTierCatalog = load("res://data/combat_stage/tier_catalog.tres") as CombatStageTierCatalog
     if runtime_tiers == null:
@@ -68,7 +61,7 @@ func _initialize() -> void:
     var numeric_fields: Array[String] = [
         "upgrade_threshold", "downgrade_threshold", "generation_count_multiplier",
         "generation_frequency_multiplier", "movement_speed_multiplier", "lifetime_multiplier",
-        "neutral_weight_multiplier", "opponent_pullback_multiplier",
+        "neutral_weight_multiplier", "opponent_pullback_multiplier", "foreground_slot_count",
     ]
     for idx: int in range(6):
         var generated_tier: CombatStageTierConfig = tiers.get_tier_config(idx)
@@ -83,7 +76,7 @@ func _initialize() -> void:
         if generated_tier.repeat_count_per_hit != runtime_tier.repeat_count_per_hit or generated_tier.opponent_portrait_state_id != runtime_tier.opponent_portrait_state_id:
             _fail("Tier %d 的复读数量或演出状态分叉" % idx)
             return
-    print("PASS Godot LevelSpeech CSV -> Resource: ", count, " records; Tier Resource: 6 entries.")
+    print("PASS 待定稿 CSV -> TEST_ONLY preview: ", count, " records; Tier 对照 6 档；正式词库定稿 UNVERIFIED.")
     quit(0)
 
 

@@ -44,7 +44,7 @@ func _run_tests() -> void:
 	quit()
 
 
-# 相同稳定原句 ID 只保留一个候选，并保留首条历史快照。
+# 同一原句的 String / StringName ID 只形成一个候选。
 func _test_duplicate_history_rows_are_one_candidate() -> bool:
 	var pool = CANDIDATE_POOL.new()
 	var history: Array[Dictionary] = [
@@ -64,8 +64,8 @@ func _test_duplicate_history_rows_are_one_candidate() -> bool:
 		},
 	]
 	var candidates: Array[Dictionary] = pool.build_from_normal_hit_history(history)
-	if candidates.size() != 1 or int(candidates[0].get("hit_count", 0)) != 1:
-		push_error("FO-02 应按字符串形式一致的原句 ID 去重并保留首条历史")
+	if candidates.size() != 1 or str(candidates[0].get("original_sentence_id", "")) != "line-a":
+		push_error("FO-02 同一原句的 String / StringName ID 必须只形成一句候选")
 		return false
 	return true
 
@@ -75,6 +75,7 @@ func _test_only_normal_hit_history_enters_pool() -> bool:
 	var hit_resolution = HIT_RESOLUTION.new(0.5, 0.0, 1.0)
 	hit_resolution.record_normal_word_hit("line-a", "orthodox")
 	hit_resolution.record_normal_word_hit("line-a", "orthodox")
+	hit_resolution.record_normal_word_hit("neutral-line", "neutral")
 	var pool = CANDIDATE_POOL.new()
 	var candidates: Array[Dictionary] = pool.build_from_normal_hit_history(
 		hit_resolution.get_normal_hit_history()

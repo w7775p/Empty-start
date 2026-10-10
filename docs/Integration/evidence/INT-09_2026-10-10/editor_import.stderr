@@ -1,0 +1,112 @@
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2582)
+ERROR: Failed loading resource: res://assets/audio/sfx/magical/magical_1.ogg.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Failed loading resource: res://assets/audio/sfx/magical/magical_2.ogg.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Failed loading resource: res://assets/audio/sfx/magical/magical_3.ogg.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Failed loading resource: res://assets/audio/sfx/magical/magical_4.ogg.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Failed loading resource: res://assets/audio/sfx/magical/magical_5.ogg.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Failed loading resource: res://assets/audio/sfx/magical/magical_6.ogg.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Failed loading resource: res://assets/audio/sfx/magical/magical_7.ogg.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Failed loading resource: res://assets/audio/sfx/interface/confirmation_001.ogg.
+   at: _load (core/io/resource_loader.cpp:317)
+WARNING: Locale 'art' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'portrait' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'avatar' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'asset' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'volume' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'duration' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'text' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'background' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'special' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'level' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'streamer' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'streamer' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'portrait' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'avatar' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'live' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'fan' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'background' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'special' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'word' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'contradiction' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'loser' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'enabled' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'notes' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'set' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'streamer' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'type' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'text' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'clue' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'enabled' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'notes' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'base' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'spawn' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'move' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'normal' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'icon' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'player' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'streamer' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'display' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'art' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'description' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'enabled' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'notes' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'asset' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'volume' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'transition' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+ERROR: Cannot save file 'D:/steam/steamapps/common/Godot Engine/editor_data/editor_settings-4.7.tres'.
+   at: save (scene/resources/resource_format_text.cpp:1768)
+ERROR: Error saving editor settings to D:/steam/steamapps/common/Godot Engine/editor_data/editor_settings-4.7.tres
+   at: save (editor/settings/editor_settings.cpp:1525)

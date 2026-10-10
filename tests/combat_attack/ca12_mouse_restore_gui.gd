@@ -1,4 +1,4 @@
-## TEST_ONLY GUI 输入探针：真实事件分发、帧和 Timer；不写生产配置或用户存档。
+## TEST_ONLY GUI 探针：合成事件分发、实际帧和 Timer；Android 物理触摸另验。
 extends Node
 
 var aim: AimReticle
@@ -122,7 +122,7 @@ func _run() -> void:
 	ui.queue_free()
 	await _wait(0.05)
 	_mouse(true, point)
-	_check(aim.reticle_diameter == 32 and aim.get_aim_center_global_position().distance_to(point) < 0.01, "touch to mouse restores size and event center without motion")
+	_check(aim.reticle_diameter == 144 and aim.get_aim_center_global_position().distance_to(point) < 0.01, "touch to mouse restores current PC size and event center without motion")
 	_mouse(false, point)
 	# 实际弹幕特性与 HR 结算；每发等待真实到达，绝不注入结果。
 	for trait_id: StringName in [&"", &"reflect", &"occlusion"]:

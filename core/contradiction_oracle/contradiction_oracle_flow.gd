@@ -238,8 +238,19 @@ func start(run_data: SaveData, catalog: LevelCatalog, current_level: LevelProfil
 	add_child(_oracle_transition_timer)
 	_attack_charge_input.shot_snapshot_created.connect(_on_contradiction_shot_created)
 	_attack_charge_input.selection_target_hit.connect(_on_oracle_selection_target_hit)
-	if not _contradiction_break.load_level_content(current_level) or not area.start_contradiction_generation(current_level,
-			_contradiction_break.get_true_contradictions(), _contradiction_break.get_false_contradictions(), window_config) or not _contradiction_break.start_window(window_config):
+	var contradiction_stage_ready: bool = _contradiction_break.load_level_content(current_level)
+	if contradiction_stage_ready:
+		# 候选数量和真假构成由 12 系统决定；弹幕区只负责显示本场固定集合。
+		var paradox_candidates: Array[LevelContradiction] = _contradiction_break.get_fixed_paradox_candidates()
+		if paradox_candidates.size() != ContradictionWindowConfig.PARADOX_CANDIDATE_COUNT:
+			contradiction_stage_ready = false
+		else:
+			var true_lines: Array[LevelContradiction] = [paradox_candidates[0]]
+			var false_lines: Array[LevelContradiction] = []
+			for index: int in range(1, paradox_candidates.size()):
+				false_lines.append(paradox_candidates[index])
+			contradiction_stage_ready = area.start_contradiction_generation(current_level, true_lines, false_lines, window_config)
+	if not contradiction_stage_ready or not _contradiction_break.start_window(window_config):
 		stop()
 		return false
 	_contradiction_stage_active = true
