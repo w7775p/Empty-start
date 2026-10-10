@@ -24,6 +24,12 @@ var _presentation_trait_ids: Array[StringName] = []
 var _visual_bbcode: String = ""
 
 
+# 进入树后让 Label 内部最小尺寸缓存完成，再按文字真实收缩宽度。
+func _ready() -> void:
+	if runtime_record != null:
+		_fit_visual_to_sentence(runtime_record.text)
+
+
 # 终局原有特性表现入口，仍按冻结的颜色优先级覆盖文字而不改变弹幕事实。
 func apply_terminal_trait_presentation(trait_ids: Array[StringName], trait_colors: Dictionary) -> void:
 	_presentation_trait_ids = trait_ids.duplicate()
@@ -62,6 +68,8 @@ func setup(barrage_record: BarrageRuntimeRecord, move_speed_pixels_per_second: f
 	_active_area = active_area
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# 层级只在弹幕区域内部比较：复读最低，前景留给后续特性更高层级。
+	z_index = 0 if barrage_record.is_repeat else 1
 	autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -145,7 +153,7 @@ func _fit_visual_to_sentence(sentence: String) -> void:
 	var multi_size: Vector2 = font.get_multiline_string_size(sentence, HORIZONTAL_ALIGNMENT_LEFT, content_width, font_size)
 	var new_size: Vector2 = Vector2(content_width + horizontal_padding * 2.0, maxf(48.0, multi_size.y + vertical_padding * 2.0))
 	custom_minimum_size = new_size
-	size = new_size
+	reset_size()
 	var rich: RichTextLabel = get_node_or_null("RichBody") as RichTextLabel
 	if rich != null:
 		rich.position = Vector2(horizontal_padding, vertical_padding * 0.5)

@@ -69,7 +69,7 @@ func _spawn_variants() -> void:
 	var repeat := _make_record("神说：你必须被看见", "orthodox", 1)
 	repeat.is_repeat = true
 	var echo: BarrageView = _spawn_record(repeat, Vector2(97, 845))
-	echo.z_index = -3
+	echo.z_index = 0
 	var rich := _make_record("神说要有光，然后有了广告", "absurd", 2)
 	var mixed: BarrageView = _spawn_record(rich, Vector2(620, 845))
 	mixed.set_visual_bbcode("[color=#fff5cf]神说[/color]要有[font_size=32][b][color=#ffe16b]光[/color][/b][/font_size]，然后有了广告")
