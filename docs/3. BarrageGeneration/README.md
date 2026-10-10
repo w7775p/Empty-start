@@ -146,7 +146,7 @@ BG-12 使用 Sandbox 的满 PK 阶段入口与 `ContradictionBreakSystem` 当前
 
 ## BG-12 矛盾生成接口
 
-`BarrageArea.start_contradiction_generation(level_profile, true_lines, false_lines, config)` 停止普通生成，轮换两组矛盾原句，按 Paradox 配置使用每批数量 ×2、生成频率 ×3、移动速度 ×2.5，以及 10 秒实例寿命，不沿用当前普通 Tier 倍率。每个实例保留稳定 `original_sentence_id` 和 `is_contradiction` 标识；真伪由 12 系统按照关卡列表判断，不在弹幕系统结算。`stop_contradiction_generation()` 只停止新批次，`clear_barrages()` 清理场上内容并同时停止两种生成模式。
+`BarrageArea.start_contradiction_generation(level_profile, true_lines, false_lines, config)` 停止普通生成，并一次性显示调用方提供的一条真句与五条假句。矛盾容量按本组候选数量独立计算，不共用普通前景账本；初始化失败会撤销本次生成的部分视图。实例沿用 Paradox 配置的移动速度与 10 秒寿命，保留稳定 `original_sentence_id` 和 `is_contradiction` 标识；真假由 12 系统判定，不在弹幕系统结算。`stop_contradiction_generation()` 停止矛盾阶段，`clear_barrages()` 清理场上内容并同时停止两种生成模式。
 
 复读实例额外保存 `is_contradiction_repeat`，`has_visible_contradiction_repeats()` 只读取当前仍在场的矛盾复读视图；等待队列是否为空继续由 10 系统负责。
 
@@ -220,7 +220,7 @@ BarrageArea 的普通容量在 Tier 名额大于 0 时采用当前 Tier 值；T0
 
 ### BT-12 矛盾记录的特性边界
 
-`start_contradiction_generation()` 的自动批次与 `spawn_contradiction_barrage()` 都通过新 `BarrageRuntimeRecord` 取得独立空 TraitSet；真 / 假实例保留矛盾标记、稳定原句 ID 和文本，生成入口不复制普通战斗特性。真假仍由 CB 根据当前关内容判断，普通 `fake_card` 等特性不承担真伪标记。BT-12 已通过真实 Sandbox 普通阶段到矛盾阶段输入 smoke 验证，没有改动生成行为或普通特性规则。
+`start_contradiction_generation()` 的初始固定集合与 `spawn_contradiction_barrage()` 都通过新 `BarrageRuntimeRecord` 取得独立空 TraitSet；真 / 假实例保留矛盾标记、稳定原句 ID 和文本，生成入口不复制普通战斗特性。真假仍由 CB 根据当前关内容判断，普通 `fake_card` 等特性不承担真伪标记。CB-13 后续不自动轮换或补位矛盾句，也不更改普通生成规则。
 
 ### BG-11 全局暂停生成与弹幕寿命
 

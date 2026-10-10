@@ -133,7 +133,7 @@ BT-10 的目标可选过滤与到达结果读取已由 5. CombatAttack CA-08 完
 
 ## BT-12 矛盾阶段特性边界（已核实）
 
-- `BarrageArea.start_contradiction_generation()` 接收 12 提供的真 / 假列表，自动批次和 `spawn_contradiction_barrage()` 都创建新 `BarrageRuntimeRecord`；其构造函数组合独立空 `BarrageTraitSet`，不复制普通实例的特性或关卡特性列表。
+- `BarrageArea.start_contradiction_generation()` 接收 12 固定的一真五假列表，一次性创建六个新 `BarrageRuntimeRecord`；其构造函数组合独立空 `BarrageTraitSet`，不复制普通实例的特性或关卡特性列表。
 - 真矛盾和假矛盾都保留 `is_contradiction=true`、稳定 `original_sentence_id` 与原文。真假归属继续由 12 的当前关真 / 假列表拥有，假矛盾不等同于普通 `fake_card` 特性。
 - 真实释放快照 `AttackTargetSnapshot.get_contradiction_facts()` 冻结原句 ID / 文本；Sandbox 原有回调立即交给 CB `resolve_shot_hit_ids()`。`AttackChargeInput` 的矛盾模式跳过普通到达 / HitResolution 提交，因此不会混入普通 PK、倾向或普通命中历史。
 - Godot 4.7.2 一次 runtime smoke 使用现有一发上限，按当前关重开分别覆盖假 / 真矛盾：生成时两类均无假牌、反弹、分裂、不可选、遮挡或反击复制品特性，真假判定和选中事实保留。普通阶段六种特性组件规则及真实普通 / 遮挡输入继续工作。

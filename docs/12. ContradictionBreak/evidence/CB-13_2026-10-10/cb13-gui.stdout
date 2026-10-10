@@ -1,0 +1,42 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: AMD - AMD Radeon(TM) Graphics
+
+PASS: ContradictionBreakSystem accepts the LevelProfile
+PASS: formal sample contains one true source line
+PASS: formal sample currently contains one false source line
+PASS: formal source builds six fixed candidates
+PASS: formal source candidates classify as one true and five false
+PASS: formal fallback reuses only the existing false ID
+PASS: ContradictionBreakSystem accepts the LevelProfile
+PASS: TEST_ONLY profile builds six candidates
+PASS: TEST_ONLY profile builds one true and five false
+PASS: TEST_ONLY fixture proves six distinct shootable IDs
+PASS: TEST_ONLY fixture uses test-prefixed true ID
+PASS: TEST_ONLY fixture includes false ID 001
+PASS: TEST_ONLY fixture includes false ID 002
+PASS: TEST_ONLY fixture includes false ID 003
+PASS: TEST_ONLY fixture includes false ID 004
+PASS: TEST_ONLY fixture includes false ID 005
+PASS: formal Paradox window remains ten seconds
+PASS: formal Paradox window remains one shot
+PASS: ContradictionBreakSystem accepts the LevelProfile
+PASS: ten-second window starts
+PASS: window timer starts near ten seconds
+PASS: first formal shot is accepted
+PASS: second formal shot is rejected
+PASS: one false hit fact resolves
+PASS: false-only hit keeps the existing unbroken outcome
+PASS: ContradictionBreakSystem accepts the LevelProfile
+PASS: breakthrough window starts
+PASS: breakthrough shot is accepted
+PASS: one true hit fact resolves
+PASS: true hit keeps the existing breakthrough outcome
+PASS: BarrageArea accepts the fixed candidate set
+PASS: six contradiction views appear in the initial set
+PASS: initial set occupies only the contradiction category
+PASS: visible shootable views preserve the one-plus-five source set
+PASS: no recurring batches replace or add to the fixed set
+PASS: the completed fixed set cannot be topped up
+PASS: GUI screenshot is saved to the CB-13 evidence folder
+CB-13 SCREENSHOT: docs/12. ContradictionBreak/evidence/CB-13_2026-10-10/paradox-six.png
+CB-13: 37 assertions passed
