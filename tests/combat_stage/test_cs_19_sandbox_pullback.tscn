@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://tests/combat_stage/test_cs_19_sandbox_pullback.gd" id="1_driver"]
+[ext_resource type="PackedScene" path="res://scenes/sandbox/sandbox.tscn" id="2_sandbox"]
+
+[node name="CS19SandboxPullbackTest" type="Node"]
+script = ExtResource("1_driver")
+
+[node name="Sandbox" parent="." instance=ExtResource("2_sandbox")]
