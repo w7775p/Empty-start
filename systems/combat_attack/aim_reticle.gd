@@ -7,12 +7,14 @@ signal animation_finished
 @export var reticle_diameter: float = 32.0
 
 @export_group("空心圆与环形蓄力")
-@export_range(2.0, 24.0, 0.5) var center_ring_radius: float = 5.5
-@export_range(1.0, 8.0, 0.5) var center_line_width: float = 2.0
+@export_range(2.0, 24.0, 0.5) var center_ring_radius: float = 7.5
+@export_range(1.0, 8.0, 0.5) var center_line_width: float = 2.5
 @export_range(0.0, 30.0, 0.5) var outer_ring_gap: float = 4.0
-@export_range(1.0, 8.0, 0.5) var outer_ring_width: float = 2.5
+@export_range(15.0, 50.0, 1.0) var visual_outer_radius: float = 28.0
+@export_range(1.0, 8.0, 0.5) var outer_ring_width: float = 3.0
+@export_range(0.0, 9.0, 0.5) var contrast_halo_width: float = 5.5
 @export var idle_color: Color = Color(0.92, 0.99, 1.0, 0.96)
-@export var track_color: Color = Color(0.53, 0.78, 0.84, 0.40)
+@export var track_color: Color = Color(0.75, 0.93, 0.96, 0.77)
 @export var charge_color: Color = Color(0.35, 0.98, 0.88, 1.0)
 @export var full_color: Color = Color(1.0, 0.88, 0.37, 1.0)
 @export var shot_color: Color = Color(1.0, 1.0, 1.0, 1.0)
@@ -179,7 +181,8 @@ func intersects_target_area(target_area: Rect2) -> bool:
 # 程序绘制小空心圆与独立蓄力轨道；所有发光、缩放仅作用于绘制。
 func _draw() -> void:
 	var center: Vector2 = size * 0.5
-	var radius: float = reticle_diameter * 0.5 + outer_ring_gap
+	# 视觉可见尺寸独立于真实命中直径，触屏判定仍然沿用原几何接口。
+	var radius: float = maxf(reticle_diameter * 0.5 + outer_ring_gap, visual_outer_radius)
 	var shot_strength: float = _shot_flash_remaining / maxf(shot_flash_duration, 0.01)
 	var move_strength: float = _movement_flash_remaining / maxf(movement_flash_duration, 0.01)
 	var full_strength: float = 0.0
@@ -190,12 +193,21 @@ func _draw() -> void:
 	if shot_strength > 0.0:
 		accent = accent.lerp(shot_color, shot_strength)
 	var core_color: Color = idle_color.lerp(accent, minf(1.0, shot_strength + move_strength * 0.45))
+	# 深色外缘 + 浅色内芯，保证准星在弹幕亮边和深色直播背景前都能辨认。
+	var shadow: Color = Color(0.025, 0.043, 0.068, 0.92)
+	draw_circle(center, center_ring_radius * (1.0 + shot_strength * 0.18), shadow, false, center_line_width + contrast_halo_width, true)
 	draw_circle(center, center_ring_radius * (1.0 + shot_strength * 0.18), core_color, false, center_line_width, true)
+	draw_arc(center, radius, -PI * 0.5, PI * 1.5, 96, shadow, outer_ring_width + contrast_halo_width, true)
 	draw_arc(center, radius, -PI * 0.5, PI * 1.5, 96, track_color, outer_ring_width, true)
 	var visible_progress: float = _charge_display
 	if _charge_full:
 		visible_progress = 1.0
 	if visible_progress > 0.001:
 		draw_arc(center, radius, -PI * 0.5, -PI * 0.5 + TAU * visible_progress, 96, accent, outer_ring_width + shot_strength * 1.2, true)
+	# 鼠标移动时短暂扩展定位波纹，停下后自动消失。
+	if move_strength > 0.01:
+		var locate: Color = idle_color
+		locate.a = 0.58 * move_strength
+		draw_arc(center, radius + 9.0 * (1.0 - move_strength), -PI * 0.5, PI * 1.5, 96, locate, 2.0, true)
 	if shot_strength > 0.0:
 		draw_arc(center, radius + 4.0 * shot_strength, -PI * 0.5, PI * 1.5, 96, Color(1.0, 1.0, 1.0, shot_strength * 0.65), 1.5, true)
