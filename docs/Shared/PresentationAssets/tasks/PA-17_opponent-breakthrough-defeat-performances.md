@@ -13,6 +13,11 @@
 - `docs/Shared/PresentationAssets/tasks/PA-12_paradox-comic-transition-visual.md`
 - `docs/Shared/PresentationAssets/tasks/PA-15_opponent-tier-portrait-flip-and-sweat.md`
 
+## 最新策划配置来源（2026-10-10）
+- 对手表现资源从 `02_主播关卡.portrait_set_id` 定位 `23_对手立绘配置`；使用其中 `defeat_asset_path`、可选 `defeat_transition_asset_path` 和 `defeat_effect_id` 选择本场演出。
+- 已登记 `alien_melt`（外星人融化）、`kiwi_wobble`（Kiwi整图乱舞）、`fox_petal_rain`（狐狸花瓣雨）三种对手演出标识；具体美术与时序沿用本卡下述已确认需求。
+- 第四关青蛙 `frog` 的专属素材和演出方案留待后续策划交付，再补到相同配置入口。
+
 ## 画面结果对应关系
 - **进入 Paradox 时**，对手仍展示 T5 使用的 `{opponent}_tier_03.png`。
 - **真实命中真矛盾并得到正式 BREAKTHROUGH 结果后**，才执行以下专属击败动画，动画结束时切至 `{opponent}_defeat.png`。
