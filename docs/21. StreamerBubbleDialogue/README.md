@@ -25,7 +25,7 @@
 | [SD-05](tasks/SD-05_specific-sentence-reply.md) | 击中特定话语触发对手预设对白 | SD-01、SD-03、SD-04 |
 | [SD-06](tasks/SD-06_combat-state-dialogue-event.md) | 根据连线、Tier、输赢状态播放配置对白 | SD-01、SD-03；CS-22、CS-27 提供状态事件 |
 | [SD-07](tasks/SD-07_timed-opponent-dialogue.md) | 战斗进行时按时间触发对手对白 | SD-01、SD-03、Sandbox 战斗状态 |
-| [SD-08](tasks/SD-08_per-streamer-dialogue-table-binding.md) | 按当前主播筛选20表并载入SD-01配置 | SD-01、LC-10；供SD-04～07读取 |
+| [SD-08](tasks/SD-08_per-streamer-dialogue-table-binding.md) | 按当前关剧情配置ID筛选20表并载入SD-01 | SD-01、LC-10；供SD-04～07读取 |
 
 ## 当前已确认与后续输入
 - 已确认：非复读的实际命中由玩家侧复述，复读命中不复述；对手有特定原句答话、状态对白及定时闲聊；普通气泡允许同侧约 3 条同时上浮；剧情优先且完整，定时对白最低优先。
@@ -57,4 +57,4 @@ Windows 验证命令（Godot 4.7.2）：
 
 ## 2026-10-10 当前主播对白接线
 
-Google Sheets `20_主播气泡对白.streamer_id` 已可与 `02_主播关卡.streamer_id` 使用同一稳定ID。SD-01已完成配置项和查询入口；新增 [SD-08](tasks/SD-08_per-streamer-dialogue-table-binding.md) 把20表按当前关对手筛选并载入 `BubbleDialogueConfig`，由既有SD-03～07消费对白事件。首版正式台词仍待策划填写，当前正式配置为空。
+Google Sheets `02_主播关卡.story_config_id` 指向 `20_主播气泡对白.story_config_id`；两个表的 `streamer_id` 同时用于对手身份校验。四关预留 `story_level_001`～`story_level_004`，正式对白尚待策划填写。20表保留 `trigger_type`（`hit_word / connect / tier_up / tier_down / win / lose / timed`）、`trigger_key`、`source_word_id`、`trigger_time_s`、发言方、显示时长与优先级，并新增 `line_order` 让相同事件触发的多条剧情对白明确播放顺序。SD-01已完成配置和查询入口；新增 [SD-08](tasks/SD-08_per-streamer-dialogue-table-binding.md) 按当前关剧情配置ID把20表转换为既有 `BubbleDialogueConfig`，由SD-03～07消费事件。
