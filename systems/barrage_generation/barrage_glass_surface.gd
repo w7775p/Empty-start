@@ -2,18 +2,20 @@ class_name BarrageGlassSurface
 extends Control
 
 @export_group("四种倾向")
-@export var orthodox_color: Color = Color("#46bed6")
-@export var heretical_color: Color = Color("#e75988")
-@export var absurd_color: Color = Color("#f3bc5e")
-@export var neutral_color: Color = Color("#96a4c8")
-@export var repeat_color: Color = Color("#8894a6")
+@export var orthodox_color: Color = Color("#77A9B5")
+@export var heretical_color: Color = Color("#BE829C")
+@export var absurd_color: Color = Color("#C9AF7F")
+@export var neutral_color: Color = Color("#919BAF")
+@export var repeat_color: Color = Color("#7F8793")
 
 @export_group("玻璃底板")
 @export_range(4.0, 26.0, 1.0) var corner_radius: float = 13.0
-@export_range(0.1, 1.0, 0.05) var glass_alpha: float = 0.75
-@export_range(0.0, 1.0, 0.05) var highlight_alpha: float = 0.30
+@export_range(0.1, 1.0, 0.05) var glass_alpha: float = 0.79
+@export_range(0.0, 1.0, 0.05) var highlight_alpha: float = 0.24
 @export_range(0.0, 1.0, 0.05) var repeat_alpha: float = 0.24
-@export_range(1.0, 6.0, 0.5) var max_border_width: float = 3.0
+@export_range(1.0, 6.0, 0.5) var max_border_width: float = 2.0
+@export_range(0.0, 0.7, 0.01) var tint_mix_base: float = 0.17
+@export_range(0.0, 0.3, 0.01) var tint_mix_strength: float = 0.10
 
 var _tendency: String = "neutral"
 var _strength: int = 1
@@ -49,17 +51,18 @@ func get_base_tint() -> Color:
 func _rebuild_style() -> void:
 	var tint: Color = get_base_tint()
 	var intensity: float = float(_strength - 1) / 2.0
-	var fill: Color = Color("#0a1325").lerp(tint, 0.32 + intensity * 0.20)
-	fill.a = repeat_alpha if _is_repeat else glass_alpha + intensity * (1.0 - glass_alpha) * 0.62
-	var edge: Color = tint.lightened(0.19 + intensity * 0.17)
-	edge.a = 0.33 if _is_repeat else 0.55 + intensity * 0.35
+	# 统一烟色玻璃基底，倾向颜色仅轻染整块板，避免多弹幕时出现糖果色块。
+	var fill: Color = Color("#0F1825").lerp(tint, tint_mix_base + intensity * tint_mix_strength)
+	fill.a = repeat_alpha if _is_repeat else glass_alpha + intensity * (1.0 - glass_alpha) * 0.35
+	var edge: Color = tint.lightened(0.07 + intensity * 0.11)
+	edge.a = 0.30 if _is_repeat else 0.46 + intensity * 0.30
 	_glass_style.bg_color = fill
 	_glass_style.border_color = edge
 	var width: int = 1 if _is_repeat else roundi(1.0 + intensity * (max_border_width - 1.0))
 	_glass_style.set_border_width_all(width)
 	_glass_style.set_corner_radius_all(roundi(corner_radius))
-	_glass_style.shadow_color = Color(tint.r * 0.25, tint.g * 0.25, tint.b * 0.25, 0.12 + intensity * 0.18)
-	_glass_style.shadow_size = 1 + int(intensity * 3.0)
+	_glass_style.shadow_color = Color(0.0, 0.02, 0.04, 0.14 + intensity * 0.06)
+	_glass_style.shadow_size = 1 + int(intensity * 2.0)
 
 
 # 圆角玻璃、内高光、厚度与纵向层次使用轻量 CanvasItem 绘制。
