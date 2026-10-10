@@ -28,6 +28,13 @@
 6. **资源与容量：**`background_asset_id` 和 `fan_badge_asset_id` 映射现有对应纹理入口；05.`special_instance_screen_cap` 作为本关可选覆盖，空值沿用06.`special_foreground_instance_cap` 的全局数值，数值由策划后续建模确定。
 7. **完整流程：**验收主场景首关进入、战败重开、Rest 继续、第四关完成后终局入口，主播切换时同步刷新背景、立绘组、粉丝牌、词库、评论、对白和反击候选。
 
+## 最新字段及03词库来源核对（2026-10-10）
+
+- Google Sheets `02_主播关卡` 的现行16列中，`fan_group_name` 取代旧 `fan_badge_text`：主播信息区显示“主播名    ❤粉丝团名❤”；`fan_badge_asset_id` 只用于LD-15对手直播评论的粉丝牌图片。正式导表和HUD接线需要与 PA-20 / LD-15 的已确认规则一致。
+- `03_普通词库` 的既定用途是中央**可击中的普通战斗弹幕**。导表按 `pool_id` 聚合为 `LevelSpeechPool`，02.`word_pool_id` 选择关卡使用的池；BG-02从当前关池中先按正统/异端/荒谬/neutral权重选类，再按同类单句`weight`抽词。它不属于19滚动直播评论或20剧情气泡，真/假矛盾仍由04单独提供。
+- 策划源03目前344条全部归旧 `pool_streamer_a`，其 `source_streamer_id=player`，尚未批准为四位对手的正式战斗词库。是否共用基础池、按对手拆池以及如何继承，需要由策划确定后再把对应真实`pool_id`填到02。当前运行时普通弹幕的`BarrageRuntimeRecord.source_id`直接取`LevelProfile.streamer_id`，而`LevelSpeech`没有来源主播字段；如后续需要混合来源的标记，请结合已有FO-11继承元数据明确映射。
+- 正式导表验收包含：03启用词句映射、`heresy`旧类别转换为`heretical`、强度1～3、单句权重、合法ID关联与更换关卡后的词库刷新；具体PK收益和生成数量由现有战斗/Tier规则决定，词库只提供内容数据。
+
 ## 验收
 - 02表四个稳定关卡ID进入正式目录，正式Sandbox从 `alien` 开始并按 `kiwi → frog → fox` 依次推进。
 - 已配置的三位对手可以按23表定位正确图片；`frog` 资源尚未交付时使用既有占位和默认动画入口。
