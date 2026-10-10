@@ -123,7 +123,7 @@ PA-02 负责把正式美术资产导入工程并接到对应 Resource；PA-03 �
 
 ## PA-04 独立组件交付（2026-10-10）
 
-普通弹幕玻璃底板使用原有 `systems/barrage_generation/barrage_view.tscn`，新增 `BarrageGlassSurface` 绘制圆角玻璃、倾向色和三级强度；`BarrageView.setup()` 自动从运行记录读取外观；局部富文本可通过 `set_visual_bbcode(bbcode)` 输入。单独演示位于 `scenes/demos/pa04_glass_demo.tscn`，固定 1920×1080 GPU 截图与 4 组外部行为冒烟见 `docs/Shared/PresentationAssets/previews/` 和 `表现资产_PA-04_2026-10-10_log.md`。BG-28 正式富文本配表、RP 复读寿命与层级后续集成，PA-05 消费玻璃基础制作特性材质。
+普通弹幕使用原有 `systems/barrage_generation/barrage_view.tscn` 与独立 `BarrageGlassSurface` 材质节点。**2026-10-10 正式定稿：01 GLASS NOIR**（正统 `#1658A2`、异端 `#B9502D`、荒谬 `#B7865B`、Neutral `#ADA4A3`），S1 轻薄玻璃、S2 明亮柔光、S3 更亮并缓慢呼吸；取消刻痕、左侧竖条及双层硬内框。底板倾向色、三级强度参数全部暴露在 `BarrageGlassSurface` Inspector；S3 文字加重在 `BarrageView` 配置，不增加色板 Resource。`BarrageView.setup()` 按运行记录决定外观，`set_visual_bbcode(bbcode)` 保留富文本接口。独立演示 `scenes/demos/pa04_glass_demo.tscn`，1920×1080 真实 GPU 截图（含同屏重叠）与最小冒烟见 `docs/Shared/PresentationAssets/previews/` 及 `表现资产_PA-04_2026-10-10_log.md`。正式 BG-28 富文本配表、RP 复读规则与 Sandbox 接线按对应系统后续集成，PA-05 可复用已定稿玻璃材质。
 
 ## PA-08 独立视觉组件交付（2026-10-10）
 

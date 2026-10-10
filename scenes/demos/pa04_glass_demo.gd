@@ -156,7 +156,13 @@ func _capture_sequence() -> void:
 	_reset_motion()
 	await RenderingServer.frame_post_draw
 	_save_capture("reset")
-	print("PA04_CAPTURE_PASS: 3 screenshots, views=%d" % _views.size())
+	# 验收截图：同一倾向的三档弹幕短暂重叠，观察光晕与文字能否共存。
+	_views[0].position = Vector2(680, 485)
+	_views[1].position = Vector2(850, 540)
+	_views[2].position = Vector2(1020, 595)
+	await RenderingServer.frame_post_draw
+	_save_capture("overlap")
+	print("PA04_CAPTURE_PASS: 4 screenshots, views=%d" % _views.size())
 	get_tree().quit()
 
 
