@@ -31,7 +31,7 @@
 2. **四关正式资源和战斗词库：**从02表生成或更新正式的四份 `LevelProfile` 及 `LevelCatalog.profiles`，保持 `level_order` 与 `level_id` 一一对应。关联03按 `pool_id` 分组的 `LevelSpeechPool`、02.`word_pool_id`、04真假矛盾、05生成参数、11矛盾参数和已有吞并/奖励入口；验证03启用词句、强度1～3、权重及旧类别 `heresy` 到 `heretical` 的映射。
 3. **阶段立绘组：**02.`portrait_set_id` 关联23.`portrait_set_id`，把已交付的 idle、tier_01～03、defeat 和可选过渡图加载为该对手的正式纹理配置，供 PA-15/17 按战斗事实读取。保留当前 `LevelProfile.streamer_portrait` 的待机兼容入口。
 4. **首关教学：**02.`tutorial_config_id` 关联24表，向 LC-13 提供步骤配置与当前关卡身份。仅第一关已关联 `tutorial_level_001`；启用状态和事件ID由教学需求确认后填写。
-5. **剧情、评论和反击数据关联：**将02.story_config_id关联20表对应剧情组，并校验20.streamer_id、trigger_type、trigger_key、source_word_id、trigger_time_s、line_order 的导表值和本场归属；为SD-08、SD-03～07及SD-09提供双侧事件与随机闲聊数据，为CS-28提供21表的 streamer_id + tier + weight 字段，为LD-12提供19表的 side_scope 和可选 streamer_id。
+5. **剧情、评论和反击数据关联：**将02.story_config_id关联20表对应剧情组，并校验20.streamer_id、trigger_type、trigger_key、source_word_id、trigger_time_s、line_order 的导表值和本场归属；为SD-08、SD-03～07及SD-07提供双侧事件与随机闲聊数据，为CS-28提供21表的 streamer_id + tier + weight 字段，为LD-12提供19表的 side_scope 和可选 streamer_id。
 6. **资源与容量数据：**background_asset_id 和 fan_badge_asset_id 映射现有纹理入口；05.special_instance_screen_cap 提供本关可选覆盖值，未填写时提供06.special_foreground_instance_cap的默认来源，供LC-12/BG-35消费；实际数值由策划后续建模。
 7. **最小关卡流转验收：**验收主场景首关进入、战败重开、Rest 继续、第四关完成后终局入口，切关后提供新的 LevelProfile 与关联资源 ID，表现层数据消费由对应独立任务卡验证。
 
@@ -50,7 +50,7 @@
 
 ### 2026-10-10 双侧随机闲聊输入说明
 - 03仅存主角普通可击中候选发言；其真实命中由SD-04复述到主角侧，文本直接取命中的原句。
-- 20独立管理双方随机闲聊及事件对白：`speaker_side=player / opponent`、`trigger_type=random_idle`、相对`random_weight`（空按1）；按本关`story_config_id`与对手`streamer_id`过滤。SD-08提供静态候选，SD-09负责双方随机计时和加权选取，SD-03继续统一管理优先级与显示队列。
+- 20独立管理双方随机闲聊及事件对白：`speaker_side=player / opponent`、`trigger_type=random_idle`、相对`random_weight`（空按1）；按本关`story_config_id`与对手`streamer_id`过滤。SD-08提供静态候选，SD-07负责双方随机计时和加权选取，SD-03继续统一管理优先级与显示队列。
 
 ## Godot 开发环境
 - Godot 版本：4.7.2（开工核对 `project.godot`）
