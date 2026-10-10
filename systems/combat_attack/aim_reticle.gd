@@ -1,17 +1,43 @@
 class_name AimReticle
 extends Control
 
+signal animation_finished
+
+@export_group("判定与位置")
 @export var reticle_diameter: float = 32.0
-@export var center_gap: float = 5.0
-@export var line_width: float = 2.0
-@export var reticle_color: Color = Color(0.35, 0.95, 0.9, 0.95)
+
+@export_group("空心圆与环形蓄力")
+@export_range(2.0, 24.0, 0.5) var center_ring_radius: float = 5.5
+@export_range(1.0, 8.0, 0.5) var center_line_width: float = 2.0
+@export_range(0.0, 30.0, 0.5) var outer_ring_gap: float = 4.0
+@export_range(1.0, 8.0, 0.5) var outer_ring_width: float = 2.5
+@export var idle_color: Color = Color(0.92, 0.99, 1.0, 0.96)
+@export var track_color: Color = Color(0.53, 0.78, 0.84, 0.40)
+@export var charge_color: Color = Color(0.35, 0.98, 0.88, 1.0)
+@export var full_color: Color = Color(1.0, 0.88, 0.37, 1.0)
+@export var shot_color: Color = Color(1.0, 1.0, 1.0, 1.0)
+
+@export_group("短时动态")
+@export_range(2.0, 40.0, 1.0) var charge_smoothing: float = 18.0
+@export_range(0.05, 0.5, 0.01) var shot_flash_duration: float = 0.16
+@export_range(0.05, 0.5, 0.01) var movement_flash_duration: float = 0.12
+@export_range(0.0, 0.4, 0.01) var shot_ring_expansion: float = 0.20
+@export_range(0.0, 0.4, 0.01) var full_pulse_strength: float = 0.10
 
 var _mouse_reticle_diameter: float
 var _touch_aim_active: bool = false
 var _touch_viewport_position: Vector2
+var _charge_target: float = 0.0
+var _charge_display: float = 0.0
+var _charge_held: bool = false
+var _charge_full: bool = false
+var _visual_paused: bool = false
+var _shot_flash_remaining: float = 0.0
+var _movement_flash_remaining: float = 0.0
+var _pulse_clock: float = 0.0
 
 
-# 初始化准心尺寸，并让第一次显示位置与当前鼠标位置对齐。
+# 初始化准心尺寸，视觉绘制与既有相交判定共用同一个几何中心。
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_mouse_reticle_diameter = reticle_diameter
@@ -21,18 +47,35 @@ func _ready() -> void:
 	queue_redraw()
 
 
-# 鼠标事件只更新显示位置，不拦截同一事件的其他 UI 处理。
+# 只推进表现计时；蓄力真实进度由 CombatAttack 的外部调用提供。
+func _process(delta: float) -> void:
+	if _visual_paused:
+		return
+	_pulse_clock += delta
+	var blend: float = 1.0 - exp(-charge_smoothing * delta)
+	_charge_display = lerpf(_charge_display, _charge_target, blend)
+	if absf(_charge_display - _charge_target) < 0.001:
+		_charge_display = _charge_target
+	_movement_flash_remaining = maxf(0.0, _movement_flash_remaining - delta)
+	if _shot_flash_remaining > 0.0:
+		_shot_flash_remaining = maxf(0.0, _shot_flash_remaining - delta)
+		if _shot_flash_remaining <= 0.0:
+			animation_finished.emit()
+	queue_redraw()
+
+
+# 鼠标事件更新原有位置关系；微小运动反馈只改变画面，不改判定范围。
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and event.device != InputEvent.DEVICE_ID_EMULATION:
-		# 事件位置属于 Viewport；转换到画布后使缩放窗口与注入输入使用同一坐标事实。
 		var mouse_event: InputEventMouseMotion = event as InputEventMouseMotion
 		_touch_aim_active = false
 		_set_reticle_diameter(_mouse_reticle_diameter)
 		var canvas_position: Vector2 = get_canvas_transform().affine_inverse() * mouse_event.position
 		_set_aim_center_global_position(canvas_position)
+		_movement_flash_remaining = movement_flash_duration
 
 
-# 场景布局完成或缩放后重新对齐鼠标，让窗口变化也保持准心中心一致。
+# 场景布局变化后重新对齐鼠标或当前触屏中心。
 func refresh_mouse_position() -> void:
 	if _touch_aim_active:
 		_set_aim_center_global_position(get_canvas_transform().affine_inverse() * _touch_viewport_position)
@@ -40,22 +83,70 @@ func refresh_mouse_position() -> void:
 	_set_aim_center_global_position(get_global_mouse_position())
 
 
-# 触屏坐标与鼠标走同一画布变换；显示尺寸和相交判定共用注入的移动端直径。
+# 移动端尺寸与实际命中圆同步，触屏坐标先转换为画布坐标。
 func move_touch_aim(viewport_position: Vector2, diameter: float) -> void:
 	_touch_aim_active = true
 	_touch_viewport_position = viewport_position
 	_set_reticle_diameter(diameter)
 	_set_aim_center_global_position(get_canvas_transform().affine_inverse() * viewport_position)
+	_movement_flash_remaining = movement_flash_duration
 
 
-# 实体鼠标按下时用本次事件坐标恢复 PC 瞄准，避免系统光标读取覆盖有效位置。
+# 使用真实鼠标按下事件位置恢复 PC 准心，规避隐藏窗口中的系统光标异常读数。
 func restore_mouse_aim(viewport_position: Vector2) -> void:
 	_touch_aim_active = false
 	_set_reticle_diameter(_mouse_reticle_diameter)
 	_set_aim_center_global_position(get_canvas_transform().affine_inverse() * viewport_position)
 
 
-# 尺寸改变同步绘制边界，避免触屏仅扩大判定却未扩大显示。
+# 同步外部已存在的蓄力事实；该接口每帧调用也不会重新启动演出。
+func set_charge_visual_state(progress: float, is_held: bool, is_fully_charged: bool) -> void:
+	_charge_target = clampf(progress, 0.0, 1.0)
+	_charge_held = is_held
+	_charge_full = is_fully_charged
+	if is_fully_charged:
+		_charge_target = 1.0
+	queue_redraw()
+
+
+# 真实发射快照产生时调用一次，短时高亮完成后发出动画完成通知。
+func play_shot_feedback() -> void:
+	_charge_target = 0.0
+	_charge_held = false
+	_charge_full = false
+	_shot_flash_remaining = maxf(0.01, shot_flash_duration)
+	queue_redraw()
+
+
+# 停止短时演出并恢复待机；重复播放前可以安全调用。
+func reset_visual_state() -> void:
+	_charge_target = 0.0
+	_charge_display = 0.0
+	_charge_held = false
+	_charge_full = false
+	_shot_flash_remaining = 0.0
+	_movement_flash_remaining = 0.0
+	_pulse_clock = 0.0
+	queue_redraw()
+
+
+# 演示与宿主可以独立暂停表现动画；暂停期间保留画面进度。
+func set_visual_paused(paused: bool) -> void:
+	_visual_paused = paused
+	set_process(not paused)
+
+
+# 测试和演示读取已经绘出的平滑进度，不改变真实攻击状态。
+func get_display_charge_progress() -> float:
+	return _charge_display
+
+
+# 测试与宿主判断当前短时发射表现是否还在播放。
+func is_shot_feedback_playing() -> bool:
+	return _shot_flash_remaining > 0.0
+
+
+# 原有准心直径属于命中范围，视觉环不改变这项数值。
 func _set_reticle_diameter(diameter: float) -> void:
 	if reticle_diameter == diameter:
 		return
@@ -65,17 +156,17 @@ func _set_reticle_diameter(diameter: float) -> void:
 	queue_redraw()
 
 
-# 中心偏移使用完整缩放基底，避免父级缩放后仍减去未缩放的半径。
+# 中心偏移使用完整缩放基底，支持嵌套缩放的准心场景。
 func _set_aim_center_global_position(center_position: Vector2) -> void:
 	global_position = center_position - get_global_transform().basis_xform(size * 0.5)
 
 
-# 后续瞄准判定读取这个中心，和准心绘制使用同一几何中心。
+# 判定与显示共享的唯一中心来源。
 func get_aim_center_global_position() -> Vector2:
 	return get_global_transform() * (size * 0.5)
 
 
-# 将目标转回准心设计坐标后判断；绘制和判定一起继承父级的等比或非等比缩放。
+# 原有多目标圆-矩形命中检测接口维持不变。
 func intersects_target_area(target_area: Rect2) -> bool:
 	var local_target_area: Rect2 = get_global_transform().affine_inverse() * target_area
 	return BarrageAimIntersection.circle_overlaps_rect(
@@ -85,14 +176,26 @@ func intersects_target_area(target_area: Rect2) -> bool:
 	)
 
 
-# 使用导出的直径和线条配置绘制准心，保留数值表接入前的配置入口。
+# 程序绘制小空心圆与独立蓄力轨道；所有发光、缩放仅作用于绘制。
 func _draw() -> void:
 	var center: Vector2 = size * 0.5
-	var extent: float = reticle_diameter * 0.5
-	var inner_edge: float = minf(center_gap, extent)
-
-	draw_line(Vector2(center.x - extent, center.y), Vector2(center.x - inner_edge, center.y), reticle_color, line_width, true)
-	draw_line(Vector2(center.x + inner_edge, center.y), Vector2(center.x + extent, center.y), reticle_color, line_width, true)
-	draw_line(Vector2(center.x, center.y - extent), Vector2(center.x, center.y - inner_edge), reticle_color, line_width, true)
-	draw_line(Vector2(center.x, center.y + inner_edge), Vector2(center.x, center.y + extent), reticle_color, line_width, true)
-	draw_circle(center, line_width * 0.75, reticle_color, true)
+	var radius: float = reticle_diameter * 0.5 + outer_ring_gap
+	var shot_strength: float = _shot_flash_remaining / maxf(shot_flash_duration, 0.01)
+	var move_strength: float = _movement_flash_remaining / maxf(movement_flash_duration, 0.01)
+	var full_strength: float = 0.0
+	if _charge_full:
+		full_strength = (0.5 + 0.5 * sin(_pulse_clock * 9.0)) * full_pulse_strength
+	radius *= 1.0 + shot_strength * shot_ring_expansion + full_strength
+	var accent: Color = full_color if _charge_full else charge_color
+	if shot_strength > 0.0:
+		accent = accent.lerp(shot_color, shot_strength)
+	var core_color: Color = idle_color.lerp(accent, minf(1.0, shot_strength + move_strength * 0.45))
+	draw_circle(center, center_ring_radius * (1.0 + shot_strength * 0.18), core_color, false, center_line_width, true)
+	draw_arc(center, radius, -PI * 0.5, PI * 1.5, 96, track_color, outer_ring_width, true)
+	var visible_progress: float = _charge_display
+	if _charge_full:
+		visible_progress = 1.0
+	if visible_progress > 0.001:
+		draw_arc(center, radius, -PI * 0.5, -PI * 0.5 + TAU * visible_progress, 96, accent, outer_ring_width + shot_strength * 1.2, true)
+	if shot_strength > 0.0:
+		draw_arc(center, radius + 4.0 * shot_strength, -PI * 0.5, PI * 1.5, 96, Color(1.0, 1.0, 1.0, shot_strength * 0.65), 1.5, true)
