@@ -1,6 +1,6 @@
 # SD-01 双主播气泡对白的数据配置
 
-**状态：待开发 · 2026-10-09 新确认需求**
+**状态：已完成 · PR #106 已合并 · 2026-10-10 · [完成日志](../双主播气泡对话系统_SD-01_2026-10-10_log.md)**
 
 ## 开始前先阅读以下文档
 - `docs/Original/任务卡模板.md` 与 `known_traps.md`（通用执行规范与已知风险）
@@ -9,7 +9,9 @@
 - 关联：现有 LevelProfile、SandboxBattleHud
 
 ## 已经实现的功能
-- 现有战斗状态、命中与主播画面由对应系统维护。已完成的 `SD-01` 提供 `data/streamer_bubble_dialogue/` 资源与条目读取接口；其他 SD 前置功能按系统 README、最新日志及当前代码确认。
+- 原有 `LevelProfile` / `LevelSpeech` 提供关卡数据与稳定原句 ID；`Sandbox` 的命中消费者及 `AttackTargetSnapshot` 提供最终命中、是否复读、原句 ID 和原文等事实。
+- `scenes/sandbox/sandbox_battle_hud.gd/.tscn` 已有独立玩家 / 对手立绘及画面区域，供后续 SD-02 气泡定位与显示复用。
+- 本卡开工前尚无气泡对白 Resource、按原句 / 事件检索接口和气泡显示队列；SD-01 自身产出的数据配置在后续完成结果中另行列出。
 
 ## 本次任务
 双主播气泡对白的数据配置。
@@ -22,6 +24,10 @@
 
 ### 验收条件
 玩家/对手对白可按原句 ID 和事件 ID 读取；优先级和停留时间可编辑；普通命中默认映射到玩家气泡。
+
+## 本卡完成结果（2026-10-10）
+- [PR #106](https://github.com/w7775p/Empty-start/pull/106) 已合并；交付 `data/streamer_bubble_dialogue/bubble_dialogue_entry.gd`、`bubble_dialogue_config.gd`、`bubble_dialogue_config.tres`，提供 `find_by_sentence()`、`find_by_event()` 和 `create_hit_echo()`。
+- [完成日志](../双主播气泡对话系统_SD-01_2026-10-10_log.md) 记录 Windows Godot 4.7.2 Resource / headless 结果；气泡 UI、显示队列和真实战斗接线由 SD-02～07 后续承担。
 
 ## Godot 开发环境
 - Godot 版本：4.7.2（开工核对 `project.godot`）
