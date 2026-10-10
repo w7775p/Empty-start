@@ -1,29 +1,26 @@
-# PA-04｜01 GLASS NOIR 强度样式对照｜2026-10-10
+# PA-04｜01 GLASS NOIR 强度视觉修订（2026-10-10）
 
-这是一张等待美术确认的**独立 Godot 实景预览**。不修改正式 PR #112，既有四种倾向色与 24px 基础字号保持一致。
+此分支仅供视觉评审，未合并正式 PR #112。收到反馈：旧 S3 右上斜线和双层内框像“刻痕”，与“强度越高越让玩家想打”的视觉目标背离，现已改为**亮度、外发光、字重**明确递进。
 
-## 倾向配色（已选 01）
-- 正统 `#1658A2`
-- 异端 `#B9502D`
-- 荒谬 `#B7865B`
-- Neutral `#ADA4A3`
+## 统一颜色（倾向）
+- 正统 `#1658A2`；异端 `#B9502D`；荒谬 `#B7865B`；Neutral `#ADA4A3`。
+- 所有档位保留 01 GLASS NOIR 色系。文字基础字号 24px、尺寸随文本自适应，不改变判定与生命周期。
 
-## 三档强度
-| 材质层 | S1 基础 | S2 强调 | S3 强目标 |
+## 强度与视觉权重
+
+| | S1 普通 | S2 值得注意 | S3 高优先级 |
 | --- | --- | --- | --- |
-| 外框 | 1px | 2px | 3px |
-| 玻璃透明度 alpha | 0.63 | 0.77 | 0.89 |
-| 底板色混合比例 | 0.18 | 0.27 | 0.36 |
-| 折光 | 右上薄反光 | 右上切面与局部反射 | 双层内框、右上双切面、下缘厚度 |
-| 文字 | 24px 常规 | 24px 常规 | 24px FontVariation +0.34 加粗、描边 3px |
+| 玻璃颜色混合 | 0.16 | 0.38 | 0.62 |
+| 玻璃 alpha | 0.66 | 0.84 | 0.95 |
+| 边框 | 1px 低亮 | 2px 明亮 | 3px 最亮 |
+| 视觉外光 | 无 | 8px 柔和常亮 | 13～20px 随时间缓慢呼吸 |
+| 字体 | 24px 普通字重 | 24px 普通字重 | 24px 加重 FontVariation，3px 文字描边 |
+| 装饰 | 顶部低透明反射 | 顶部浅反射 | 顶部更亮反射 |
 
-所有强度均取消左侧竖向专属装饰，也取消旧实现横贯全板的按钮式顶部反光。四倾向同一句文本分别在 S1～S3 对照；底部额外显示三档放大细节。针对 S3 使用 `FontVariation` 做字重变化，避免先前 BBCode `RichTextLabel` 截断问题。
+**已移除**：S3 左侧竖条、斜向切痕、双层硬内框及局部钻石刻纹。当前演示使用 `BarrageGlassSurface` 的 StyleBox 阴影形成真正可感知的外发光，呼吸节奏约 1.85 秒一轮，运行时只有 S3 做限频重绘。
 
-## 演示
-- 真实 PackedScene：`res://systems/barrage_generation/barrage_view.tscn`
-- 预览场景：`res://scenes/demos/pa04_noir_strength_preview.tscn`
-- 截图：`res://scenes/demos/pa04_noir_strength_capture.tscn -- --capture-strength`
-- 截图输出：`docs/Shared/PresentationAssets/previews/pa04_noir_strength_comparison.jpg`，1920×1080
-- 表现脚本：`scenes/demos/pa04_noir_strength_surface.gd`，只用于当前演示；确认后再把定稿样式转入正式 PA-04 组件。
-
-验证：Godot 4.7.2，脚本 `--check-only` 成功，OpenGL Compatibility 实际 GPU 截图退出码 0，无新增 stderr 错误。材质结构仍需负责人看画面确认；真实密集弹幕下的对比与移动端阅读测试留待集成。
+## 实际工程验证
+- 脚本：`pa04_noir_strength_surface.gd`、`pa04_noir_strength_preview.gd` Godot 4.7.2 `--check-only` exit 0。
+- 真实图形运行：1920×1080，OpenGL Compatibility，`pa04_noir_strength_comparison.jpg` 和 `pa04_noir_strength_comparison_breathing.jpg` 两个时刻均保存成功，exit 0，未出现脚本 stderr。
+- 每种倾向同一句文字纵向对照 S1/S2/S3，底部另有三档放大版。外光效果是否适度，等待负责人看截图后决定。
+- 预览入口：`res://scenes/demos/pa04_noir_strength_preview.tscn`；截图入口：`res://scenes/demos/pa04_noir_strength_capture.tscn -- --capture-strength`。
