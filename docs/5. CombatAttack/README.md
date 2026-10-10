@@ -33,7 +33,7 @@
 ## 当前实现
 
 - CA-01 提供独立 `AimReticle` 场景并接入当前 sandbox 游戏入口。
-- `reticle_diameter` 是准心局部设计坐标中的直径；INT-01 将 `AimReticle` 放在 `BattleHud` 内，与弹幕统一继承 1920×1080 舞台缩放。默认 32 设计像素在 1152×648 窗口显示为 19.2 像素。
+- **2026-10-10 PC 策划数值定稿：视觉区域 96×96 设计像素，实际可击中区域 144×144 设计像素。** `AimReticle.visual_diameter` 控制独立绘制边界；`reticle_diameter` 表示现有圆形命中区域的直径，PC 默认 144，命中包络框 144×144。准心、蓄力环、中心与攻击快照共用一个位置；目标相交继续按现有圆-矩形判定规则。INT-01 将 `AimReticle` 放在 `BattleHud` 内，与弹幕统一继承 1920×1080 舞台缩放。此前 32 设计像素为旧原型默认值。
 - INT-01 鼠标移动读取事件的 Viewport 坐标并转换为画布坐标，中心偏移按完整变换基底换算；`get_aim_center_global_position()` 将绘制中心变换到画布坐标。`refresh_mouse_position()` 供 HUD 在初始化和窗口缩放完成后重新对齐鼠标。
 - CA-02 提供 `BarrageAimIntersection.circle_overlaps_rect()`，边缘接触判为相交；`AimReticle.intersects_target_area()` 将画布目标矩形逆变换至准心局部坐标，再使用同一设计直径判定。等比与非等比舞台缩放下，显示和判定范围保持一致。
 - CA-03 提供 `AttackChargeInput` 和纯状态 `AttackChargeProgress`；按住鼠标左键会累积到 `AttackTimingConfig.charge_time_s`，和准心 / 候选目标状态解耦。
