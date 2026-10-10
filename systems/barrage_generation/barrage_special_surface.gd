@@ -58,8 +58,8 @@ func _process(delta: float) -> void:
 		return
 	super._process(delta)
 	if _main_material == &"reflect":
+		# 与 PA-04 共用已有 24Hz 节流重绘；连续形变本身不需要独立逐帧刷新。
 		_phase += delta * jelly_frequency
-		queue_redraw()
 
 
 # 所有材质共享真实 BarrageView 的绘制矩形，不产生额外命中节点。
