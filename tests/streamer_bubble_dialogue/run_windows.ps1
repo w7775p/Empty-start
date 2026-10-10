@@ -29,9 +29,7 @@ function Invoke-GodotCheck([string]$Name, [string]$Arguments) {
 
 $version = Invoke-GodotCheck 'version' '--version'
 if (($version -join "`n") -notmatch '4\.7\.2\.stable') { throw 'Requires Godot 4.7.2 stable.' }
-foreach ($script in @('data/streamer_bubble_dialogue/bubble_dialogue_entry.gd', 'data/streamer_bubble_dialogue/bubble_dialogue_config.gd', 'tests/streamer_bubble_dialogue/test_bubble_dialogue_config.gd')) {
-    Invoke-GodotCheck ([IO.Path]::GetFileNameWithoutExtension($script)) "--headless --path `"$harnessRoot`" --check-only --script res://$script" | Out-Null
-}
+# 实际运行会编译测试及其 preload 依赖，避免逐文件解析重复同一检查。
 $runtime = Invoke-GodotCheck 'runtime' "--headless --path `"$harnessRoot`" --script res://tests/streamer_bubble_dialogue/test_bubble_dialogue_config.gd"
 $runtime | Out-Null
 if (($runtime -join "`n") -notmatch 'SD-01 RESULT: PASS failures=0') { throw 'Missing SD-01 runtime PASS.' }
