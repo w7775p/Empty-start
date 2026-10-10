@@ -48,6 +48,8 @@ func _execute() -> void:
     var pressed: InputEventMouseButton = InputEventMouseButton.new()
     pressed.button_index = MOUSE_BUTTON_LEFT
     pressed.pressed = true
+    # 直接调用组件输入入口时仍需提供 Viewport 坐标，CA-12 按下会读取本次事件位置。
+    pressed.position = cursor.get_canvas_transform() * target.get_global_rect().get_center()
     attack._input(pressed)
     attack._charge_progress.advance(attack._attack_timing.charge_time_s + 0.02, true)
     if not _check(attack.is_fully_charged(), "未能真实完成蓄力"):
@@ -55,6 +57,7 @@ func _execute() -> void:
     var released: InputEventMouseButton = InputEventMouseButton.new()
     released.button_index = MOUSE_BUTTON_LEFT
     released.pressed = false
+    released.position = pressed.position
     attack._input(released)
     # 飞行到达由现有 Timer、HitResolution 与 Sandbox 信号处理。
     var flight_s: float = attack._attack_timing.projectile_flight_s
@@ -71,13 +74,14 @@ func _execute() -> void:
     sandbox.debug_set_player_pk(sandbox.battle_config.maximum_player_pk)
     await get_tree().process_frame
     await get_tree().process_frame
-    if not _check(sandbox._contradiction_break != null and sandbox._contradiction_stage_active, "PK win did not enter contradiction stage"):
+    var phase_flow: ContradictionOracleFlow = sandbox.get_contradiction_oracle_flow()
+    if not _check(phase_flow.get_contradiction_system() != null and phase_flow.is_contradiction_active(), "PK win did not enter contradiction stage"):
         return
     # Consume the one official CB shot without a true contradiction hit.
-    if not _check(sandbox._contradiction_break.register_launched_shot(), "Contradiction shot was rejected"):
+    if not _check(phase_flow.get_contradiction_system().register_launched_shot(), "Contradiction shot was rejected"):
         return
     var no_hits: Array[String] = []
-    if not _check(sandbox._contradiction_break.resolve_shot_hit_ids(no_hits), "Contradiction miss was rejected"):
+    if not _check(phase_flow.get_contradiction_system().resolve_shot_hit_ids(no_hits), "Contradiction miss was rejected"):
         return
     await get_tree().process_frame
     if not _check(sandbox._rest_session != null and sandbox._rest_session.is_open(), "Unbroken outcome did not open Rest"):
