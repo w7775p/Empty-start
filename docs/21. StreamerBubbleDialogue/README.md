@@ -70,3 +70,11 @@ Google Sheets `02_主播关卡.story_config_id` 指向 `20_主播气泡对白.st
 - 可见 GUI 回归入口为 [SD-02 smoke 场景](../../tests/streamer_bubble_dialogue/sd02_bubble_view_smoke.tscn)，将实际 `Sandbox` 场景嵌入测试窗，通过公开 HUD 接口在内存中注入左右各三条 TEST_ONLY 条目，并将 Godot Viewport PNG 暂存到 `.godot/sd02/`。已提交的 1920 窗口与 1280 小窗口截图见 [SD-02 视觉证据](evidence/SD-02_2026-10-10/)。窗口/Viewport 尺寸、渲染器、实际台词、命令和测试边界见 [SD-02 完成日志](双主播气泡对话系统_SD-02_2026-10-10_log.md)。
 
 本卡没有实现 SD-03 队列策略、优先级调度、命中/状态/定时事件消费者或随机闲聊。PA-03 当前样例没有对手立绘资源，验收画面保留现有对手占位区域。
+
+## SD-02 气泡美术优化（2026-10-10，PR #131）
+
+依照策划反馈，在原 SD-02 分支更新为更饱满的乳白色漫画圆角椭圆气泡，并为当前发言提供向主播方向上扬的尖尾。仍由 `StreamerBubbleView._draw()` 程序绘制，继续使用 Theme + RichTextLabel，可直接通过 Inspector 调整两侧底色、字体/边距、最大宽度和持续时间；无需独立气泡 PNG。
+
+显示层级按调用顺序保留：**最新一条完整气泡、前两条收缩为实底紧凑历史气泡**，历史气泡去掉尾巴并缩小文字与轮廓，完整文字继续可读。固定的 `448×432` 立绘画面中从下向上沿外边缘排布，减少遮住主播眼睛和表情的时间；弹出 0.14s、缓浮 18px、渐隐 0.24s。SD-03 后续仍负责真正的队列最大数量、优先级和节奏。
+
+已修复 Godot `Control.custom_minimum_size` 导致历史长气泡无法缩小、面积虚高的缺陷；`sd02_bubble_view_smoke.gd` 新增实际尺寸回归。**1280×720 和 1920 宽 Windows Godot GUI 各 21 项 PASS / 0 failures**，新版实景截图见 [视觉优化证据](evidence/SD-02_2026-10-10-v2/)；与原版 [旧截图](evidence/SD-02_2026-10-10/) 可直接对比。仍待策划正式审美验收、对手立绘与 Android 真机。
