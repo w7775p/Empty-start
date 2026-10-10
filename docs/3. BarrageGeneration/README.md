@@ -9,7 +9,7 @@
 
 | 卡片 | 按实际代码核对后的唯一功能 | 状态 |
 | --- | --- | --- |
-| [BG-16](tasks/BG-16_high-density-cap.md) | 按 Tier 读取前景容量 | 本地实现与 CLI 验收完成；提交/PR 受 Git 元数据权限阻塞 |
+| [BG-16](tasks/BG-16_high-density-cap.md) | 按 Tier 读取前景容量 | 已合并 main；Tier 容量回归通过 |
 | [BG-17](tasks/BG-17_pc-android-performance.md) | 分层性能与可读性验收 | 待组合实测 |
 | [BG-42](tasks/BG-42_static-random-placement.md) | 复读和遮挡共用的中央区域随机静止落点 | 待开发 |
 | [BG-24](tasks/BG-24_overlap-pass-through.md) | 实例出生与运动允许重叠 | 待开发 |
@@ -20,7 +20,7 @@
 | [BG-31](tasks/BG-31_spatial-clusters.md) | 同句复读成批涌现（复用 RP-18） | 归档重复能力 |
 | [BG-32](tasks/BG-32_linked-faux-depth.md) | 伪纵深观感 | 候选暂缓 |
 | [BG-33](tasks/BG-33_impact-motion-wave.md) | 命中后的短时局部运动扰动 | 可选试玩后实施 |
-| [BG-34](tasks/BG-34_frequency-based-refill.md) | 既有定时批次与 Tier 名额接线 | 已有基础 |
+| [BG-34](tasks/BG-34_frequency-based-refill.md) | 既有定时批次按 Tier 名额补位 | T2=13 组件级计时回归通过；Sandbox 布局待联调 |
 | [BG-35](tasks/BG-35_special-instance-cap.md) | 特殊实例占用独立容量 | 待开发 |
 | [BG-36](tasks/BG-36_downgrade-count-grace.md) | 降档超额自然回落 | 待开发 |
 | [BG-37](tasks/BG-37_foreground-text-outline.md) | 非复读文字描边 | 待开发 |
@@ -28,6 +28,10 @@
 | [BG-39](tasks/BG-39_tier-motion-proportions.md) | 四种运动类型随 Tier 权重变化 | 待开发 |
 | [BG-40](tasks/BG-40_foreground-speed-ceiling.md) | 前景话语最大速度 | 待开发 |
 | [BG-41](tasks/BG-41_random-trait-selection.md) | 按已解锁池随机分配特性 | 技能池待定 |
+
+**BG-34（2026-10-10）** `CombatStage` 将 T2=13 发布给 `BarrageArea`。满槽后移除 4 条，现场数量回到 9；容量释放恢复现有 `SpawnTimer`，下一次批次经 `NormalSpeechSelector` 补到 13，额外普通生成由现有上限拦截。复读继续走独立账本。本卡确认现有 BG-16 接线已满足频率补位规则，并新增真实组件回归。
+
+`test_bg34_t2_timed_refill.gd` 使用当前 `BarrageArea` Scene、`CombatStage` 和 Tier Catalog。测试区为 1024×1200，为当前单列放置提供 13 个位置；1024×1008 实测可放 12 条。Sandbox 当前 BarrageArea 高 760px，完整同屏容量需在布局任务完成后实场复验。本卡未修改 Sandbox 或 PA 资产。
 
 本节是当前派工依据；历史章节中的旧默认值与旧任务说明保留用来追溯已有系统演变。开发时以单卡现行版和本节为准。
 
