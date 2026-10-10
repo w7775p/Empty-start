@@ -3,15 +3,15 @@
 > **派工入口**：[2026-10-09 当前任务卡整合与依赖顺序](../开发计划_2026-10-09_任务卡依赖整合.md)。本系统的已完成旧卡保留作功能实现依据；下方历史讨论章节的旧数值以现行派工入口覆盖。
 
 
-## 2026-10-10 现行实现核对与任务状态
+## 2026-10-11 现行实现核对与任务状态
 
-**现行生成规则：** 前景普通话语与挂特性的特殊话语共用 T0～T5 各档少量容量，T1=10、T2=13、T3=16、T4=19、T5=22。T0 的 0 表示未填，普通阶段沿用 `LevelProfile.normal_barrage_screen_cap`。BG-16 已接入 CS-24 的 Tier 名额；普通话语与带特性话语共用同一账本，实例离树释放容量。Paradox 继续采用关卡上限，复读保留独立容量。复读在中央战斗区随机静止生成、按寿命渐隐并固定底层；遮挡特性话语在战斗区随机静止生成且固定最高层。普通前景采用可读的多运动方式。Paradox 阶段按 CB-13 读取一真五假六句。
+**现行生成规则：** 前景普通话语与挂特性的特殊话语共用 T0～T5 各档少量容量，T1=10、T2=13、T3=16、T4=19、T5=22。T0 的 0 表示未填，普通阶段沿用 `LevelProfile.normal_barrage_screen_cap`。BG-16 已接入 CS-24 的 Tier 名额；普通话语与带特性话语共用同一账本，实例离树释放容量。Paradox 继续采用关卡上限，复读保留独立容量。复读和遮挡特性话语可由生成调用方显式请求中央战斗区随机静止落点；默认仍沿用既有定位和移动。普通前景采用可读的多运动方式。Paradox 阶段按 CB-13 读取一真五假六句。
 
 | 卡片 | 按实际代码核对后的唯一功能 | 状态 |
 | --- | --- | --- |
 | [BG-16](tasks/BG-16_high-density-cap.md) | 按 Tier 读取前景容量 | 已合并 main；Tier 容量回归通过 |
 | [BG-17](tasks/BG-17_pc-android-performance.md) | 分层性能与可读性验收 | 待组合实测 |
-| [BG-42](tasks/BG-42_static-random-placement.md) | 复读和遮挡共用的中央区域随机静止落点 | 待开发 |
+| [BG-42](tasks/BG-42_static-random-placement.md) | 复读和遮挡共用的中央区域随机静止落点 | 已实现，待合并 main |
 | [BG-24](tasks/BG-24_overlap-pass-through.md) | 实例出生与运动允许重叠 | 待开发 |
 | [BG-27](tasks/BG-27_animated-size.md) | 连续缩放 | 已有脉冲入口 |
 | [BG-28](tasks/BG-28_mixed-rich-text-style.md) | 前景富文本 | 待开发 |
@@ -36,6 +36,10 @@
 **BG-36（2026-10-10）** `CombatStage` 从 T3 降到 T2 后，`BarrageArea` 发布 13 个新名额；已有 16 条 `BarrageView` 保持原实例、移动和生成时保存的寿命。共享账本仍满于新名额时暂停普通生成；数量降到 13 时继续停表，四条较早生成的测试视图自然到期至 12 后，现有 `SpawnTimer` 才恢复并按 T2 间隔补到 13。此行为复用 BG-16 / BG-34 的容量和 Timer 逻辑，无需改动生产脚本。
 
 `test_bg36_tier_downgrade_grace.gd` 使用真实 `CombatStage`、`BarrageArea`、`BarrageView` 与 `SpawnTimer`，逐项检查原实例 ID、绝对寿命截止值、运动、超额时停表、降到 12 后等待 timeout 再新增一条视图，以及补到 13 后停表。测试用 `LevelProfile` 和 `LevelSpeech` 均为脚本内构造的 TEST_ONLY 数据；这项组件级验证不代表 Sandbox 正式玩法验收。
+
+**BG-42（2026-10-11）** `spawn_normal_barrage(..., random_static_placement=false)` 与 `spawn_repeat_barrage(..., random_static_placement=false)` 为单次请求提供可选的随机静止定位。默认值保持普通生成与已有复读调用的原定位 / 移动；显式传 `true` 时，在视图完成排版后按 `BarrageArea.size - BarrageView.size` 均匀抽取位置，视图无法完整放入当前区域时拒绝生成并归还刚申请的容量。静止视图沿用原暂停补偿、绝对寿命、普通或复读容量账本；区域缩放后可容纳时夹回完整边界，容纳不了时自然移除。RP-16 复读与 BT-15 遮挡实例可通过对应生成入口显式启用。Paradox 仍走 `_place_new_barrage()`，CB-13 一真五假候选逻辑没有变化。
+
+`test_bg42_static_random_placement.gd` 用实际 `BarrageArea` / `BarrageView` 覆盖默认移动、短长文本边界、随机位置分布、1024×760 当前尺寸、1024×1008 扩高、缩小区域时视图夹回 / 移除与容量恢复、过小区域拒绝、暂停和寿命。图形运行保存当前战斗区视觉截图到 `evidence/BG42_static_random_placement.png`；真实 Sandbox 场景文件未修改。
 
 本节是当前派工依据；历史章节中的旧默认值与旧任务说明保留用来追溯已有系统演变。开发时以单卡现行版和本节为准。
 

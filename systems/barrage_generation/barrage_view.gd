@@ -16,6 +16,7 @@ extends Label
 
 var runtime_record: BarrageRuntimeRecord
 var _move_speed_pixels_per_second: float = 0.0
+var _stationary_position: bool = false
 var _active_area: Control
 var _pause_started_msec: int = -1
 var _presentation_tween: Tween
@@ -62,10 +63,16 @@ func pulse_presentation(scale_multiplier: float, return_seconds: float) -> bool:
 
 
 # 在添加到区域之前即可配置尺寸和材质，保证生成排布读取的是实际显示范围。
-func setup(barrage_record: BarrageRuntimeRecord, move_speed_pixels_per_second: float, active_area: Control) -> void:
+func setup(
+	barrage_record: BarrageRuntimeRecord,
+	move_speed_pixels_per_second: float,
+	active_area: Control,
+	stationary_position: bool = false
+) -> void:
 	runtime_record = barrage_record
 	text = barrage_record.text
-	_move_speed_pixels_per_second = move_speed_pixels_per_second
+	_stationary_position = stationary_position
+	_move_speed_pixels_per_second = 0.0 if stationary_position else move_speed_pixels_per_second
 	_active_area = active_area
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -242,6 +249,11 @@ func _process(delta: float) -> void:
 	if current_time_msec >= runtime_record.expires_at_msec:
 		queue_free()
 		return
+	if _stationary_position:
+		# 窗口缩放后继续完整留在当前区域；空间不足时销毁并沿用离树释放容量。
+		if not _constrain_stationary_position_to_area():
+			queue_free()
+		return
 	position.x -= _move_speed_pixels_per_second * delta
 	if not is_instance_valid(_active_area):
 		queue_free()
@@ -249,3 +261,15 @@ func _process(delta: float) -> void:
 	var active_rect: Rect2 = Rect2(Vector2.ZERO, _active_area.size)
 	if not active_rect.intersects(Rect2(position, size)):
 		queue_free()
+
+
+## 将静止视图限制在区域内；缩小到容不下完整视图时交给现有生命周期移除。
+func _constrain_stationary_position_to_area() -> bool:
+	if not is_instance_valid(_active_area):
+		return false
+	var active_size: Vector2 = _active_area.size
+	if size.x > active_size.x or size.y > active_size.y:
+		return false
+	position.x = clampf(position.x, 0.0, active_size.x - size.x)
+	position.y = clampf(position.y, 0.0, active_size.y - size.y)
+	return true
