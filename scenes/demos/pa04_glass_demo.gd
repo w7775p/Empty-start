@@ -3,7 +3,7 @@ extends Control
 const BARRAGE_SCENE: PackedScene = preload("res://systems/barrage_generation/barrage_view.tscn")
 const CAPTURE_DIR: String = "res://docs/Shared/PresentationAssets/previews"
 const TENDENCIES: Array[String] = ["orthodox", "heretical", "absurd", "neutral"]
-const COLORS: Array[Color] = [Color("#5cd8ee"), Color("#f17ca6"), Color("#f6c573"), Color("#abb6dc")]
+const COLORS: Array[Color] = [Color("#1658A2"), Color("#B9502D"), Color("#B7865B"), Color("#ADA4A3")]
 const TITLES: Array[String] = ["ORTHODOX  正统", "HERETICAL  异端", "ABSURD  荒谬", "NEUTRAL  中立"]
 const SENTENCES: Array[Array] = [
 	["神说：你必须被看见", "光照着每一个虔诚信徒", "我即众人见证的神迹"],
@@ -32,7 +32,7 @@ func _ready() -> void:
 
 # 工具面板只改变美术参数，运行记录和判定仍由 BarrageView 持有。
 func _build_visual_hud() -> void:
-	_add_label("PA-04   /   GLASS BARRAGE LAB", Vector2(83, 47), 46, Color("#f0f8ff"))
+	_add_label("PA-04   /   GLASS NOIR", Vector2(83, 47), 46, Color("#f0f8ff"))
 	_add_label("Four tendencies   ×   three strengths      |      real Godot CanvasItem + Label render", Vector2(88, 113), 22, Color("#afcad3"))
 	for index in range(4):
 		_add_label(TITLES[index], Vector2(100 + 450 * index, 188), 24, COLORS[index])
@@ -60,7 +60,7 @@ func _build_visual_hud() -> void:
 func _spawn_grid() -> void:
 	for tendency_index in range(4):
 		for tier in range(3):
-			var record := _make_record(SENTENCES[tendency_index][tier], TENDENCIES[tendency_index], tier + 1)
+			var record := _make_record(SENTENCES[tendency_index][0], TENDENCIES[tendency_index], tier + 1)
 			_spawn_record(record, Vector2(93 + 450 * tendency_index, 240 + tier * 175))
 
 
