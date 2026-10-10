@@ -7,11 +7,9 @@ const EFFECT_SCRIPT: Script = preload("res://systems/presentation/barrage_impact
 @export_range(1, 40, 1) var max_active_effects: int = 18
 @export var effect_in_front: bool = true
 @export_group("漫画符号")
-@export var impact_symbol_texture: Texture2D
-@export var impact_symbol: String = "∑"
-@export_range(24, 120, 1) var impact_symbol_size: int = 60
-@export var impact_symbol_offset: Vector2 = Vector2(4, -50)
-@export var impact_symbol_color: Color = Color("#FFF0C7")
+@export var impact_symbol_texture: Texture2D = preload("res://assets/ui/combat/impact_marks/impact_01_razor.png")
+@export_range(24, 156, 1) var impact_symbol_size: int = 76
+@export var impact_symbol_offset: Vector2 = Vector2(4, -62)
 
 var _attack: AttackChargeInput
 var _effect_layer: Control
@@ -76,10 +74,8 @@ func play_target_result(target: BarrageView, result: BarrageTraitResult) -> Barr
 	_effect_layer.add_child(fx)
 	fx.position = _effect_layer.get_global_transform().affine_inverse() * target.global_position
 	fx.accent_texture = impact_symbol_texture
-	fx.accent_symbol = impact_symbol
 	fx.accent_size = impact_symbol_size
 	fx.accent_offset = impact_symbol_offset
-	fx.accent_color = impact_symbol_color
 	_effects.append(fx)
 
 	var kind: BarrageTraitResult.Kind = result.kind

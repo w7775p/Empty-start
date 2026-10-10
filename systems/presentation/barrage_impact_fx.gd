@@ -11,11 +11,9 @@ const BARRAGE_SCENE: PackedScene = preload("res://systems/barrage_generation/bar
 @export var fracture_color: Color = Color("#F8F5E9")
 
 @export_group("漫画强调符号")
-@export var accent_texture: Texture2D
-@export var accent_symbol: String = "∑"
-@export_range(22, 108, 1) var accent_size: int = 60
-@export var accent_offset: Vector2 = Vector2(4, -50)
-@export var accent_color: Color = Color("#FFF0C7")
+@export var accent_texture: Texture2D = preload("res://assets/ui/combat/impact_marks/impact_01_razor.png")
+@export_range(22, 156, 1) var accent_size: int = 76
+@export var accent_offset: Vector2 = Vector2(4, -62)
 
 @export_group("材质命中")
 @export_range(0.08, 0.55, 0.01) var rebound_seconds: float = 0.35
@@ -127,22 +125,17 @@ func _make_shard(texture: Texture2D, upper: bool) -> Polygon2D:
 
 # 漫画强调符号可直接被美术的透明 PNG 替代。
 func _show_accent() -> void:
-	var accent: Control
-	if accent_texture != null:
-		var icon := TextureRect.new()
-		icon.texture = accent_texture
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.custom_minimum_size = Vector2.ONE * float(accent_size)
-		icon.size = Vector2.ONE * float(accent_size)
-		accent = icon
-	else:
-		var label := Label.new()
-		label.text = accent_symbol
-		label.add_theme_font_size_override("font_size", accent_size)
-		label.add_theme_color_override("font_color", accent_color)
-		label.add_theme_color_override("font_outline_color", Color("#171D32"))
-		label.add_theme_constant_override("outline_size", 5)
-		accent = label
+	# 只使用独立透明图像资产。没有选中贴图时省略符号，不再绘制字体占位。
+	if accent_texture == null:
+		return
+	var accent := TextureRect.new()
+	accent.texture = accent_texture
+	accent.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	accent.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	accent.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	accent.custom_minimum_size = Vector2.ONE * float(accent_size)
+	accent.size = Vector2.ONE * float(accent_size)
+	accent.pivot_offset = accent.size * 0.5
 	add_child(accent)
 	accent.position = Vector2(_render_size.x, 0) + accent_offset
 	accent.z_index = 3
