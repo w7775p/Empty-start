@@ -133,6 +133,16 @@ func cancel_lifecycle() -> void:
 		_layout_tween.kill()
 
 
+func finish_early() -> void:
+	if _finished:
+		return
+	if is_instance_valid(_lifetime_tween) and _lifetime_tween.is_running():
+		_lifetime_tween.kill()
+	_lifetime_tween = create_tween()
+	_lifetime_tween.tween_property(self, "modulate:a", 0.0, maxf(fade_duration_seconds, 0.01))
+	_lifetime_tween.tween_callback(_emit_expired)
+
+
 # 当前对白绘制饱满的漫画椭圆和上扬尖尾；较早的气泡保留全部文字，但改为无尾的紧凑形态。
 func _draw() -> void:
 	if size.x < 5.0 or size.y < 5.0:

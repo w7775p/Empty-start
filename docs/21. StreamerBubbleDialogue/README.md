@@ -84,3 +84,15 @@ Google Sheets `02_主播关卡.story_config_id` 指向 `20_主播气泡对白.st
 应策划要求增加 [三方案 Godot 对照预览](evidence/SD-02_2026-10-10-v3/README.md)，使用项目正式仓鼠立绘、三条相同对白、短中长三组文本，并在 1920×1080 与 1280×720 实际 GPU 渲染截图。A 轻量短句（深色对话框）、B 流行漫画侧边卡（高饱和错位卡片）、C 乳白漫画主气泡（仅最新句带尾）。预览入口 `res://scenes/demos/sd02_style_compare_demo.tscn`，按数字键 1/2/3 切换文本长度；截图入口 `res://scenes/demos/sd02_style_capture.gd`。
 
 **当前只有独立预览及截图，正式双主播 StreamerBubbleView / Stack 保持现状**。后续由策划从三套中选型，再决定是否采用单一方案或短句 A + 重要发言 C 的混合形式。
+
+## SD-03 事件队列与生命周期（2026-10-10）
+
+`SandboxBattleHud` 在 `_ready()` 组合 `streamer_bubble_dialogue_queue.gd`，队列通过 HUD 的 `show_dialogue_bubble(entry)` 回调复用 SD-02 Stack 展示，不持有内部节点路径。后续事件消费者提交 `enqueue_dialogue_bubble(entry)`；剧情多句使用 `enqueue_dialogue_sequence(entries, sequence_id)`，完成后 HUD 发出 `dialogue_sequence_completed(sequence_id, side)`，CS-23 可按序列 ID 等待最后一条气泡真实结束。本卡没有改写 Sandbox 根场景或接入 CS-23 流程。
+
+- `max_visible_dialogue_bubbles_per_side` 是 HUD Inspector 可调值，默认 3。左右独立排队；同优先级按到达先后，同侧满额时最早的即时命中开始提前渐隐，渐隐结束前仍计入容量。
+- 剧情序列优先于命中和闲聊。开始剧情时，已有低优先级气泡按 SD-02 原淡出参数提前退场；序列逐句播放，前一句完成后才显示下一句。完成通知晚于最后一句的配置时长与淡出 Tween。
+- `TIMED_IDLE` 只有在没有更高优先级对白活动时才展示。剧情占用期间，普通命中与定时闲聊保留待播。
+- SceneTree 暂停会冻结展示 Tween 与排队推进；`reset_for_attempt()` 清除活动、待播与未完成序列。对手 T0 离线会清理并禁用对手侧请求；顶层场景销毁 HUD 时，队列和气泡随其节点生命周期释放。
+- 单侧气泡显示层仍由 `StreamerBubbleStack` 持有；其 `show_bubble()` 现在返回刚创建的 `StreamerBubbleView`，供队列订阅现有 `expired` 生命周期通知。`StreamerBubbleView.finish_early()` 只提前结束生命周期并复用现有淡出时长，没有修改绘制、颜色、字体或动画参数。
+- 临时事件与回归入口：`tests/streamer_bubble_dialogue/sd03_ordered_bubble_events_smoke.tscn`。事件数据只在测试内存创建，不改正式 Resource/XLSX/导表器；GUI smoke 不注入键鼠事件。
+- 2026-10-10 Windows GUI smoke 的队列/HUD/Stack 断言为 33 项通过。该新 worktree 的 Godot 导入没有生成图片 `.ctex`，因此正式 Sandbox 根脚本及普通弹幕启动为 `UNVERIFIED`；具体 ExitCode、stderr、分辨率和输入边界见 [SD-03 完成日志](双主播气泡对话系统_SD-03_2026-10-10_log.md)。

@@ -1,12 +1,18 @@
 ## 普通战斗界面只读取组合方的状态；设计矩形保存于 Scene，运行时只整体缩放。
 extends Control
 
+signal dialogue_sequence_completed(sequence_id: StringName, side: int)
+
 const PortraitMotion = preload("res://systems/presentation/streamer_portrait_motion.gd")
+const DialogueQueueScript = preload("res://ui/streamer_bubble_dialogue/streamer_bubble_dialogue_queue.gd")
+
+@export_range(1, 8, 1) var max_visible_dialogue_bubbles_per_side: int = 3
 
 var player_portrait_motion: StreamerPortraitMotion
 var opponent_portrait_motion: StreamerPortraitMotion
 var _portrait_attack: AttackChargeInput
 var _opponent_connected: bool = false
+var _dialogue_queue: Node
 
 @onready var _aim_reticle: AimReticle = %AimReticle
 @onready var _battle_state: Label = %BattleStateFeedback
@@ -39,6 +45,16 @@ func _ready() -> void:
 	opponent_portrait_motion = PortraitMotion.new()
 	opponent_portrait_motion.configure_character("alien")
 	opponent_portrait_motion.attach_portrait(_opponent_portrait)
+	_dialogue_queue = DialogueQueueScript.new()
+	_dialogue_queue.name = "BubbleDialogueQueue"
+	_dialogue_queue.call(
+		"configure",
+		max_visible_dialogue_bubbles_per_side,
+		Callable(self, "show_dialogue_bubble"),
+		Callable(self, "_clear_bubble_stack")
+	)
+	_dialogue_queue.connect("sequence_completed", Callable(self, "_on_dialogue_sequence_completed"))
+	add_child(_dialogue_queue)
 	var parent_control: Control = get_parent() as Control
 	parent_control.resized.connect(_fit_parent_size)
 	_fit_parent_size()
@@ -100,6 +116,8 @@ func play_player_shot(snapshot: AttackTargetSnapshot) -> void:
 # T0 隐藏立绘，阶段换图仍复用当前待机容器；背景与其他演出由集成方管理。
 func set_opponent_portrait_connected(connected: bool) -> void:
 	_opponent_connected = connected
+	if _dialogue_queue != null:
+		_dialogue_queue.call("set_side_enabled", BubbleDialogueEntry.SpeakerSide.OPPONENT, connected)
 	_opponent_portrait.visible = connected and _opponent_portrait.texture != null
 	_opponent_portrait_placeholder.visible = connected and _opponent_portrait.texture == null
 
@@ -110,14 +128,45 @@ func configure_portrait_character(opponent_character_id: String) -> void:
 
 
 # 组合方提交 SD-01 条目；HUD 只按发言侧转发给对应立绘区，不判断触发规则。
-func show_dialogue_bubble(entry: BubbleDialogueEntry) -> void:
+func show_dialogue_bubble(entry: BubbleDialogueEntry) -> StreamerBubbleView:
 	if entry == null or entry.text.strip_edges().is_empty():
-		return
+		return null
 	match entry.side:
 		BubbleDialogueEntry.SpeakerSide.PLAYER:
-			_player_bubble_stack.show_bubble(entry)
+			return _player_bubble_stack.show_bubble(entry)
 		BubbleDialogueEntry.SpeakerSide.OPPONENT:
-			_opponent_bubble_stack.show_bubble(entry)
+			return _opponent_bubble_stack.show_bubble(entry)
+	return null
+
+
+func enqueue_dialogue_bubble(entry: BubbleDialogueEntry) -> bool:
+	return bool(_dialogue_queue.call("enqueue_entry", entry)) if _dialogue_queue != null else false
+
+
+func enqueue_dialogue_sequence(
+	entries: Array[BubbleDialogueEntry], sequence_id: StringName = &""
+) -> StringName:
+	if _dialogue_queue == null:
+		return &""
+	return StringName(_dialogue_queue.call("enqueue_sequence", entries, sequence_id))
+
+
+func clear_dialogue_bubbles(side: int = -1) -> void:
+	if _dialogue_queue != null:
+		_dialogue_queue.call("clear_side", side)
+	else:
+		_clear_bubble_stack(side)
+
+
+func _clear_bubble_stack(side: int) -> void:
+	if side == -1 or side == BubbleDialogueEntry.SpeakerSide.PLAYER:
+		_player_bubble_stack.clear_bubbles()
+	if side == -1 or side == BubbleDialogueEntry.SpeakerSide.OPPONENT:
+		_opponent_bubble_stack.clear_bubbles()
+
+
+func _on_dialogue_sequence_completed(sequence_id: StringName, side: int) -> void:
+	dialogue_sequence_completed.emit(sequence_id, side)
 
 
 # TextureRect 沿用当前设计框尺寸，背景裁切铺满，立绘和粉丝牌保留完整比例。
@@ -167,8 +216,7 @@ func show_failure() -> void:
 func reset_for_attempt() -> void:
 	player_portrait_motion.reset_shot()
 	opponent_portrait_motion.reset_shot()
-	_player_bubble_stack.clear_bubbles()
-	_opponent_bubble_stack.clear_bubbles()
+	clear_dialogue_bubbles()
 	player_portrait_motion.set_idle_strength(1.0)
 	opponent_portrait_motion.set_idle_strength(1.0)
 	set_opponent_portrait_connected(false)
