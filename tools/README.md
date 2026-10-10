@@ -52,7 +52,7 @@ python tools/export_game_data.py --input "tests/fixtures/data_export/test_only_d
 
 后续确定正式配置：更新 Google Sheets → 下载 XLSX → 运行正常导表命令 → Agent 根据正式 data/source_tables/ 建立相应 Resource。LevelProfile 已新增 normal_speech_pool_source: LevelSpeechPool 和 get_normal_speech_pool()；正式词库只需重新挂载资源，弹幕选择、经文和 Sandbox 已统一读取这个入口。原有 normal_speech_pool 继续兼容旧关卡。
 
-正常模式与 TEST_ONLY 模式的输出目录严格隔离；未标记 TEST_ONLY 的工作簿不能使用 --test-only。当前尚未实现全部业务表的正式 Godot 导入器；TEST_ONLY 模式只实现了联调必需的 02/03/04/05 → LevelProfile 和 LevelCatalog，其他表已准备 CSV，可由对应系统 Agent 使用。
+正常模式与 TEST_ONLY 模式使用不同输出目录；未标记 TEST_ONLY 的工作簿不能使用 --test-only。当前普通模式仍可能接收带 TEST_ONLY 标记的工作簿并写入正式来源目录，输入来源反向隔离需按 D-EXPORT-01 单独修复。当前尚未实现全部业务表的正式 Godot 导入器；TEST_ONLY 模式只实现了联调必需的 02/03/04/05 → LevelProfile 和 LevelCatalog，其他表已准备 CSV，可由对应系统 Agent 使用。
 
 ## 字段映射
 
@@ -68,10 +68,9 @@ Tier：pk_up_threshold/down → upgrade_threshold/downgrade_threshold；策划�
 python tests/data_export/test_export_modes.py
 godot --headless --path . --script res://tests/data_export/test_generated_tables.gd
 godot --headless --path . --script res://tests/data_export/test_test_only_integration.gd
-godot --headless --path . --script res://tests/data_export/test_test_only_sandbox.gd
 godot --headless --path . res://tests/fixtures/data_export/test_only_live_smoke.tscn --quit-after 720
 ~~~
 
 已知环境问题：独立 Windows worktree 在首次运行前可能需要 Godot --headless --editor --import，才能生成音频 .ogg 的导入缓存；不能仅根据缓存缺失报错判定游戏代码失败。真实战斗 Smoke 使用场景启动方式，从而初始化完整的 Autoload。
 
-注意：真实战斗 Smoke 已在 RS-09 / FO-11 合入后验证普通弹幕、蓄力攻击、PK 命中、未击破 Rest 界面 Continue → 下一关和重复继续去重。成功神谕后进入 Rest 属 FO-12，尚不在本测试覆盖内。Godot 退出时出现的 ObjectDB / Resource 清理提示已在集成日志中记录。
+注意：当前 TEST_ONLY Live Smoke 只验证实际 Sandbox 生成、未击破 Rest 信号与第二关数据消费；蓄力攻击、真假矛盾、PK 命中、存档、重复继续及最终 Ending 交由 tests/integration/int_04_full_run.tscn 进行完整路线验收。自动输入不代表实体鼠标操作。Godot 资源导入准备阶段的 ObjectDB / Resource 清理提示应与正式测试结果分开记录。
