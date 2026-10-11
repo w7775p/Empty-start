@@ -158,3 +158,5 @@ PA-02 负责把正式美术资产导入工程并接到对应 Resource；PA-03 �
 当前 PA-09 只负责 **必要异常结果词**（如 BLOCK、REFLECT、MISS）和 **准星旁整发 PK 净值浮字**。数字随净变化绝对值增大而增大字号、阴影浓度和偏移。一发多目标仅显示一个净值；普通命中无额外 HIT 标签；仓鼠立绘旁取消常规受击漫画提示；顶部 PK 条保持原样。PA-06 常规命中只播放材质碎裂、铁板硬碰或果冻回弹，已停止自动弹出独立漫画碎裂符号。旧四款漫画 PNG/SVG 仍作为历史艺术资产和专门的对比 Demo 保留，独立击破演出任务不受影响。
 
 三版仅比较**局部数值的排版与动态强度**：A Clean、B Ink、C Impact。Godot 入口 `res://scenes/demos/pa09_style_compare_demo.tscn`；`1/2/3` 切风格，`Q/W/E/R/T/Y` 切示例结果，`P` 重播，`Space` 暂停，`Tab` 自动轮换。原 Sandbox HUD、准星、主播和 PK 条未更改。截图在 `previews/pa09_v2_*.jpg`；仍属静态结算数据驱动的视觉试作，正式 `shot_hit_resolution_submitted` 接线与 Android 验收未完成。日志见 `表现资产_PA-09_2026-10-11_log.md`。PR #148 保持 Draft，等待人工验收。
+### PA-06 / PA-09 视觉返修补充（2026-10-11）
+已将普通玻璃的断裂线移至文字下缘，缩小分片错位；水军 Panel 改为整板收缩退场。PA-09 的异常提示在真实 `BarrageView` 上方用短线关联目标，Godot 预览场景同时运行 PA-06 玻璃碎裂、遮挡铁板与果冻回弹。按 `P` 重播当前整发反馈。原有 HUD 不变，结算数字仍为固定预览样例；正式战斗信号、Android 适配和策划美术选型尚未验收。更新截图见 `previews/pa06_*.jpg` 和 `previews/pa09_v2_*.jpg`，详细见两张 PA 系统日志。

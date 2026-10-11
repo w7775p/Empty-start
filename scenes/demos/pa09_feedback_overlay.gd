@@ -21,6 +21,7 @@ var style: Style = Style.CLEAN
 var case_id: Case = Case.BLOCK
 var aim_center: Vector2 = Vector2(945, 655)
 var target_positions: Array[Vector2] = [Vector2(1084, 457), Vector2(810, 602), Vector2(1304, 700)]
+var target_rects: Array[Rect2] = []
 var _elapsed: float = 0.0
 var _playing: bool = true
 var _labels: Array[Label] = []
@@ -41,6 +42,18 @@ func preview(next_style: int, next_case: int) -> void:
 	_playing = true
 	_build_labels()
 	_apply_time(0.0)
+
+
+# 预览从真实弹幕节点的变换得到目标矩形，坐标已经转换为本层局部坐标。
+func set_target_rects(rects: Array[Rect2]) -> void:
+	target_rects = rects
+
+
+func _target_top_center(index: int) -> Vector2:
+	if index >= 0 and index < target_rects.size():
+		var r: Rect2 = target_rects[index]
+		return r.position + Vector2(r.size.x * 0.5, 0)
+	return target_positions[index]
 
 
 func seek_at(progress: float) -> void:
@@ -107,23 +120,30 @@ func _build_labels() -> void:
 	# 普通命中只看准星数值，特殊异常才需要额外局部结果词。
 	var captions: Array[String] = []
 	var positions: Array[Vector2] = []
+	var target_anchors: Array[Vector2] = []
 	match case_id:
 		Case.BLOCK:
 			captions = ["BLOCK"]
-			positions = [target_positions[0]]
+			target_anchors = [_target_top_center(1)]
 		Case.REFLECT:
 			captions = ["REFLECT"]
-			positions = [target_positions[0]]
+			target_anchors = [_target_top_center(2)]
 		Case.MULTI:
 			captions = ["BLOCK", "REFLECT"]
-			positions = [target_positions[1], target_positions[2]]
+			target_anchors = [_target_top_center(1), _target_top_center(2)]
 		Case.MISS:
 			captions = ["MISS"]
 			positions = [aim_center + Vector2(64, 28)]
+	for i in range(target_anchors.size()):
+		var anchor: Vector2 = target_anchors[i]
+		# 标签在对应玻璃弹幕上方，以短连接线指向目标，避开弹幕正文。
+		positions.append(anchor + Vector2(-float(captions[i].length()) * 8.5, -49.0))
 	for i in range(captions.size()):
 		var label := _new_label()
 		label.text = captions[i]
 		label.set_meta("base_position", positions[i])
+		if i < target_anchors.size():
+			label.set_meta("target_anchor", target_anchors[i])
 		label.add_theme_font_size_override("font_size", 24 if style == Style.CLEAN else 31)
 		label.add_theme_color_override("font_color", Color("#e9eced") if style == Style.CLEAN else (Color("#f8f6df") if style == Style.INK else Color("#fff5ad")))
 		label.add_theme_constant_override("outline_size", 3 if style == Style.CLEAN else 5)
@@ -149,3 +169,16 @@ func _apply_time(seconds: float) -> void:
 		label.position = anchor + Vector2(0, -19 * rise)
 		label.rotation = -0.09 if style == Style.INK else 0.0
 		label.modulate.a = alpha
+	queue_redraw()
+
+
+# 用一段低对比短线把异常词连回实际命中的弹幕，不额外增加 HUD 容器。
+func _draw() -> void:
+	for label in _labels:
+		if not label.has_meta("target_anchor") or label.modulate.a <= 0.0:
+			continue
+		var hit: Vector2 = label.get_meta("target_anchor")
+		var origin: Vector2 = label.position + Vector2(float(label.text.length()) * 8.5, 29.0)
+		var tint := Color(0.84, 0.89, 0.96, 0.54 * label.modulate.a)
+		draw_line(origin, hit, tint, 1.5, true)
+		draw_circle(hit, 2.5, tint)
