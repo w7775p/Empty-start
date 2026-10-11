@@ -19,7 +19,7 @@
 | [CS-18](tasks/CS-18_tier-up-clear-old-repeat-requests.md) | 现有队列清理升档接线 | 已完成 · Godot 4.7.2 聚焦运行通过 |
 | [CS-19](tasks/CS-19_tier0-zero-pullback.md) | T0 回拉倍率数值 0 | 配置完成；Sandbox T0/T1 现行回拉验证通过，对白后时点待 CS-22/23 |
 | [CS-20](tasks/CS-20_tier0-matching-status.md) | T0 搜索对手文案 | 已完成：开局/重开显示可配置等待状态，T1 接线后切换为对手已连线 |
-| [CS-21](tasks/CS-21_tier1-opponent-portrait.md) | T0/T1 对手立绘出现 | 已有资源 |
+| [CS-21](tasks/CS-21_tier1-opponent-portrait.md) | T0/T1 对手立绘出现 | 部分完成：显隐与回切已验证；level_001 素材映射待确认 |
 | [CS-22](tasks/CS-22_tier1-bubble-dialogue.md) | T1 开场气泡对白 | 待开发 |
 | [CS-23](tasks/CS-23_tier1-resume-on-dialogue-end.md) | T1 对话后恢复战斗 | 待接线 |
 | [CS-24](tasks/CS-24_tier-foreground-slot-catalog.md) | Tier 唯一前景容量字段与 BarrageArea 读取接口 | 已完成 |
@@ -49,6 +49,8 @@ INT-01 已在正式 Sandbox 完成 HitResolution、BarrageArea、OpponentPKBar �
 CS-25 由 `ContradictionOracleFlow.entered` 驱动 SandboxBattleHud 的 `set_paradox_stage_active(active, current_tier)`。真实矛盾流程进入时显示 `T6 / Paradox`；Final Oracle、Rest、失败和新尝试接线会按当前 `CombatStage.get_current_tier()` 恢复普通档位文字。该展示不增加 Tier 6 配置，也不改 PK 比例、胜负判定或矛盾规则。聚焦场景 `tests/combat_stage/cs25_paradox_stage_label_smoke.tscn` 覆盖 HUD 内容、真实矛盾流程、六个候选、Rest、失败重试及第二次尝试；GUI 视口截图保存在 `evidence/cs25_2026-10-11/`。截图与运行断言使用现有 `level_001.tres` 示例内容，正式四关文本仍需策划确认。
 
 CS-20 通过 `SandboxBattleHud.t0_matching_status_text` 暴露可配置的 T0 等待文案，默认显示「等待对手连线……」。新开局和重开沿用 `show_battle_state()` 显示该状态；`refresh_pk()` 收到 Tier 变化后，仅在当前文案仍由 HUD 管理时切换 T0 等待状态或 T1「对手已连线」，其他来源的即时战斗提示会保留。该刷新复用既有 `BattleAttemptFlow.pk_feedback_changed` 接口，不改 Sandbox 根脚本或战斗流程。聚焦场景 `tests/combat_stage/cs20_matching_status_smoke.tscn` 覆盖开局、重开、T0/T1 和警告保留；GUI 截图保存在 `evidence/cs20_2026-10-11/`。
+
+CS-21 复用 `SandboxBattleHud.set_opponent_portrait_connected()` 与 `refresh_pk()` 的当前 Tier 反馈：T0 隐藏对手立绘与对白侧，进入 T1 显示已配置的待机立绘，降回 T0 后再次隐藏，再进入 T1 可重新显示。连接状态仅在 Tier 实际变化时切换。当前正式 `level_001.tres` 的 `streamer_portrait` 为空；素材台账仍要求关卡角色映射确认后再绑定，因此正式 Sandbox 的 T1 暂时继续显示占位内容。聚焦场景 `tests/combat_stage/cs21_opponent_portrait_smoke.tscn` 使用仓库现有 `alien_idle.png` 经 HUD 公开素材接口做视图验收，不代表 `streamer_sample` 已映射为 alien；四张 GUI 证据保存在 `evidence/cs21_2026-10-11/`。Tier 接线沿用当前 `BattleAttemptFlow.pk_feedback_changed` 时点；CS-14 的本发清屏及 CS-15 过渡仍待阶段联调，本卡未修改 Sandbox 根脚本。
 
 CS-24 增加 `CombatStageTierConfig.foreground_slot_count`。正式配置 T0=0（尚待策划填写）、T1～T5=10/13/16/19/22；各档 Resource 可独立调整。CombatStage 在绑定 BarrageArea、开局和档位切换时通过 `barrage_foreground_slot_count_changed` 发布当前值；BarrageArea 通过 `set_foreground_slot_count()` 接收并由 `get_foreground_slot_count()` 提供受控读取。0 保留为未配置标记，后续 BG-16 应沿用 `LevelProfile.normal_barrage_screen_cap` 的现有行为；CS-24 不改变容量准入或生成逻辑。
 

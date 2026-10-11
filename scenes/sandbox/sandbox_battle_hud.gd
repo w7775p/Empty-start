@@ -184,11 +184,12 @@ func _set_texture_rect(texture_rect: TextureRect, texture: Texture2D, stretch_mo
 
 # PK 唯一值归 HitResolution，HUD 只将它映射为玩家占比和对手占比。
 func refresh_pk(player_pk: float, current_tier: int) -> void:
-	# Tier 更新只替换 HUD 仍持有的匹配提示，不接管其他来源的即时状态。
+	# 匹配提示、对手立绘和对白侧只在真实 Tier 变化时切换；PK 连续刷新不重复清理离线对白。
 	if current_tier != _last_status_tier:
 		_last_status_tier = current_tier
 		_refresh_opponent_status(current_tier)
-	set_opponent_portrait_connected(current_tier > 0)
+		# T0 对手离线并隐藏立绘；进入 T1 后显示本关配置的待机图，降档与回升复用同一入口。
+		set_opponent_portrait_connected(current_tier > 0)
 	var player_share: float = clampf(player_pk, 0.0, 1.0)
 	_pk_progress.value = player_share
 	_player_pk_label.text = "玩家 PK %.1f%%" % (player_share * 100.0)

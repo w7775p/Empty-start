@@ -1,6 +1,6 @@
 # CS-21 T1 首次连线展示对手待机立绘
 
-**状态：已有资源承载 · 待 T0/T1 可见性接线**
+**状态：部分完成（2026-10-11）· 显隐与回切已验证，level_001 素材映射待确认**
 
 ## 开始前先阅读以下文档
 - `docs/Original/任务卡模板.md` 与 `known_traps.md`（通用执行规范与已知风险）
@@ -10,7 +10,7 @@
 - 视觉协调：CS-15 的升档过渡
 
 ## 已经实现的功能
-SandboxBattleHud 已有 OpponentPortraitArt 和 streamer_portrait 资源绑定，目前开局即展示。
+SandboxBattleHud 已有 OpponentPortraitArt 节点、LevelProfile `streamer_portrait` 读取接口和 `set_opponent_portrait_connected()` 显隐入口。当前正式 `level_001.tres` 的 `streamer_portrait` 未赋值；素材台账要求关卡角色映射明确后再选用 alien、kiwi 或 fox 素材。
 
 ## 本次任务
 T1 首次连线展示对手待机立绘。
@@ -79,6 +79,19 @@ T0 等待阶段和 T1 对手出现阶段的立绘状态正确切换。
 ### 14. 完成前检查
 - 复查范围、复用、复杂度、Scene/Resource 引用与信号方向、死代码和测试投入；确认本卡实际通过后提交。
 - 每张开发任务使用独立 branch，按 `AGENTS.md` 提交对应系统的完成日志；合并前同步最新目标分支重新验证。
+
+## 视图接线记录（2026-10-11）
+
+- `refresh_pk()` 在 Tier 实际变化时切换对手立绘与对白侧：T0 隐藏，T1 及以上显示已配置的待机图；降档与重新升档复用同一入口。
+- `tests/combat_stage/cs21_opponent_portrait_smoke.tscn` 实例化正式 Sandbox，并通过 `debug_set_player_pk()` 驱动实际 CombatStage → BattleAttemptFlow → HUD 通知，覆盖 T0→T1→T0→T1。该测试使用现有 `alien_idle.png` 经 HUD 素材接口注入，仅证明视图显隐，不确定正式关卡角色映射，也不证明完整玩法流程。
+- 当前 `level_001.tres` 没有正式立绘引用，T1 生产画面仍为占位内容。需项目负责人确认当前示例主播对应素材后，才能完成实际关卡画面验收。
+- CS-14 清屏及 CS-15 过渡仍待联调；本卡接收现有 Tier 反馈时点，不修改 Sandbox 根脚本。
+
+## 本次验证
+
+- Godot 4.7.2 Windows headless：CS-21 聚焦场景 14 checks、0 failures；CS-20 回归 11 checks、0 failures。
+- Godot 4.7.2 Windows GUI：CS-21 聚焦场景 18 checks、0 failures；1920×1080；截图位于 `../evidence/cs21_2026-10-11/`。
+- 未运行 INT-04；未修改关卡 Resource、Importer、表格或程序美术资产。
 
 ## 最终汇报
 提交本功能对应的变更与 Godot 实际运行验收结果，并更新系统 README 与完成日志。
