@@ -4,6 +4,8 @@ extends Node
 signal attempt_started(level: LevelProfile, hit_resolution: HitResolution, combat_stage: CombatStage, repeat_queue: RepeatDelayQueue)
 signal attempt_restarted(level: LevelProfile, hit_resolution: HitResolution, combat_stage: CombatStage, repeat_queue: RepeatDelayQueue)
 signal shot_resolved(snapshot: AttackTargetSnapshot, submission: Dictionary, current_tier: int, repeat_stats: RepeatGenerationStats)
+# 整发通知与升档清理完成后广播，供 Sandbox 和后续阶段演出接入。
+signal tier_transition_cleared(previous_tier: int, current_tier: int, cleared_barrage_count: int)
 signal tier_changed(current_tier: int, player_pk: float)
 signal pk_feedback_changed(player_pk: float, current_tier: int)
 signal battle_state_changed(text: String)
@@ -172,9 +174,11 @@ func clear_pending_normal_repeats() -> int:
 	return _repeat_queue.clear_normal_queue() if _repeat_queue != null else 0
 
 
-func clear_barrages_for_stage_transition() -> void:
+# 升档时只移除当前视图，普通生成按新 Tier 配置继续运行。
+func clear_barrages_for_stage_transition() -> int:
 	if is_instance_valid(_barrage_area):
-		_barrage_area.clear_barrages()
+		return _barrage_area.clear_current_barrages()
+	return 0
 
 
 func complete_current_level() -> void:
@@ -232,8 +236,9 @@ func _on_shot_hit_resolution_submitted(snapshot: AttackTargetSnapshot, submissio
 	var result: Dictionary = submission.get("hit_resolution_result", {})
 	if bool(result.get("cancelled_by_zero_pk", false)):
 		return
+	var resolved_tier: int = _combat_stage.get_current_tier()
 	var tier_increased_this_shot: bool = (
-		has_arrival_tier and _combat_stage.get_current_tier() > arrival_tier
+		has_arrival_tier and resolved_tier > arrival_tier
 	)
 	var normal_hit_count: int = 0
 	var repeat_hit_count: int = 0
@@ -269,10 +274,13 @@ func _on_shot_hit_resolution_submitted(snapshot: AttackTargetSnapshot, submissio
 		battle_state_changed.emit("复读命中 %d 条 · 零收益" % repeat_hit_count)
 	else:
 		battle_state_changed.emit("未命中有效话语")
-	shot_resolved.emit(snapshot, submission.duplicate(true), _combat_stage.get_current_tier(), _repeat_queue.get_generation_stats())
+	shot_resolved.emit(snapshot, submission.duplicate(true), resolved_tier, _repeat_queue.get_generation_stats())
 	if tier_increased_this_shot:
 		# 本发命中消费者和同发复读登记完成后，清除旧档位及本发新建的普通等待请求。
 		clear_pending_normal_repeats()
+		# 等所有整发消费者返回后清屏，保留当前普通生成状态并交付最终档位。
+		var cleared_barrage_count: int = clear_barrages_for_stage_transition()
+		tier_transition_cleared.emit(arrival_tier, resolved_tier, cleared_barrage_count)
 	if _hit_resolution.get_player_pk() >= _battle_config.maximum_player_pk:
 		_complete_normal_combat(_hit_resolution)
 

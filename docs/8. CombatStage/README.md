@@ -8,11 +8,11 @@
 
 ## 2026-10-09 现行实现核对与任务状态
 
-**阶段结构：** `CombatStage` 的运行档位为 T0～T5，普通 T5 继续战斗到满 PK。进入真实 `ContradictionBreak` 后，SandboxBattleHud 显示 `T6 / Paradox`（CS-25）；此文案沿用运行 Tier 5、PK 比例与现有胜负流程。CS-18 已在整发命中、倾向及复读登记和 `shot_resolved` 消费者处理后，仅对本发实际升档调用 `clear_pending_normal_repeats()` 清空旧普通请求；CS-14 仍负责升档后的可见弹幕清理。T0 回拉倍率为 0（CS-19）；T1 开场对白完成后再进入回拉与生成，当前接线待 CS-22/23。T2～T5 每档仅在本场首次到达时抽取一项反击（CS-28）；已抽技能按当前 Tier 生效，降档暂停高档反击、回升恢复原抽取结果（CS-29），具体候选池后续确定。降至 T0 对手离线（CS-26），降至 T1 触发嘲讽（CS-27）。
+**阶段结构：** `CombatStage` 的运行档位为 T0～T5，普通 T5 继续战斗到满 PK。进入真实 `ContradictionBreak` 后，SandboxBattleHud 显示 `T6 / Paradox`（CS-25）；此文案沿用运行 Tier 5、PK 比例与现有胜负流程。CS-18 在 `shot_resolved` 的全部消费者返回后清理本发旧普通复读请求；CS-14 已在相同升档时点清除全部可见弹幕，并保留新 Tier 普通生成。T0 回拉倍率为 0（CS-19）；T1 开场对白完成后再进入回拉与生成，当前接线待 CS-22/23。T2～T5 每档仅在本场首次到达时抽取一项反击（CS-28）；已抽技能按当前 Tier 生效，降档暂停高档反击、回升恢复原抽取结果（CS-29），具体候选池后续确定。降至 T0 对手离线（CS-26），降至 T1 触发嘲讽（CS-27）。
 
 | 卡片 | 按实际代码核对后的唯一功能 | 状态 |
 | --- | --- | --- |
-| [CS-14](tasks/CS-14_tier-up-clear-all.md) | 本发结算完成后升档清屏 | 待开发 |
+| [CS-14](tasks/CS-14_tier-up-clear-all.md) | 本发结算完成后升档清屏 | 已完成 · Godot 4.7.2 GUI 运行通过（64 checks） |
 | [CS-15](tasks/CS-15_tier-up-breakthrough.md) | 升档短暂突破演出 | 待开发 |
 | [CS-16](tasks/CS-16_tier-down-shake.md) | 降档统一震动（离线与嘲讽由 CS-26/27 叠加） | 待开发 |
 | [CS-17](tasks/CS-17_silence-and-burst.md) | 沉默爆发候选节点 | 待策划 |
@@ -63,6 +63,8 @@ CS-07 通过 `bind_barrage_area(barrage_area)` 连接 BarrageArea 的真实倍�
 CS-08 提供 `get_current_repeat_count_per_hit()`，返回当前 Tier 配置的 `repeat_count_per_hit`。命中结算完成并更新 Tier 后，普通复读计划创建方读取该数量与 `get_current_tier()`，传给 `RepeatPlan.create_normal_hit_plan()`；RepeatPlan 在创建时保存固定数量和结算档位。CombatStage 不缓存复读计划，也不拥有复读统计。
 
 CS-18 在 `shot_arrival_resolved` 到达时记录本发 Tier，避免飞行期间的对手回拉变化被误认作本发升档。整发命中、倾向和复读计划处理完成并发出 `shot_resolved` 后，若结算 Tier 高于到达 Tier，`BattleAttemptFlow` 调用 `clear_pending_normal_repeats()`，复用 `RepeatDelayQueue.clear_normal_queue()` 清除旧档与同发仍待生成的普通请求；本发提交回调返回后，延迟中的普通战斗完成才可进入突破流程。队列清理只撤销待生成请求，实际已生成统计继续沿用原规则，新档请求可正常入队。
+
+CS-14 在 `shot_resolved` 的所有消费者返回后，对比本发到达 Tier 与最终 Tier；仅实际升档时清空 `BarrageArea` 中当前可见的普通、带特性和复读视图。`clear_barrages_for_stage_transition()` 返回移除数量，并通过 `clear_current_barrages()` 保留普通生成状态；清理完成后发出 `tier_transition_cleared(previous_tier, current_tier, cleared_barrage_count)`，供 CS-15 接入升档演出。聚焦场景覆盖 T0→T1、T1→T2 和跨档上升，GUI 截图保存在 `evidence/cs14_2026-10-11/cs14_t0_to_t1_clear.png`。
 
 CS-10 提供 `tier_state_changed(current_tier)`，在开局同步 Tier 0，并在跨档计算完成后只广播一次最终 Tier。Tier 上升时发出 `audio_event_requested(&"tier_up")`；`bind_audio_manager(audio_manager)` 将该事件接到 AU-01 的 `AudioManager.play_event(StringName)`。当前 LiveDataHud 只显示四项计数，没有 Tier 接收端；Sandbox 场景拥有者需把 `tier_state_changed` 接到实际 Tier 表现组件。此接口不包含 AU-02 音乐状态切换。
 
