@@ -11,6 +11,9 @@
 ## 已经实现的功能
 `CombatStage.tier_state_changed` 可传递本次最终 Tier；HUD 已有对手立绘和状态提示的表现位置。
 
+## SD-06 接口交接（2026-10-11）
+SD-06 使用稳定事件 ID `combat_tier1_taunt` 表示本场最终 Tier 从 T2 或更高档降至 T1；跨档变化仍只按 `tier_changed` 携带的最终 Tier提交一次。CS-27 无需解析 `battle_state_changed(text)`，对应对手台词继续从当前 `BubbleDialogueConfig` 读取并由 SD-03 按剧情优先级播放。
+
 ## 本次任务
 降至 T1 时对手嘲讽表现。
 

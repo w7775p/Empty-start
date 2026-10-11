@@ -1,6 +1,6 @@
 # SD-06 根据连线、Tier、输赢状态播放配置对白
 
-**状态：待开发 · 2026-10-09 新确认需求**
+**状态：已完成 · 2026-10-11 · [完成日志](../双主播气泡对话系统_SD-06_2026-10-11_log.md)**
 
 ## 开始前先阅读以下文档
 - `docs/Original/任务卡模板.md` 与 `known_traps.md`（通用执行规范与已知风险）
@@ -13,6 +13,13 @@
 
 ## INT-10 / S3 接口交接（2026-10-11）
 Lane B 负责对白事件选择和 SD-03 高优先级队列。普通战斗从 `Sandbox.get_battle_attempt_flow()` 订阅 `attempt_started`、`tier_changed`、`shot_resolved`、`attempt_failed` 等事实；Paradox / Rest 从 `get_contradiction_oracle_flow()` 订阅 `outcome_resolved`、`oracle_opened`、`rest_ready`。`battle_state_changed(text)` 仅供状态栏显示；本卡与 CS-22/27 约定稳定语义事件 ID，不解析显示文案。
+
+## 已完成实现（2026-10-11）
+- `StreamerBubbleCombatStatePresenter` 订阅 BattleAttemptFlow 的启动、最终 Tier、普通胜利和失败信号，并订阅 ContradictionOracleFlow 的最终结果；不消费 `battle_state_changed(text)`，不新增 Autoload，也不接管 SD-04/05 的 `shot_resolved` 消费。
+- 稳定事件 ID：`combat_connected`、`combat_tier_up`、`combat_tier_down`、`combat_tier1_taunt`、`combat_win`、`combat_lose`、`paradox_breakthrough`、`paradox_not_broken`。映射规则见系统 README；CS-22 使用 `combat_connected`，CS-27 使用 `combat_tier1_taunt`。
+- 配置条目按 `BubbleDialogueConfig.find_by_event()` 的顺序读取，逐条复制并以 `PLOT` 优先级提交 SD-03 序列。源 Resource 不修改。同一事件的序列条目需要属于同一发言侧，以符合 SD-03 现有单侧序列接口。
+- Sandbox 新增 `dialogue_event_sequence_completed(event_id, sequence_id, side)`，只有 SD-03 的完整序列到期后才转发；无配置条目时发出空序列完成通知，供 CS-23 在无对白数据时继续流程。重开和离线取消的序列不发完成通知。
+- 当前正式 `bubble_dialogue_config.tres` 仍为空；状态台词只在 TEST_ONLY 内存配置中验收。没有修改正式表格、导出器、SD-04/05 presenter 或 CS-22/23/27 的业务实现。
 
 ## 本次任务
 根据连线、Tier、输赢状态播放配置对白。
