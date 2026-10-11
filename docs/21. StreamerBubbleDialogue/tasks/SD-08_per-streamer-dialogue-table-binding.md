@@ -25,7 +25,7 @@
 本卡交付02与20表的 story_config_id、streamer_id 双重校验、trigger_type/trigger_key/source_word_id/trigger_time_s及line_order有序映射、SD-01 BubbleDialogueConfig和本场查询接口。SD-03接收有序配置后执行剧情逐句播放及完成通知；SD-05/06/07分别接收命中、状态与定时的静态事件映射。
 
 1. 读取当前 `LevelProfile` 对应的02.`story_config_id` 与02.`streamer_id`，筛选20表中 `story_config_id` 匹配、`enabled` 为真的本场对白；同时核对20.`streamer_id` 的主播归属，保证当前关只读取本场剧情。
-2. 将20.`speaker_side`、`text`、`source_word_id`、`priority`、`display_duration_s` 对应到已有 `BubbleDialogueEntry`；将 `trigger_type + trigger_key` 映射为稳定的SD-01 `event_id`，同时为SD-07提供 `trigger_time_s`。
+2. 将20.`speaker_side`、`text`、`source_word_id`、`priority`、`display_duration_s` 对应到已有 `BubbleDialogueEntry`；将 `trigger_type + trigger_key` 映射为稳定的SD-01 `event_id`，同时为SD-07提供 `trigger_time_s`。其中 `trigger_type=timed` 使用 `event_id=&"timed"`，`trigger_time_s` 写入 `BubbleDialogueEntry.trigger_time_seconds`。
 3. 同一剧情配置、同一触发事件下，按正整数 line_order 升序提供连续对白查询结果和稳定排序列表，供SD-03顺序播放；队列完成通知由SD-03按其任务卡提供给CS-23。
 4. 提供事件映射表及查询接口：hit_word关联source_word_id，供SD-05匹配实际命中；connect、tier_up、tier_down、win、lose供SD-06根据战斗状态查询；timed及trigger_time_s供SD-07的可暂停计时消费。
 5. 当前关开播、重开、进入下一关时按新的 `story_config_id` 读取本场对白；与现有 `LevelProfile`、Sandbox和SD-01资源接口协调，使用同一静态配置供SD-03～07消费。

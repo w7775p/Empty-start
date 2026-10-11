@@ -10,6 +10,8 @@ enum Priority { TIMED_IDLE = 0, HIT = 1, PLOT = 2 }
 ## 沿用 LevelSpeech 的稳定原句 ID；状态和闲聊对白可留空。
 @export var original_sentence_id: String = ""
 @export var event_id: StringName = &""
+## 定时对白相对本场 attempt_started 的秒数；其他事件条目保留 0。
+@export_range(0.0, 3600.0, 0.1, "or_greater") var trigger_time_seconds: float = 0.0
 ## 3 秒仅为可调初值，正式时长等待策划试玩确认。
 @export_range(0.1, 60.0, 0.1, "or_greater") var display_duration_seconds: float = 3.0
 @export var priority: Priority = Priority.HIT

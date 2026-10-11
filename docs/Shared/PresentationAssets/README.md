@@ -128,8 +128,10 @@ PA-02 负责把正式美术资产导入工程并接到对应 Resource；PA-03 �
 普通弹幕使用原有 `systems/barrage_generation/barrage_view.tscn` 与独立 `BarrageGlassSurface` 材质节点。**2026-10-10 正式定稿：01 GLASS NOIR**（正统 `#1658A2`、异端 `#B9502D`、荒谬 `#B7865B`、Neutral `#ADA4A3`），S1 轻薄玻璃、S2 明亮柔光、S3 更亮并缓慢呼吸；取消刻痕、左侧竖条及双层硬内框。底板倾向色、三级强度参数全部暴露在 `BarrageGlassSurface` Inspector；S3 文字加重在 `BarrageView` 配置，不增加色板 Resource。`BarrageView.setup()` 按运行记录决定外观，`set_visual_bbcode(bbcode)` 保留富文本接口。独立演示 `scenes/demos/pa04_glass_demo.tscn`，1920×1080 真实 GPU 截图（含同屏重叠）与最小冒烟见 `docs/Shared/PresentationAssets/previews/` 及 `表现资产_PA-04_2026-10-10_log.md`。正式 BG-28 富文本配表、RP 复读规则与 Sandbox 接线按对应系统后续集成，PA-05 可复用已定稿玻璃材质。
 
 ## PA-06 弹幕命中短演出（2026-10-10）
+**2026-10-11 最新规则：**普通玻璃命中保留曲线双碎片，铁板保留硬质高光撞击，果冻保留回弹。常规命中不会再弹出独立漫画碎裂符号；`impact_symbol_texture` 默认为空；旧四套 PNG/SVG 只用于历史画廊手动预览。PA-09 的准星净值取代普通命中上的重复漫画与 HIT；主播旁常规受击漫画也取消。此前本节旧默认图方案与截图仅记录历史设计。
 
-**漫画符号新版本（待策划四选一）**：四套独立透明 PNG / 可编辑 SVG 位于 `assets/ui/combat/impact_marks/`；①锐利剪纸、②粗笔触、③手绘 KRAK 拟声、④漫画破裂漫符。通过 `pa06_mark_variants_demo.tscn` 在 Godot 真实碎裂中并排对照，截图见 `previews/pa06_four_marks_impact.jpg` 和 [四方案说明](previews/PA06_four_impact_marks_study.md)。已移除旧的数学符号 Label，运行时只渲染独立 TextureRect；Inspector 可直接切换四个资源。目前暂以 01 作为演示默认，待美术选定。
+
+**历史漫画符号资产（2026-10-11 常规命中已停用）**：四套独立透明 PNG / 可编辑 SVG 位于 `assets/ui/combat/impact_marks/`；①锐利剪纸、②粗笔触、③手绘 KRAK 拟声、④漫画破裂漫符。通过 `pa06_mark_variants_demo.tscn` 在 Godot 真实碎裂中并排对照，截图见 `previews/pa06_four_marks_impact.jpg` 和 [四方案说明](previews/PA06_four_impact_marks_study.md)。已移除旧的数学符号 Label，运行时只渲染独立 TextureRect；Inspector 可直接切换四个资源。目前暂以 01 作为演示默认，待美术选定。
 
 
 `BarrageImpactPresenter` 和 `BarrageImpactFx` 位于 `systems/presentation/`，复用 PA-04 / PA-05 真实弹幕 Scene 和 4 系统最终 `BarrageTraitResult`。呈现普通曲线双碎片 + 独立 PNG 漫画碎裂符号、铁板硬碰后留场、分裂母体沿左上→右下曲线分开、果冻受压→回弹→恢复、假复读椭圆碎裂、水军整块 Panel 带小字统一破碎。曲线碎片由一次性 SubViewport 镜像取样，`Polygon2D` 以曲线 UV 裁切并各自退场；实例归 3/5/6 系统照旧结束，演出独立存活约 0.28s。漫画符号已经采用独立透明 PNG 资产，使用 `impact_symbol_texture` 切换四个方案，尺寸、偏移可在 Inspector 设置。
@@ -150,3 +152,17 @@ PA-02 负责把正式美术资产导入工程并接到对应 Resource；PA-03 �
 ## 最新任务卡分工口径（2026-10-09）
 
 普通前景话语保留清晰文字及描边；真正复读以灰字、零文字描边和背景层级呈现。**假复读与真复读的底色、透明度、字号、字色及文字描边一致，只有外框分别为椭圆、圆角**；假复读继续是携带 `fake_card` 特性的可命中前景话语。PA-04 负责视觉材质与文字风格，BG-28/BG-37 负责普通前景文本能力，RP-19～RP-21 负责复读字色、描边与层级；PA-06 表现遮挡撞击时遵循 CA-15 的整发落空结算。
+
+## PA-09 简化局部战斗反馈（2026-10-11 策划确认）
+
+当前 PA-09 只负责 **必要异常结果词**（如 BLOCK、REFLECT、MISS）和 **准星旁整发 PK 净值浮字**。数字随净变化绝对值增大而增大字号、阴影浓度和偏移。一发多目标仅显示一个净值；普通命中无额外 HIT 标签；仓鼠立绘旁取消常规受击漫画提示；顶部 PK 条保持原样。PA-06 常规命中只播放材质碎裂、铁板硬碰或果冻回弹，已停止自动弹出独立漫画碎裂符号。旧四款漫画 PNG/SVG 仍作为历史艺术资产和专门的对比 Demo 保留，独立击破演出任务不受影响。
+
+三版仅比较**局部数值的排版与动态强度**：A Clean、B Ink、C Impact。Godot 入口 `res://scenes/demos/pa09_style_compare_demo.tscn`；`1/2/3` 切风格，`Q/W/E/R/T/Y` 切示例结果，`P` 重播，`Space` 暂停，`Tab` 自动轮换。原 Sandbox HUD、准星、主播和 PK 条未更改。截图在 `previews/pa09_v2_*.jpg`；仍属静态结算数据驱动的视觉试作，正式 `shot_hit_resolution_submitted` 接线与 Android 验收未完成。日志见 `表现资产_PA-09_2026-10-11_log.md`。PR #148 保持 Draft，等待人工验收。
+### PA-06 / PA-09 视觉返修补充（2026-10-11）
+已将普通玻璃的断裂线移至文字下缘，缩小分片错位；水军 Panel 改为整板收缩退场。PA-09 的异常提示在真实 `BarrageView` 上方用短线关联目标，Godot 预览场景同时运行 PA-06 玻璃碎裂、遮挡铁板与果冻回弹。按 `P` 重播当前整发反馈。原有 HUD 不变，结算数字仍为固定预览样例；正式战斗信号、Android 适配和策划美术选型尚未验收。更新截图见 `previews/pa06_*.jpg` 和 `previews/pa09_v2_*.jpg`，详细见两张 PA 系统日志。
+
+### PA-09 PC 正式战斗接线进展（2026-10-11）
+
+已复用 `systems/presentation/combat_hit_feedback.gd` 同时运行独立选型 Demo 与 Sandbox 正式命中反馈。现场信号来源：`shot_arrival_resolved` 提供结果词/目标位置，`shot_hit_resolution_submitted` 提供整发真实 PK 净值和准星冻结位置。正常 `+0.12%`、落空 `-1% / MISS` 已在 Godot 4.7.2 实际发射并 GPU 截图：`previews/pa09_real_battle_hit.jpg`、`previews/pa09_real_battle_miss.jpg`。旧的独立 `pa09_feedback_overlay.gd` 已合入正式组件，避免两份实现。必要异常的真实联动、Android 真机及美术最终选型继续待验收，PR #148 保持 Draft。
+
+**真实异常补充：** 通过 AttackChargeInput 正式结算，遮挡反馈对应 BLOCK 与 PK -1%，反弹对应 REFLECT 与 PK -1%；两张实际 GPU 截图在 previews/pa09_real_occlusion.jpg、previews/pa09_real_reflect.jpg。其余视觉审美与 Android 待人工验收。
