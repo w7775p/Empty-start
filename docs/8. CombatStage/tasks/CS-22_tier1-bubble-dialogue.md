@@ -1,6 +1,6 @@
 # CS-22 T1 对手气泡开场对白
 
-**状态：待实施**
+**状态：部分完成 · T1 事件序列与完播通知已验收；正式对白待配置**
 
 ## 开始前先阅读以下文档
 - `docs/Original/任务卡模板.md` 与 `known_traps.md`（通用执行规范与已知风险）
@@ -10,7 +10,7 @@
 - 后续消费者：CS-23
 
 ## 已经实现的功能
-现有 SandboxBattleHud 暂未提供开场气泡；SD-02/SD-03 负责双主播气泡绘制、上浮和顺序，SD-06 负责按状态事件挑选当前关对白。
+SandboxBattleHud 已组合 SD-03 队列并提供对白序列接口；SD-06 根据稳定状态事件选择配置对白，Sandbox 转发完整序列通知。
 
 ## INT-10 / S3 接口交接（2026-10-11）
 CS-22 的 Tier 条件读取 `Sandbox.get_battle_attempt_flow()` 的 `attempt_started(level, ...)` 与 `tier_changed(current_tier, player_pk)`；Sandbox 在尝试启动回调中根据本关 `LevelProfile.streamer_id` 更新立绘预设。SD-06 已约定稳定事件 ID `combat_connected`：BattleAttemptFlow 最终 Tier 从 T0 到正档时提交本关连接事件，常规 T0→T1 开场按该 ID 查询配置。`Sandbox.dialogue_event_sequence_completed(event_id, sequence_id, side)` 在 SD-03 完整序列播放结束后转发给后续 CS-23。`battle_state_changed(text)` 是本地化 HUD 文案，不可作为对白事件键解析。
@@ -26,6 +26,12 @@ T1 展示对手立绘后
 
 ### 验收条件
 能按配置顺序播放全部开场文字，并在最后一句结束后通知正常战斗恢复。
+
+### 当前完成记录（2026-10-11）
+- 现有 `BattleAttemptFlow` 在 Tier 变化时先发出 `pk_feedback_changed` 刷新 HUD，再发 `tier_changed`；SD-06 在 T0→正 Tier 时提交 `combat_connected`，保证 T1 立绘状态已刷新后才进入开场对白队列。
+- Sandbox 已通过 `dialogue_event_sequence_completed(event_id, sequence_id, side)` 将 SD-03 实际完播结果交给 CS-23。
+- `tests/combat_stage/cs22_tier1_bubble_dialogue_smoke.tscn` 使用正式 Sandbox、临时深复制对白配置和现有立绘素材，通过 GUI / headless 验收两句顺序、立绘先显示、末句结束后发出一次通知。
+- 正式 `bubble_dialogue_config.tres` 当前为空，正式 `level_001` 对手立绘映射也待素材确认；本卡仍记为部分完成。CS-23 恢复回拉与生成不属于本卡。
 
 ## Godot 开发环境
 - Godot 版本：4.7.2（开工核对 `project.godot`）
