@@ -186,8 +186,13 @@ func _set_texture_rect(texture_rect: TextureRect, texture: Texture2D, stretch_mo
 func refresh_pk(player_pk: float, current_tier: int) -> void:
 	# 匹配提示、对手立绘和对白侧只在真实 Tier 变化时切换；PK 连续刷新不重复清理离线对白。
 	if current_tier != _last_status_tier:
+		var opponent_was_connected: bool = _opponent_connected
 		_last_status_tier = current_tier
-		_refresh_opponent_status(current_tier)
+		if opponent_was_connected and current_tier == 0:
+			# 对手刚离线时优先显示重新匹配状态，避免旧战斗提示遮住离线事实。
+			_show_opponent_status(t0_matching_status_text)
+		else:
+			_refresh_opponent_status(current_tier)
 		# T0 对手离线并隐藏立绘；进入 T1 后显示本关配置的待机图，降档与回升复用同一入口。
 		set_opponent_portrait_connected(current_tier > 0)
 	var player_share: float = clampf(player_pk, 0.0, 1.0)
