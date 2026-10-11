@@ -5,7 +5,7 @@
 
 ## 2026-10-11 现行实现核对与任务状态
 
-**现行生成规则：** 前景普通话语与挂特性的特殊话语共用 T0～T5 各档少量容量，T1=10、T2=13、T3=16、T4=19、T5=22。T0 的 0 表示未填，普通阶段沿用 `LevelProfile.normal_barrage_screen_cap`。BG-16 已接入 CS-24 的 Tier 名额；普通话语与带特性话语共用同一账本，实例离树释放容量。Paradox 继续采用关卡上限，复读保留独立容量。复读和遮挡特性话语可由生成调用方显式请求中央战斗区随机静止落点；默认仍沿用既有定位和移动。普通前景默认向左平移；`BarrageArea` 可选开启 BG-21 平滑曲线或 BG-22 周期加减速，两种运动都使用 BG-40 速度上限。BG-22 默认关闭，打开后只影响新生成的普通移动前景；曲线与加减速可以组合使用。BG-20 随机方向直线和 BG-23 游荡仍待开发。BG-42 静止请求、Repeat 与 Paradox 不受普通前景变速选项影响；尚未接入 BG-39 Tier 运动权重。Paradox 阶段按 CB-13 读取一真五假六句。
+**现行生成规则：** 前景普通话语与挂特性的特殊话语共用 T0～T5 各档少量容量，T1=10、T2=13、T3=16、T4=19、T5=22。T0 的 0 表示未填，普通阶段沿用 `LevelProfile.normal_barrage_screen_cap`。BG-16 已接入 CS-24 的 Tier 名额；普通话语与带特性话语共用同一账本，实例离树释放容量。Paradox 继续采用关卡上限，复读保留独立容量。复读可由生成调用方显式请求中央战斗区随机静止落点；普通话语装配 `occlusion` 后由 BT-15 自动使用该能力。其他普通话语默认沿用既有移动。普通前景默认向左平移；`BarrageArea` 可选开启 BG-21 平滑曲线或 BG-22 周期加减速，两种运动都使用 BG-40 速度上限。BG-22 默认关闭，打开后只影响新生成的普通移动前景；曲线与加减速可以组合使用。BG-20 随机方向直线和 BG-23 游荡仍待开发。BG-42 静止请求、Repeat 与 Paradox 不受普通前景变速选项影响；尚未接入 BG-39 Tier 运动权重。Paradox 阶段按 CB-13 读取一真五假六句。
 
 | 卡片 | 按实际代码核对后的唯一功能 | 状态 |
 | --- | --- | --- |
@@ -31,6 +31,8 @@
 | [BG-40](tasks/BG-40_foreground-speed-ceiling.md) | 前景话语最大速度 | 普通直线、BG-21 曲线和 BG-22 加减速均按统一上限验证；BG-20/23 实现后补验 |
 | [BG-41](tasks/BG-41_random-trait-selection.md) | 按已解锁池随机分配特性 | 技能池待定 |
 
+**BT-14 固定层级契约：** `BarrageView.REPEAT_Z_INDEX=0`、`FOREGROUND_Z_INDEX=1`、`OCCLUSION_Z_INDEX=RenderingServer.CANVAS_ITEM_Z_MAX`（Godot 4.7.2 为 4096）。BG-25 / BG-26 的普通前景层级使用 1～4095，4096 专供遮挡实例保持最高层。
+
 **BG-38（2026-10-11）** `test_bg38_battle_attempt_clear.tscn` 通过正式 Sandbox 组合、`AttackChargeInput`、`BattleAttemptFlow` 和 `BarrageArea` 执行两发真实流程。无遮挡发覆盖两条普通话语、假牌、水军复制品和复读：五个原目标均由 `end_barrage()` 结束；普通倾向只累计两条有效普通命中，两条普通命中各按 Tier 规则生成复读，已命中的复读目标不再复制。第二次重开后，释放快照含遮挡的整发按 CA-15 MISS 结算一次 `-0.01`，五个原目标继续留场，普通命中历史、倾向和复读队列均无新增。测试使用运行时 TEST_ONLY 特性与合成鼠标事件；物理鼠标和完整人工流程尚未覆盖。
 
 **BG-34（2026-10-10）** `CombatStage` 将 T2=13 发布给 `BarrageArea`。满槽后移除 4 条，现场数量回到 9；容量释放恢复现有 `SpawnTimer`，下一次批次经 `NormalSpeechSelector` 补到 13，额外普通生成由现有上限拦截。复读继续走独立账本。本卡确认现有 BG-16 接线已满足频率补位规则，并新增真实组件回归。
@@ -41,7 +43,7 @@
 
 `test_bg36_tier_downgrade_grace.gd` 使用真实 `CombatStage`、`BarrageArea`、`BarrageView` 与 `SpawnTimer`，逐项检查原实例 ID、绝对寿命截止值、运动、超额时停表、降到 12 后等待 timeout 再新增一条视图，以及补到 13 后停表。测试用 `LevelProfile` 和 `LevelSpeech` 均为脚本内构造的 TEST_ONLY 数据；这项组件级验证不代表 Sandbox 正式玩法验收。
 
-**BG-42（2026-10-11）** `spawn_normal_barrage(..., random_static_placement=false)` 与 `spawn_repeat_barrage(..., random_static_placement=false)` 为单次请求提供可选的随机静止定位。默认值保持普通生成与已有复读调用的原定位 / 移动；显式传 `true` 时，在视图完成排版后按 `BarrageArea.size - BarrageView.size` 均匀抽取位置，视图无法完整放入当前区域时拒绝生成并归还刚申请的容量。静止视图沿用原暂停补偿、绝对寿命、普通或复读容量账本；区域缩放后可容纳时夹回完整边界，容纳不了时自然移除。RP-16 复读与 BT-15 遮挡实例可通过对应生成入口显式启用。Paradox 仍走 `_place_new_barrage()`，CB-13 一真五假候选逻辑没有变化。
+**BG-42（2026-10-11）** `spawn_normal_barrage(..., random_static_placement=false)` 与 `spawn_repeat_barrage(..., random_static_placement=false)` 为单次请求提供可选的随机静止定位。显式传 `true` 时，在视图完成排版后按 `BarrageArea.size - BarrageView.size` 均匀抽取位置，视图无法完整放入当前区域时拒绝生成并归还刚申请的容量。静止视图沿用原暂停补偿、绝对寿命、普通或复读容量账本；区域缩放后可容纳时夹回完整边界，容纳不了时自然移除。BT-15 让带 `occlusion` 的普通实例自动使用该能力；复读与其他普通实例仍可由调用方按需请求。Paradox 仍走 `_place_new_barrage()`，CB-13 一真五假候选逻辑没有变化。
 
 `test_bg42_static_random_placement.gd` 用实际 `BarrageArea` / `BarrageView` 覆盖默认移动、短长文本边界、随机位置分布、1024×760 当前尺寸、1024×1008 扩高、缩小区域时视图夹回 / 移除与容量恢复、过小区域拒绝、暂停和寿命。图形运行保存当前战斗区视觉截图到 `evidence/BG42_static_random_placement.png`；真实 Sandbox 场景文件未修改。
 

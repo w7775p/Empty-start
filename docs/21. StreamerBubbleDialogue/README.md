@@ -40,7 +40,7 @@
 
 SD-01 数据配置已完成。代码和空的正式配置位于 `data/streamer_bubble_dialogue/`，完成记录见 [SD-01 日志](双主播气泡对话系统_SD-01_2026-10-10_log.md)。
 
-- `BubbleDialogueEntry` 是可在 Inspector 编辑的 Resource：`side` 使用 `SpeakerSide.PLAYER / OPPONENT`，`text` 为显示文本，`original_sentence_id` 沿用 `LevelSpeech` 的 String 原句 ID（可空），`event_id` 为 StringName 事件 ID，`display_duration_seconds` 为停留秒数，`priority` 为可编辑优先级。
+- `BubbleDialogueEntry` 是可在 Inspector 编辑的 Resource：`side` 使用 `SpeakerSide.PLAYER / OPPONENT`，`text` 为显示文本，`original_sentence_id` 沿用 `LevelSpeech` 的 String 原句 ID（可空），`event_id` 为 StringName 事件 ID，`trigger_time_seconds` 为相对本场尝试开始的定时触发秒数，`display_duration_seconds` 为停留秒数，`priority` 为可编辑优先级。
 - `Priority.PLOT=2 > HIT=1 > TIMED_IDLE=0`；指定原句答话从对手侧配置项读取，SD-05 以副本提交为剧情优先级，源 Resource 保持只读。条目初值为玩家侧、命中优先级、3 秒，正式时长仍待试玩确认。
 - `BubbleDialogueConfig.entries` 保存本场条目。`find_by_sentence(id, side=ANY_SIDE)` 按原句读取；`find_by_event(event_id, side=ANY_SIDE, original_sentence_id="")` 是事件请求的读取入口，空原句参数表示该事件的全部原句。结果保持配置顺序，允许同事件多句；空或未知查询 ID 返回空数组。读取返回共享的静态条目引用，消费者保持只读。
 - `create_hit_echo(original_sentence_id, original_sentence_text, is_actual_hit, is_repeat)` 从调用方提供的最终事实构造独立条目：实际发生的非复读碰撞映射到玩家侧，事件为 `actual_hit`，优先级为 HIT，文本和原句 ID 完整保留；落空、复读及空白文本返回 null。时长读取当前 `hit_display_duration_seconds`。这里的实际碰撞包含未取得常规收益的负向效果话语；该方法本身不判定目标是否碰撞。
@@ -132,3 +132,11 @@ Sandbox 对外提供 `dialogue_event_sequence_completed(event_id, sequence_id, s
 
 - 重开通过一次 `attempt_started` 重置跟踪，`attempt_restarted` 不另行消费；不解析本地化 `battle_state_changed(text)`。T1→T0 清理对手侧队列但不提交降档对白。暂停沿用 SceneTree 对 Tween 生命周期的冻结；进入 Paradox 后不重复发普通战斗事件，Rest 不映射额外状态对白。
 - GUI / 回归入口：`tests/streamer_bubble_dialogue/sd06_combat_state_events_smoke.tscn`。用真实 Sandbox 和内存 TEST_ONLY 配置覆盖连线、升降档、T1 嘲讽、普通胜负、Paradox 未击破结果、暂停、离线取消与重开；SD-03、SD-04、SD-05 另行复跑。实际窗口与截图结果见 [SD-06 完成日志](双主播气泡对话系统_SD-06_2026-10-11_log.md)，GUI 证据见 [SD-06 截图目录](evidence/SD-06_2026-10-11/)。
+
+## SD-07 战斗定时对手对白（2026-10-11）
+
+`StreamerBubbleTimedOpponentDialoguePresenter` 订阅 `BattleAttemptFlow.attempt_started`，每次新尝试或重开将计时清零，并在普通胜负完成时停止。定时配置使用稳定事件 ID `timed`、对手侧和 `trigger_time_seconds`；秒数相对本场 `attempt_started` 累计，SceneTree 暂停期间由 `Node.PROCESS_MODE_PAUSABLE` 冻结。到期条目复制后设为 `TIMED_IDLE`，再通过 `SandboxBattleHud.enqueue_dialogue_bubble()` 交给 SD-03。
+
+- 多个触发点按秒数升序提交；同一秒数按配置顺序提交，与 SD-08 的 `line_order` 保持一致。T0 离线期间到期的条目留在消费者待提交列表，待对手重新连线再交给 HUD；已进入 SD-03 的条目仍沿用 T0 离线清队列的既有规则。
+- SD-08 应将 `trigger_type=timed` 映射为 `event_id=&"timed"`，并将表格 `trigger_time_s` 写入 `BubbleDialogueEntry.trigger_time_seconds`。当前正式对白 Resource 仍为空，验收文本只在 SD-07 smoke 的内存副本中创建。
+- Windows GUI 验收入口：`tests/streamer_bubble_dialogue/sd07_timed_opponent_dialogue_smoke.tscn`。真实 Sandbox smoke 覆盖到点触发、剧情期间等待、暂停计时、重开重计和 T0 延迟提交；运行结果与截图见 [SD-07 完成日志](双主播气泡对话系统_SD-07_2026-10-11_log.md)。

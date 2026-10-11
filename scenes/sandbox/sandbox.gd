@@ -12,6 +12,7 @@ const CONTRADICTION_WINDOW_CONFIG: ContradictionWindowConfig = preload("res://sy
 const HIT_ECHO_PRESENTER_SCRIPT: Script = preload("res://ui/streamer_bubble_dialogue/streamer_bubble_hit_echo_presenter.gd")
 const SPECIFIC_SENTENCE_REPLY_PRESENTER_SCRIPT: Script = preload("res://ui/streamer_bubble_dialogue/streamer_bubble_specific_sentence_reply_presenter.gd")
 const COMBAT_STATE_DIALOGUE_PRESENTER_SCRIPT: Script = preload("res://ui/streamer_bubble_dialogue/streamer_bubble_combat_state_presenter.gd")
+const TIMED_OPPONENT_DIALOGUE_PRESENTER_SCRIPT: Script = preload("res://ui/streamer_bubble_dialogue/streamer_bubble_timed_opponent_dialogue_presenter.gd")
 const REST_RESULT_VIEW_SCENE: PackedScene = preload("res://ui/rest/rest_result_view.tscn")
 const BARRAGE_IMPACT_SCRIPT: Script = preload("res://systems/presentation/barrage_impact_presenter.gd")
 const PA09_FEEDBACK_SCRIPT: Script = preload("res://systems/presentation/combat_hit_feedback.gd")
@@ -48,6 +49,7 @@ var _hit_echo_presenter: Node
 var _barrage_impact_presenter: BarrageImpactPresenter
 var _pa09_feedback: Control
 var _combat_state_dialogue_presenter: Node
+var _timed_opponent_dialogue_presenter: Node
 
 
 # 场景只创建生命周期对象并接线；PK、Tier、倾向等状态留在各自所有者。
@@ -144,6 +146,17 @@ func _ready() -> void:
 	_combat_state_dialogue_presenter.connect(
 		"event_sequence_completed", Callable(self, "_on_dialogue_event_sequence_completed")
 	)
+	# 定时闲聊由可暂停的独立消费者计时，并提交 HUD 已有的低优先级入口。
+	_timed_opponent_dialogue_presenter = TIMED_OPPONENT_DIALOGUE_PRESENTER_SCRIPT.new()
+	_timed_opponent_dialogue_presenter.name = "StreamerBubbleTimedOpponentDialoguePresenter"
+	add_child(_timed_opponent_dialogue_presenter)
+	if not bool(_timed_opponent_dialogue_presenter.call(
+			"configure",
+			_battle_attempt_flow,
+			bubble_dialogue_config,
+			Callable(_battle_hud, "enqueue_dialogue_bubble"))):
+		push_error("Sandbox: 无法接入战斗定时对手对白消费者。")
+		return
 	if not _battle_attempt_flow.start_first_attempt():
 		push_error("Sandbox: 无法启动首场普通战斗。")
 

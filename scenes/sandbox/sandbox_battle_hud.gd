@@ -18,6 +18,9 @@ var _paradox_stage_active: bool = false
 var _last_status_tier: int = -1
 var _active_opponent_status_text: String = ""
 var _dialogue_queue: Node
+# 保留攻击状态供后续获批的正式反馈视图读取；Sandbox 继续通过原公开刷新入口提交。
+var attack_progress: float = 0.0
+var attack_phase: int = AttackChargeInput.AttackPhase.READY
 
 @onready var _aim_reticle: AimReticle = %AimReticle
 @onready var _battle_state: Label = %BattleStateFeedback
@@ -37,8 +40,6 @@ var _dialogue_queue: Node
 @onready var _opponent_pk_label: Label = $BattleArea/TopBattleStatus/PKBar/OpponentPK
 @onready var _pk_progress: ProgressBar = %PlayerShare
 @onready var _tier_label: Label = %Tier
-@onready var _charge_label: Label = $BattleArea/ChargeFeedback/ChargeState
-@onready var _charge_progress: ProgressBar = %ChargeProgress
 @onready var _failure_overlay: Control = %FailureOverlay
 @onready var _restart_button: Button = %RestartButton
 
@@ -217,21 +218,14 @@ func _refresh_stage_label(current_tier: int) -> void:
 	_tier_label.text = "T6 / Paradox" if _paradox_stage_active else "Tier %d" % current_tier
 
 
-# 蓄力与阶段归 CombatAttack，HUD 使用公开读取结果提供可释放、飞行和硬直反馈。
+# 蓄力与阶段归 CombatAttack；HUD 保留最新数值，供后续获批的美术反馈接入。
 func refresh_attack(progress: float, phase: int) -> void:
-	var charge_progress: float = clampf(progress, 0.0, 1.0)
-	_charge_progress.value = charge_progress
-	# PA-08 与既有蓄力条读取同一个 CombatAttack 状态，不复制蓄力计时。
+	attack_progress = clampf(progress, 0.0, 1.0)
+	attack_phase = phase
+	# PA-08 使用现有 CombatAttack 的唯一蓄力状态驱动环形准星。
 	var holding: bool = is_instance_valid(_portrait_attack) and _portrait_attack.is_charge_held()
 	var full: bool = is_instance_valid(_portrait_attack) and _portrait_attack.is_fully_charged()
-	_aim_reticle.set_charge_visual_state(charge_progress, holding, full)
-	match phase:
-		AttackChargeInput.AttackPhase.PROJECTILE_FLIGHT:
-			_charge_label.text = "飞行中"
-		AttackChargeInput.AttackPhase.RECOVERY:
-			_charge_label.text = "硬直中"
-		_:
-			_charge_label.text = "蓄满 100% · 松开发射" if charge_progress >= 1.0 else "蓄力 %d%%" % roundi(charge_progress * 100.0)
+	_aim_reticle.set_charge_visual_state(attack_progress, holding, full)
 
 
 # 外部战斗状态统一走此入口，并结束 HUD 对匹配提示的临时所有权。

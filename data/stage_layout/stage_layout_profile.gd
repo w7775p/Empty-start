@@ -8,6 +8,5 @@ extends Resource
 @export var streamer_info_area_size: Vector2i
 @export var streamer_portrait_area_size: Vector2i
 @export var central_barrage_area_rect: Rect2i
-@export var pk_bar_area_size: Vector2i
-@export var charge_feedback_area_size: Vector2i
+@export var top_battle_status_area_size: Vector2i
 @export var live_data_area_size: Vector2i

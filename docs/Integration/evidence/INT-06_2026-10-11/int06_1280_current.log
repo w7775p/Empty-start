@@ -1,0 +1,16 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: AMD - AMD Radeon(TM) Graphics
+
+INT06 LAYOUT window=(1280, 720) barrage=[P: (448.0, 72.0), S: (1024.0, 1008.0)] oracle=[P: (448.0, 72.0), S: (1024.0, 1008.0)] overlay_screen=[P: (314.6667, 632.0), S: (32.0, 72.0)] final_transform=[X: (0.666667, 0.0), Y: (0.0, 0.666667), O: (0.0, 0.0)]
+INT06 SCREENSHOT path=D:/Godot/agent-A-int06-1011/docs/Integration/evidence/INT-06_2026-10-11/int06_normal_bottom_windowed_1280x720.png size=(1280, 720) error=0
+INT06 NORMAL_BOTTOM target_id=99589555949 global_rect=[P: (771.0, 1019.0), S: (378.0, 57.0)] snapshot=[99589555949] results=[{ "target_instance_id": 99589555949, "target": <Freed Object>, "trait_result": <RefCounted#-9223371936107591311>, "original_sentence_id": "sample_sentence_001", "original_sentence_text": "示例正统话语，策划后续替换。", "source_id": "streamer_sample", "is_repeat": false, "tendency_id": "orthodox", "is_valid_hit": true, "tendency_delta": 1, "pk_delta": 0.0012 }]
+INT06 SCREENSHOT path=D:/Godot/agent-A-int06-1011/docs/Integration/evidence/INT-06_2026-10-11/int06_icon_passthrough_windowed_1280x720.png size=(1280, 720) error=0
+INT06 ESC pause_resume paused=false
+INT06 SCREENSHOT path=D:/Godot/agent-A-int06-1011/docs/Integration/evidence/INT-06_2026-10-11/int06_oracle_bottom_windowed_1280x720.png size=(1280, 720) error=0
+INT06 ORACLE_BOTTOM candidate_id=sample_sentence_absurd_001 target_rect=[P: (500.0, 896.0), S: (920.0, 176.0)]
+INT06 SCREENSHOT path=D:/Godot/agent-A-int06-1011/docs/Integration/evidence/INT-06_2026-10-11/int06_fullscreen_fullscreen_1920x1080.png size=(1920, 1080) error=0
+INT06 SCREENSHOT path=D:/Godot/agent-A-int06-1011/docs/Integration/evidence/INT-06_2026-10-11/int06_windowed_after_fullscreen_windowed_1280x720.png size=(1280, 720) error=0
+INT06 MODE_SWITCH fullscreen_size=(1920, 1080) restored_size=(1280, 720)
+INT06 SCREENSHOT path=D:/Godot/agent-A-int06-1011/docs/Integration/evidence/INT-06_2026-10-11/int06_final_windowed_1280x720.png size=(1280, 720) error=0
+INT06 WINDOW size=(1280, 720) mode=0 viewport=(1920.0, 1080.0) final_transform=[X: (0.666667, 0.0), Y: (0.0, 0.666667), O: (0.0, 0.0)]
+PASS INT-06 full-height battle layout, transformed bottom hits, icon passthrough, ESC pause/resume

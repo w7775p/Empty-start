@@ -1,6 +1,6 @@
 # CS-14 T0～T5 每次升档完成本发结算后清空可见弹幕
 
-**状态：待阶段联调**
+**状态：已完成 · Godot 4.7.2 GUI 运行通过**
 
 ## 开始前先阅读以下文档
 - `docs/Original/任务卡模板.md` 与 `known_traps.md`（通用执行规范与已知风险）
@@ -14,6 +14,13 @@
 
 ## INT-10 / S3 接口交接（2026-10-11）
 普通战斗状态由 `BattleAttemptFlow` 持有，CS-18 通过 `clear_pending_normal_repeats()` 清理旧请求，CS-14 在 `shot_resolved` 后按需调用 `clear_barrages_for_stage_transition()`。Sandbox 仍负责场景协调，清屏策略和 Tier 事实归 CombatStage。
+
+## CS-14 实施结果（2026-10-11）
+- `BattleAttemptFlow` 在本发所有 `shot_resolved` 消费者完成后，仅对最终 Tier 高于到达 Tier 的本发执行清屏。
+- `clear_barrages_for_stage_transition()` 返回清除数量；它只移除 `BarrageArea` 当前视图，并保留普通生成状态。
+- 清屏后发出 `tier_transition_cleared(previous_tier, current_tier, cleared_barrage_count)`，CS-15 可用该完成事件启动对应档位演出。
+- `tests/combat_stage/cs14_tier_up_clear_all_runner.gd` 使用正式 Sandbox 和攻击输入链验收；T0→T1、T1→T2 与跨档上升均通过。
+- GUI 清屏截图：`../evidence/cs14_2026-10-11/cs14_t0_to_t1_clear.png`。
 
 ## 本次任务
 T0～T5 每次升档完成本发结算后清空可见弹幕。

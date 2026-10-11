@@ -8,7 +8,7 @@
 
 | 卡片 | 按实际代码核对后的唯一功能 | 状态 |
 | --- | --- | --- |
-| [BT-14](tasks/BT-14_occlusion-top-z.md) | 遮挡话语最高层 | 待开发 |
+| [BT-14](tasks/BT-14_occlusion-top-z.md) | 遮挡话语最高层 | 已完成（2026-10-11） |
 | [BT-15](tasks/BT-15_occlusion-slow-velocity.md) | 遮挡在中央战斗区随机静止生成 | 已完成（2026-10-11） |
 
 本节是当前派工依据；历史章节中的旧默认值与旧任务说明保留用来追溯已有系统演变。开发时以单卡现行版和本节为准。
@@ -18,7 +18,14 @@
 - `BarrageArea.spawn_normal_barrage()` 装配特性后检查实例的 `TraitSet`；含 `occlusion` 时自动请求 BG-42 随机静止落点并使用零移动速度。
 - 兼容特性可与遮挡并存，定位仍保持静止。普通话语没有遮挡时沿原运动与排位路径生成；其他调用仍可显式请求 BG-42 静止落点。
 - 本卡沿用普通实例的原句、寿命、容量和命中规则。普通批次的特性随机选择仍待正式配置，当前只有实际装配 `occlusion` 的实例触发该行为。
-- 图形运行截图：[BT-15 遮挡随机静止验收](evidence/BT15_occlusion_static.png)。BT-14 的最高显示层级仍由其任务卡单独处理。
+- 图形运行截图：[BT-15 遮挡随机静止验收](evidence/BT15_occlusion_static.png)。显示层级沿用下方 BT-14 固定层级契约。
+
+### BT-14 实现状态（2026-10-11）
+
+- `BarrageView.setup()` 按实例 `TraitSet` 选择固定层级；普通 `occlusion` 实例优先于普通前景和复读。
+- 层级常量为 `REPEAT_Z_INDEX=0`、`FOREGROUND_Z_INDEX=1`、`OCCLUSION_Z_INDEX=RenderingServer.CANVAS_ITEM_Z_MAX`（Godot 4.7.2 为 4096）。BG-25 / BG-26 的普通前景换层应保留 4096 作为遮挡专用最高层。
+- 遮挡层级在视图生成时设置，之后保持到该实例离场；随机静止位置沿用 BT-15。
+- 图形运行截图：[BT-14 遮挡最高层验收](evidence/BT14_occlusion_top_z.png)。
 
 
 ## 系统目标
@@ -175,7 +182,7 @@ BT-13 已接入【14. Assimilation】的真实继承输出，接口与验收范�
 
 | 任务卡 | 唯一功能 | 状态 |
 | --- | --- | --- |
-| [BT-14](tasks/BT-14_occlusion-top-z.md) | 遮挡实例保持最高显示层级 | 待实施 |
+| [BT-14](tasks/BT-14_occlusion-top-z.md) | 遮挡实例保持最高显示层级 | 已完成（2026-10-11） |
 | [BT-15](tasks/BT-15_occlusion-slow-velocity.md) | 遮挡实例随机静止生成 | 已完成（2026-10-11） |
 
 本轮任务卡逐项说明触发条件、应发生的行为与验收结果；派工时依赖最新卡片和系统当前代码。

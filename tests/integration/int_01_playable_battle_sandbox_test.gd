@@ -113,7 +113,8 @@ func _verify_real_attack_and_repeat() -> void:
 	_mouse_button(true)
 	await _wait(0.07)
 	_check(_attack.get_charge_progress() > 0.0 and _attack.get_charge_progress() < 1.0, "左键按住实际推进蓄力")
-	_check((_sandbox.get_node("%ChargeProgress") as ProgressBar).value > 0.0, "真实蓄力显示进度")
+	var battle_hud: Control = _sandbox.get_node("%BattleHud") as Control
+	_check(_attack.get_charge_progress() > 0.0 and float(battle_hud.get("attack_progress")) > 0.0, "真实蓄力进度通过 SandboxBattleHud.refresh_attack 保留")
 	_mouse_button(false)
 	await get_tree().process_frame
 	_check(_attack.get_charge_progress() == 0.0 and _snapshots.is_empty(), "未满释放取消且未生成攻击")
