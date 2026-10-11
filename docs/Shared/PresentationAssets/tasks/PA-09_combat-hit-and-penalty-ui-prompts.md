@@ -1,6 +1,6 @@
 # PA-09 战斗结果 UI 提示：准星数值与必要异常结果词
 
-> 状态：2026-10-11 已返修碎裂黑缝与异常词定位；Godot 预览待策划审美选型，正式战斗接线和 Android 验收待完成；PR #148 保持 Draft。
+> 状态：2026-10-11 PC 正式战斗事件接线可运行（真实命中、落空已经 Godot GUI 验证）；特殊异常实战、Android 真机及视觉人工选型待验收；PR #148 保持 Draft
 > 类型：P0 / PresentationAssets
 > 依赖：PA-06 命中材质反馈；现有 CombatAttack、BarrageTraits、HitResolution 与战斗 HUD
 

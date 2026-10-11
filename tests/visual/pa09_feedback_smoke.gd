@@ -1,6 +1,6 @@
 extends SceneTree
 
-const FX_SCRIPT: Script = preload("res://scenes/demos/pa09_feedback_overlay.gd")
+const FX_SCRIPT: Script = preload("res://systems/presentation/combat_hit_feedback.gd")
 
 
 # 只验证低噪声显示规则，不替代 Godot 实机画面与策划美术验收。
