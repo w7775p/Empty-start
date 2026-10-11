@@ -76,6 +76,7 @@ func _ready() -> void:
 		"返回修改名字"
 	)
 	_player_presentation_status = _player_presentation_page.get_node("Center/Panel/Content/Status")
+	_player_presentation_status.theme_type_variation = &"StreamerNameLabel"
 	_player_presentation_page.get_node("Center/Panel/Content/Action").pressed.connect(complete_player_presentation)
 	_player_presentation_page.get_node("Center/Panel/Content/Back").pressed.connect(_back_to_streamer)
 
@@ -223,6 +224,7 @@ func _build_name_page(node_name: String, title_text: String) -> Control:
 	content.add_child(title)
 	var input := LineEdit.new()
 	input.name = "NameInput"
+	input.theme_type_variation = &"StreamerNameInput"
 	input.custom_minimum_size.y = 58
 	input.placeholder_text = "留空使用默认名称"
 	content.add_child(input)

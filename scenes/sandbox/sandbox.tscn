@@ -92,7 +92,7 @@ offset_top = 52.0
 offset_right = 340.0
 offset_bottom = 116.0
 mouse_filter = 2
-theme_type_variation = &"HeadingLabel"
+theme_type_variation = &"StreamerHeadingLabel"
 text = "玩家"
 text_overrun_behavior = 3
 
@@ -370,7 +370,7 @@ offset_top = 52.0
 offset_right = 340.0
 offset_bottom = 116.0
 mouse_filter = 2
-theme_type_variation = &"HeadingLabel"
+theme_type_variation = &"StreamerHeadingLabel"
 text = "当前关主播"
 text_overrun_behavior = 3
 

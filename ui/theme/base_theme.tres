@@ -1,4 +1,7 @@
-[gd_resource type="Theme" load_steps=18 format=3]
+[gd_resource type="Theme" load_steps=20 format=3]
+
+[ext_resource type="FontFile" path="res://assets/fonts/NotoSansSC-VF.ttf" id="1_noto"]
+[ext_resource type="FontFile" path="res://assets/fonts/ZCOOLKuaiLe-Regular.ttf" id="2_zcool"]
 
 [sub_resource type="StyleBoxFlat" id="ButtonNormal"]
 bg_color = Color(0.172549, 0.188235, 0.219608, 1)
@@ -257,6 +260,7 @@ content_margin_top = 3.0
 content_margin_bottom = 3.0
 
 [resource]
+default_font = ExtResource("1_noto")
 default_font_size = 24
 Button/colors/font_color = Color(0.94902, 0.952941, 0.960784, 1)
 Button/colors/font_hover_color = Color(0.94902, 0.952941, 0.960784, 1)
@@ -327,3 +331,14 @@ CardPanel/styles/panel = SubResource("PanelCard")
 
 DialogPanel/base_type = &"PanelContainer"
 DialogPanel/styles/panel = SubResource("PanelDialog")
+
+StreamerNameLabel/base_type = &"Label"
+StreamerNameLabel/fonts/font = ExtResource("2_zcool")
+StreamerHeadingLabel/base_type = &"HeadingLabel"
+StreamerHeadingLabel/fonts/font = ExtResource("2_zcool")
+StreamerMutedLabel/base_type = &"MutedLabel"
+StreamerMutedLabel/fonts/font = ExtResource("2_zcool")
+FanGroupNameLabel/base_type = &"Label"
+FanGroupNameLabel/fonts/font = ExtResource("2_zcool")
+StreamerNameInput/base_type = &"LineEdit"
+StreamerNameInput/fonts/font = ExtResource("2_zcool")
