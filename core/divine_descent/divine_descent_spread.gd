@@ -206,7 +206,8 @@ func generate_next_repeat() -> BarrageView:
 	)
 	if not _display_template.is_empty():
 		plan.apply_display_template(_display_template)
-	var view: BarrageView = _barrage_area.spawn_repeat_barrage(plan)
+	# 神降临重播冻结历史原句，保持复读静止随机落点与原有容量 / 寿命规则。
+	var view: BarrageView = _barrage_area.spawn_repeat_barrage(plan, true)
 	_generation_blocked = view == null
 	if view == null:
 		return null
