@@ -17,6 +17,11 @@ signal barrage_generated(view: BarrageView)
 @export var curved_foreground_motion_enabled: bool = false
 ## 普通前景曲线的最大垂直弧高，实际值会按当前战斗区可用空间收窄。
 @export_range(0.0, 180.0, 4.0) var curved_foreground_motion_amplitude_pixels: float = 72.0
+@export_group("BG-22 普通前景平缓加减速")
+## 开启后，仅新生成的普通移动前景按周期加速和减速；默认关闭以保留匀速行为。
+@export var speed_change_foreground_motion_enabled: bool = false
+## 一次从低速加速到上限再减速回低速的总时长，周期只影响新生成的普通前景。
+@export_range(2.0, 16.0, 0.5) var speed_change_foreground_motion_cycle_seconds: float = 6.0
 @onready var _spawn_timer: Timer = $SpawnTimer
 
 var _speech_selector: NormalSpeechSelector = NormalSpeechSelector.new()
@@ -340,14 +345,19 @@ func spawn_normal_barrage(
 	if view == null:
 		push_error("BarrageArea: 弹幕表现 Scene 根节点需要 BarrageView。")
 		return null
-	# BG-42 静止请求直接保持零速度；普通移动实例统一经限速入口，并可显式启用曲线。
+	# BG-42 静止请求直接保持零速度；普通移动实例统一经限速入口，可选曲线和周期加减速。
 	var effective_move_speed: float = 0.0 if random_static_placement else get_foreground_move_speed_pixels_per_second(level_profile)
 	var curve_amplitude: float = (
 		curved_foreground_motion_amplitude_pixels
 		if curved_foreground_motion_enabled and not random_static_placement
 		else 0.0
 	)
-	view.setup(barrage_record, effective_move_speed, self, random_static_placement, curve_amplitude)
+	var speed_change_cycle: float = (
+		speed_change_foreground_motion_cycle_seconds
+		if speed_change_foreground_motion_enabled and not random_static_placement
+		else 0.0
+	)
+	view.setup(barrage_record, effective_move_speed, self, random_static_placement, curve_amplitude, speed_change_cycle)
 	if _terminal_presentation_only:
 		view.apply_terminal_trait_presentation(_terminal_trait_ids, _terminal_trait_colors)
 	if not _try_register_normal_capacity_occupant(view, capacity_limit):
