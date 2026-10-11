@@ -75,7 +75,8 @@ func advance_and_dispatch(delta_seconds: float, barrage_area: BarrageArea) -> in
 	var generated_count: int = 0
 	var retry_requests: Array[RepeatPlan] = []
 	for plan: RepeatPlan in advance(delta_seconds):
-		var repeat_view: BarrageView = barrage_area.spawn_repeat_barrage(plan)
+		# 普通与矛盾复读均请求 BG-42 静止随机落点；满容量时仍保留原队列重试。
+		var repeat_view: BarrageView = barrage_area.spawn_repeat_barrage(plan, true)
 		if repeat_view == null:
 			retry_requests.append(plan)
 			continue

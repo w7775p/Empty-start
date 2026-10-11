@@ -11,7 +11,7 @@
 | --- | --- | --- |
 | [RP-14](tasks/RP-14_plain-text-repeat.md) | 现有纯文本兼容回归 | 已有基础 |
 | [RP-15](tasks/RP-15_repeat-cap-calibration.md) | 现有复读独立容量实测 | 已有容量 |
-| [RP-16](tasks/RP-16_repeat-shrink-per-tier.md) | 复读随机位置静止生成 | 待开发 · 依赖 BG-42 |
+| [RP-16](tasks/RP-16_repeat-shrink-per-tier.md) | 复读随机位置静止生成 | 已完成 · 2026-10-11 |
 | [RP-17](tasks/RP-17_repeat-speed-per-tier.md) | 复读随寿命渐隐 | 待开发 |
 | [RP-18](tasks/RP-18_repeat-infection-spread.md) | 已有原句计划的复读潮表现 | 已有基础 |
 | [RP-19](tasks/RP-19_repeat-grey-text.md) | 灰色复读文字 | 待开发 |
@@ -45,7 +45,8 @@
 - `RepeatPlan.apply_display_template(template)` 将模板中的 `{原句}` 替换为原句文本并保存到 `display_text`；模板缺少标记时发出警告并回退显示原句。`original_line_id` 始终独立保留，供生成弹幕关联原句。正式模板内容仍待策划提供。
 - `RepeatDelayConfig` 位于 `data/repeat/repeat_delay_config.tres`，当前等待范围为 0.5～3.0 秒，正式调参可直接改此资源。
 - `RepeatDelayQueue.new(maximum_pending_normal_count)` 接收调用方已解析的普通待生成容量；`enqueue_plan(plan)` 只保留剩余容量内的请求并直接丢弃溢出，返回实际接受数量。
-- `RepeatDelayQueue.advance(delta_seconds)` 返回到期单条请求；`advance_and_dispatch(delta_seconds, barrage_area)` 则直接调用 3. BarrageGeneration 的 `spawn_repeat_barrage(plan)`。弹幕成功出现后，队列将 1 条实际生成数记入自己持有的 `RepeatGenerationStats`；复读屏幕容量暂满时保留到期请求，等容量释放后重试。待生成队列容量独立于 3. BarrageGeneration 的屏幕弹幕容量。
+- `RepeatDelayQueue.advance(delta_seconds)` 返回到期单条请求；`advance_and_dispatch(delta_seconds, barrage_area)` 对普通与矛盾计划调用 `spawn_repeat_barrage(plan, true)`，使用 BG-42 的中央区域静止随机落点。神降临的冻结历史复读由 `DivineDescentSpread` 使用同一入口和定位选项。弹幕成功出现后，队列将 1 条实际生成数记入自己持有的 `RepeatGenerationStats`；复读屏幕容量暂满时保留到期请求，等容量释放后重试。待生成队列容量独立于 3. BarrageGeneration 的屏幕弹幕容量。来源原句 ID、命中目标、暂停与计划寿命继续由现有记录和弹幕生命周期管理。
+- RP-16 已通过 T0/T3/T5 普通计划、T6 矛盾计划和神降临历史复读的 Godot 运行验证；[生成帧截图](evidence/RP16_static_repeat_spawn.png) 与 [0.75 秒后截图](evidence/RP16_static_repeat_after_0.75s.png)展示同一组静止位置。
 - Sandbox / 战斗场景组合方每帧调用 `advance_and_dispatch(delta, barrage_area)`；复读系统只发起实例请求，弹幕实例、寿命与屏幕容量仍由 BarrageGeneration 拥有。
 - `RepeatDelayQueue.clear_normal_queue()` 丢弃所有尚未到期的普通复读；进入矛盾阶段时由阶段流程调用，已返回生成请求的弹幕不属于此等待队列。
 - 原计划的 `wait_offsets_seconds` 保存每条复读的相对等待时间；队列不创建或管理屏幕上的弹幕实例。
@@ -125,7 +126,7 @@ RP-12 已复用 13 的本场读取链，并提供 19 已有候选入口可消费
 | --- | --- | --- |
 | [RP-14](tasks/RP-14_plain-text-repeat.md) | 复读使用普通纯文本 | 待实施 |
 | [RP-15](tasks/RP-15_repeat-cap-calibration.md) | 复读独立同屏上限与容量验收 | 待实施 |
-| [RP-16](tasks/RP-16_repeat-shrink-per-tier.md) | 复读随机位置静止生成 | 待实施 |
+| [RP-16](tasks/RP-16_repeat-shrink-per-tier.md) | 复读随机位置静止生成 | 已完成 · 2026-10-11 |
 | [RP-17](tasks/RP-17_repeat-speed-per-tier.md) | 复读按生命周期渐隐 | 待实施 |
 | [RP-18](tasks/RP-18_repeat-infection-spread.md) | 有效命中形成同向复读潮 | 待实施 |
 
