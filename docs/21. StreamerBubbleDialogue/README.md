@@ -113,7 +113,7 @@ Google Sheets `02_主播关卡.story_config_id` 指向 `20_主播气泡对白.st
 - 发送剧情优先级副本，保留静态配置文本、发言侧、原句 ID 与显示时长。相同 ID 的配置项继续按 SD-01 顺序提交，SD-03 负责同侧排队和优先级。
 - CA-15 遮挡整发 MISS 的最终 `target_results` 为空，消费者没有回复请求。HUD 保留既有 T0 对手离线与队列禁用行为；对手连线后可显示答话。
 - Sandbox 根脚本公开 `bubble_dialogue_config` Resource 导出项，默认仍指向 `data/streamer_bubble_dialogue/bubble_dialogue_config.tres`。本卡没有添加正式对白或改动该空配置；GUI 验收只向深复制 Resource 注入 TEST_ONLY 内存条目。
-- Windows GUI 验收入口：`tests/streamer_bubble_dialogue/sd05_specific_sentence_reply_smoke.tscn`。它以真实攻击输入、BarrageView、结算流程和双方 SD-03 气泡栈验证映射、未映射句、低优先级让位及遮挡 MISS。Godot 4.7.2 窗口 `1280×720`，30 项通过、0 失败；实际截图见 [SD-05 证据](evidence/SD-05_2026-10-11/sd05_specific_sentence_reply_1280x720.png)，详细记录见 [SD-05 完成日志](双主播气泡对话系统_SD-05_2026-10-11_log.md)。
+- Windows GUI 验收入口：`tests/streamer_bubble_dialogue/sd05_specific_sentence_reply_smoke.tscn`。它以真实攻击输入、BarrageView、结算流程和双方 SD-03 气泡栈验证映射、未映射句、低优先级让位及遮挡 MISS。Godot 4.7.2 窗口 `1280×720`，30 项通过、0 失败；实际截图见 [SD-05 证据](https://github.com/w7775p/Empty-start/blob/35e508613405b290903f8fd83237d9b835b7004f/docs/21.%20StreamerBubbleDialogue/evidence/SD-05_2026-10-11/sd05_specific_sentence_reply_1280x720.png)，详细记录见 [SD-05 完成日志](双主播气泡对话系统_SD-05_2026-10-11_log.md)。
 
 ## SD-06 战斗状态事件消费（2026-10-11）
 

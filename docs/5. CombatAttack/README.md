@@ -21,7 +21,7 @@
 
 GUI 运行使用 `Input.parse_input_event()` 合成鼠标事件；同一发快照冻结十个不重复 ID。飞行期间删除一条目标、令一条在到达前过期，并将一条移出准心但留在 BarrageArea；到达复核保留移位目标，只向 HitResolution 提交八个仍有效的目标。物理鼠标未验收。该卡只增加 TEST_ONLY 场景验收入口，没有修改生产代码或公开接口。
 
-截图证据：[CA-14 十个重叠目标 GUI 运行截图](evidence/CA-14_2026-10-10_overlapped_targets.png)
+截图证据：[CA-14 十个重叠目标 GUI 运行截图](https://github.com/w7775p/Empty-start/blob/35e508613405b290903f8fd83237d9b835b7004f/docs/5.%20CombatAttack/evidence/CA-14_2026-10-10_overlapped_targets.png)
 
 
 ### CA-15 遮挡覆盖整发结算（2026-10-11）

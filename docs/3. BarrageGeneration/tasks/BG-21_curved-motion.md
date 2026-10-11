@@ -28,7 +28,7 @@
 - 曲线按当前生成落点与区域可用高度构造，沿 `Curve2D` 烘焙弧长推进；普通前景速度继续读取 BG-40 限速入口。
 - BG-42 静止请求优先保持零速静止；Repeat 与 Paradox 继续使用原有独立速度和直线路径。本卡未加入 Tier 权重。
 - `test_bg21_curved_motion.gd` 覆盖曲线开关、弧高调整、速度上限、区域边界、BG-42 静止请求及 Repeat / Paradox 隔离。
-- Windows Godot 4.7.2 图形运行截图：[BG-21 曲线运动 GUI 证据](../evidence/BG21_curved_motion_gui.png)。该测试使用 TEST_ONLY 句子，完整正式关卡可读性仍需人工验收。
+- Windows Godot 4.7.2 图形运行截图：[BG-21 曲线运动 GUI 证据](https://github.com/w7775p/Empty-start/blob/35e508613405b290903f8fd83237d9b835b7004f/docs/3.%20BarrageGeneration/evidence/BG21_curved_motion_gui.png)。该测试使用 TEST_ONLY 句子，完整正式关卡可读性仍需人工验收。
 
 ## Godot 开发环境
 - Godot 版本：4.7.2（开工核对 `project.godot`）
