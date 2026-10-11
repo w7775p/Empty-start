@@ -8,6 +8,8 @@ signal divine_descent_entered(session: DivineDescentSession)
 const SAMPLE_TIER_CATALOG: CombatStageTierCatalog = preload("res://data/combat_stage/tier_catalog.tres")
 const PRESENTATION_ASSETS: PresentationAssetConfig = preload("res://data/shared/presentation_asset_config.tres")
 const CONTRADICTION_WINDOW_CONFIG: ContradictionWindowConfig = preload("res://systems/contradiction_break/contradiction_window_config.tres")
+const BUBBLE_DIALOGUE_CONFIG: BubbleDialogueConfig = preload("res://data/streamer_bubble_dialogue/bubble_dialogue_config.tres")
+const HIT_ECHO_PRESENTER_SCRIPT: Script = preload("res://ui/streamer_bubble_dialogue/streamer_bubble_hit_echo_presenter.gd")
 const REST_RESULT_VIEW_SCENE: PackedScene = preload("res://ui/rest/rest_result_view.tscn")
 # 关卡资料统一由目录提供，运行验证可注入独立临时目录。
 @export var level_catalog: LevelCatalog = preload("res://data/level_configuration/level_catalog.tres")
@@ -36,6 +38,7 @@ var _rest_session: RestSession
 var _rest_result_view: RestResultView
 var _contradiction_oracle_flow: ContradictionOracleFlow
 var _divine_descent_flow: DivineDescentFlow
+var _hit_echo_presenter: Node
 
 
 # 场景只创建生命周期对象并接线；PK、Tier、倾向等状态留在各自所有者。
@@ -81,6 +84,17 @@ func _ready() -> void:
 			_contradiction_oracle_flow, _oracle_candidate_display, loser_card_catalog,
 			CONTRADICTION_WINDOW_CONFIG, AudioManager):
 		push_error("Sandbox: 无法组合 BattleAttemptFlow。")
+		return
+	# 由新消费者读取正式逐目标结算，再通过 HUD 公开队列入口提交玩家复述。
+	_hit_echo_presenter = HIT_ECHO_PRESENTER_SCRIPT.new()
+	_hit_echo_presenter.name = "StreamerBubbleHitEchoPresenter"
+	add_child(_hit_echo_presenter)
+	if not bool(_hit_echo_presenter.call(
+			"configure",
+			_battle_attempt_flow,
+			BUBBLE_DIALOGUE_CONFIG,
+			Callable(_battle_hud, "enqueue_dialogue_bubble"))):
+		push_error("Sandbox: 无法接入实际命中气泡消费者。")
 		return
 	if not _battle_attempt_flow.start_first_attempt():
 		push_error("Sandbox: 无法启动首场普通战斗。")
