@@ -25,10 +25,12 @@
 | [BG-35](tasks/BG-35_special-instance-cap.md) | 特殊实例占用独立容量 | 待开发 |
 | [BG-36](tasks/BG-36_downgrade-count-grace.md) | 降档超额自然回落 | T3→T2 自然回落与计时补位实测通过 |
 | [BG-37](tasks/BG-37_foreground-text-outline.md) | 非复读文字描边 | 待开发 |
-| [BG-38](tasks/BG-38_effective-area-clear.md) | 现有命中结束目标接线回归 | 已有链路 |
+| [BG-38](tasks/BG-38_effective-area-clear.md) | 现有命中结束目标接线回归 | Godot 4.7.2 场景回归 48 项通过 |
 | [BG-39](tasks/BG-39_tier-motion-proportions.md) | 四种运动类型随 Tier 权重变化 | 待开发 |
 | [BG-40](tasks/BG-40_foreground-speed-ceiling.md) | 前景话语最大速度 | 普通直线与 BG-21 曲线路径使用统一上限；后续运动按各自任务补验 |
 | [BG-41](tasks/BG-41_random-trait-selection.md) | 按已解锁池随机分配特性 | 技能池待定 |
+
+**BG-38（2026-10-11）** `test_bg38_battle_attempt_clear.tscn` 通过正式 Sandbox 组合、`AttackChargeInput`、`BattleAttemptFlow` 和 `BarrageArea` 执行两发真实流程。无遮挡发覆盖两条普通话语、假牌、水军复制品和复读：五个原目标均由 `end_barrage()` 结束；普通倾向只累计两条有效普通命中，两条普通命中各按 Tier 规则生成复读，已命中的复读目标不再复制。第二次重开后，释放快照含遮挡的整发按 CA-15 MISS 结算一次 `-0.01`，五个原目标继续留场，普通命中历史、倾向和复读队列均无新增。测试使用运行时 TEST_ONLY 特性与合成鼠标事件；物理鼠标和完整人工流程尚未覆盖。
 
 **BG-34（2026-10-10）** `CombatStage` 将 T2=13 发布给 `BarrageArea`。满槽后移除 4 条，现场数量回到 9；容量释放恢复现有 `SpawnTimer`，下一次批次经 `NormalSpeechSelector` 补到 13，额外普通生成由现有上限拦截。复读继续走独立账本。本卡确认现有 BG-16 接线已满足频率补位规则，并新增真实组件回归。
 
@@ -282,7 +284,7 @@ INT-02 采用静态 Scene 方案：`sandbox.tscn` 保存所有区域 Rect，编�
 | [BG-35](tasks/BG-35_special-instance-cap.md) | 限制携带特性的前景实例数量 | 待实施 |
 | [BG-36](tasks/BG-36_downgrade-count-grace.md) | 降档后让超额前景实例自然回落 | 已实施（2026-10-10） |
 | [BG-37](tasks/BG-37_foreground-text-outline.md) | 所有非复读话语文字描边 | 待实施 |
-| [BG-38](tasks/BG-38_effective-area-clear.md) | 有效攻击后清除命中区域全部话语 | 待实施 |
+| [BG-38](tasks/BG-38_effective-area-clear.md) | 有效攻击后清除命中区域全部话语 | 已完成回归（2026-10-11） |
 | [BG-39](tasks/BG-39_tier-motion-proportions.md) | 按 Tier 改变前景运动类型权重 | 待实施 |
 | [BG-42](tasks/BG-42_static-random-placement.md) | 复读与遮挡共享静止随机落点 | 已合并 main |
 | [BG-40](tasks/BG-40_foreground-speed-ceiling.md) | 普通前景话语速度上限 | 当前直线运动已实现，待合并 main；BG-20～BG-23 实现后补验 |
