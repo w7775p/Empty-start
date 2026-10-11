@@ -12,6 +12,11 @@ signal barrage_generated(view: BarrageView)
 @export var repeat_barrage_screen_cap: int = 24
 ## 普通移动前景的最高速度；默认沿用现有关卡基础速度，避免 Tier 倍率让短句快速掠过。
 @export var maximum_foreground_move_speed_pixels_per_second: float = 100.0
+@export_group("BG-21 普通前景曲线运动")
+## 开启后，仅新生成的普通移动前景使用平滑曲线；静止请求、复读与矛盾保持原行为。
+@export var curved_foreground_motion_enabled: bool = false
+## 普通前景曲线的最大垂直弧高，实际值会按当前战斗区可用空间收窄。
+@export_range(0.0, 180.0, 4.0) var curved_foreground_motion_amplitude_pixels: float = 72.0
 @onready var _spawn_timer: Timer = $SpawnTimer
 
 var _speech_selector: NormalSpeechSelector = NormalSpeechSelector.new()
@@ -335,9 +340,14 @@ func spawn_normal_barrage(
 	if view == null:
 		push_error("BarrageArea: 弹幕表现 Scene 根节点需要 BarrageView。")
 		return null
-	# BG-42 静止请求直接保持零速度；普通移动实例统一经本系统的限速入口。
+	# BG-42 静止请求直接保持零速度；普通移动实例统一经限速入口，并可显式启用曲线。
 	var effective_move_speed: float = 0.0 if random_static_placement else get_foreground_move_speed_pixels_per_second(level_profile)
-	view.setup(barrage_record, effective_move_speed, self, random_static_placement)
+	var curve_amplitude: float = (
+		curved_foreground_motion_amplitude_pixels
+		if curved_foreground_motion_enabled and not random_static_placement
+		else 0.0
+	)
+	view.setup(barrage_record, effective_move_speed, self, random_static_placement, curve_amplitude)
 	if _terminal_presentation_only:
 		view.apply_terminal_trait_presentation(_terminal_trait_ids, _terminal_trait_colors)
 	if not _try_register_normal_capacity_occupant(view, capacity_limit):

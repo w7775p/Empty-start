@@ -17,6 +17,10 @@ extends Label
 var runtime_record: BarrageRuntimeRecord
 var _move_speed_pixels_per_second: float = 0.0
 var _stationary_position: bool = false
+var _requested_curve_amplitude_pixels: float = 0.0
+var _motion_curve: Curve2D
+var _motion_curve_origin: Vector2 = Vector2.ZERO
+var _motion_curve_offset: float = 0.0
 var _active_area: Control
 var _pause_started_msec: int = -1
 var _presentation_tween: Tween
@@ -62,17 +66,19 @@ func pulse_presentation(scale_multiplier: float, return_seconds: float) -> bool:
 	return true
 
 
-# 在添加到区域之前即可配置尺寸和材质，保证生成排布读取的是实际显示范围。
+# 在添加到区域之前配置尺寸和材质；普通前景可选曲线幅度，其他实例沿用原移动。
 func setup(
 	barrage_record: BarrageRuntimeRecord,
 	move_speed_pixels_per_second: float,
 	active_area: Control,
-	stationary_position: bool = false
+	stationary_position: bool = false,
+	curve_amplitude_pixels: float = 0.0
 ) -> void:
 	runtime_record = barrage_record
 	text = barrage_record.text
 	_stationary_position = stationary_position
 	_move_speed_pixels_per_second = 0.0 if stationary_position else move_speed_pixels_per_second
+	_requested_curve_amplitude_pixels = maxf(curve_amplitude_pixels, 0.0) if is_finite(curve_amplitude_pixels) else 0.0
 	_active_area = active_area
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -254,13 +260,55 @@ func _process(delta: float) -> void:
 		if not _constrain_stationary_position_to_area():
 			queue_free()
 		return
-	position.x -= _move_speed_pixels_per_second * delta
+	if _requested_curve_amplitude_pixels > 0.0 and _ensure_curved_motion():
+		_move_along_curve(delta)
+	else:
+		position.x -= _move_speed_pixels_per_second * delta
 	if not is_instance_valid(_active_area):
 		queue_free()
 		return
 	var active_rect: Rect2 = Rect2(Vector2.ZERO, _active_area.size)
 	if not active_rect.intersects(Rect2(position, size)):
 		queue_free()
+
+
+## 按生成时落点构造完整横穿战斗区的单弧路径，幅度受区域上下边界约束。
+func _ensure_curved_motion() -> bool:
+	if _motion_curve != null:
+		return true
+	if not is_instance_valid(_active_area) or _move_speed_pixels_per_second <= 0.0:
+		return false
+	var area_size: Vector2 = _active_area.size
+	var available_up: float = maxf(position.y, 0.0)
+	var available_down: float = maxf(area_size.y - size.y - position.y, 0.0)
+	var curve_direction: float = 1.0
+	if available_up > 0.0 and available_down > 0.0:
+		curve_direction = -1.0 if randi_range(0, 1) == 0 else 1.0
+	elif available_up > 0.0:
+		curve_direction = -1.0
+	var available_height: float = available_up if curve_direction < 0.0 else available_down
+	var curve_height: float = minf(_requested_curve_amplitude_pixels, available_height)
+	if curve_height < 4.0 or area_size.x <= 0.0:
+		return false
+
+	var horizontal_travel: float = area_size.x
+	var control_height: float = curve_height * 4.0 / 3.0 * curve_direction
+	_motion_curve = Curve2D.new()
+	_motion_curve.bake_interval = 2.0
+	_motion_curve.add_point(Vector2.ZERO, Vector2.ZERO, Vector2(-horizontal_travel / 3.0, control_height))
+	_motion_curve.add_point(
+		Vector2(-horizontal_travel, 0.0), Vector2(horizontal_travel / 3.0, control_height), Vector2.ZERO
+	)
+	_motion_curve_origin = position
+	_motion_curve_offset = 0.0
+	return _motion_curve.get_baked_length() > 0.0
+
+
+## 沿细分弧长按 BG-40 传入的速度线性采样，避免三次插值造成单帧超速。
+func _move_along_curve(delta: float) -> void:
+	var curve_length: float = _motion_curve.get_baked_length()
+	_motion_curve_offset = minf(_motion_curve_offset + _move_speed_pixels_per_second * delta, curve_length)
+	position = _motion_curve_origin + _motion_curve.sample_baked(_motion_curve_offset, false)
 
 
 ## 将静止视图限制在区域内；缩小到容不下完整视图时交给现有生命周期移除。

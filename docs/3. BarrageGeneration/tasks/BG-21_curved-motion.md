@@ -1,6 +1,6 @@
 # BG-21 前景普通话语连续曲线运动
 
-**状态：待实施**
+**状态：已实现，待合并 main（2026-10-11）**
 
 ## 开始前先阅读以下文档
 - `docs/Original/任务卡模板.md` 与 `known_traps.md`（通用执行规范与已知风险）
@@ -22,6 +22,13 @@
 
 ### 验收条件
 在真实游戏中能够持续看见完整且可读的曲线运动。
+
+## 实施结果（2026-10-11）
+- `BarrageArea.curved_foreground_motion_enabled` 默认关闭；启用后普通移动前景采用平滑单弧，最大弧高由 `curved_foreground_motion_amplitude_pixels` 调节。
+- 曲线按当前生成落点与区域可用高度构造，沿 `Curve2D` 烘焙弧长推进；普通前景速度继续读取 BG-40 限速入口。
+- BG-42 静止请求优先保持零速静止；Repeat 与 Paradox 继续使用原有独立速度和直线路径。本卡未加入 Tier 权重。
+- `test_bg21_curved_motion.gd` 覆盖曲线开关、弧高调整、速度上限、区域边界、BG-42 静止请求及 Repeat / Paradox 隔离。
+- Windows Godot 4.7.2 图形运行截图：[BG-21 曲线运动 GUI 证据](../evidence/BG21_curved_motion_gui.png)。该测试使用 TEST_ONLY 句子，完整正式关卡可读性仍需人工验收。
 
 ## Godot 开发环境
 - Godot 版本：4.7.2（开工核对 `project.godot`）
