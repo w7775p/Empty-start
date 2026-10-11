@@ -253,6 +253,12 @@
 - **条件**：本机 Godot 4.7.2 `--headless --script` 运行中，`SceneTreeTimer` 累计的引擎处理时间与墙钟时间不同步；用墙钟除位置变化会错误报告速度。
 - **处理**：测试节点在 `_process(delta)` 中累加模拟秒数，并用位置变化除以同一引擎时间；保留 `SceneTreeTimer` 作为等待条件。
 
+### KT-41：Curve2D 三次采样可能突破弧长速度上限
+
+- **现象**：BG-21 将弧长偏移按上限推进后，`sample_baked(offset, true)` 的三次插值仍可能让单帧位置差超过对应弧长步长；严格逐帧速度断言可复现超速。
+- **条件**：运动按 `Curve2D` 烘焙弧长前进，同时把 `cubic` 插值设为 `true`。
+- **处理**：细分烘焙点间改用 `sample_baked(offset, false)` 线性插值，并用同一 `_process(delta)` 帧时间累计实际路径距离验证速度。BG-21 的 2 px 烘焙步长和 96 px/s 上限回归通过。
+
 ## 六、自查入口
 遇到问题优先按类别检查：
 - UI 不响应 / 空引用：KT-02、KT-04、KT-05。
@@ -262,7 +268,7 @@
 - 重构后编译或引用异常：KT-21～KT-23。
 - 新 worktree 首次 headless 启动出现全局类缺失：KT-27。
 - Godot MCP 连接 / 端口占用：KT-28。
-- headless 位移速度与计时验证：KT-40。
+- headless 位移速度与计时验证：KT-40；Curve2D 速度上限：KT-41。
 
 ## 附录 A：Godot 生命周期提醒
 

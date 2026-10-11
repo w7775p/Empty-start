@@ -5,13 +5,14 @@
 
 ## 2026-10-11 现行实现核对与任务状态
 
-**现行生成规则：** 前景普通话语与挂特性的特殊话语共用 T0～T5 各档少量容量，T1=10、T2=13、T3=16、T4=19、T5=22。T0 的 0 表示未填，普通阶段沿用 `LevelProfile.normal_barrage_screen_cap`。BG-16 已接入 CS-24 的 Tier 名额；普通话语与带特性话语共用同一账本，实例离树释放容量。Paradox 继续采用关卡上限，复读保留独立容量。复读和遮挡特性话语可由生成调用方显式请求中央战斗区随机静止落点；默认仍沿用既有定位和移动。当前普通前景只实现向左平移，移动速度由 BG-40 的可调上限统一裁切；BG-20～BG-23 的其他运动类型仍待开发。Paradox 阶段按 CB-13 读取一真五假六句。
+**现行生成规则：** 前景普通话语与挂特性的特殊话语共用 T0～T5 各档少量容量，T1=10、T2=13、T3=16、T4=19、T5=22。T0 的 0 表示未填，普通阶段沿用 `LevelProfile.normal_barrage_screen_cap`。BG-16 已接入 CS-24 的 Tier 名额；普通话语与带特性话语共用同一账本，实例离树释放容量。Paradox 继续采用关卡上限，复读保留独立容量。复读和遮挡特性话语可由生成调用方显式请求中央战斗区随机静止落点；默认仍沿用既有定位和移动。普通前景默认向左平移；`BarrageArea` 可选开启 BG-21 平滑曲线并调整最大弧高，两种路径都使用 BG-40 速度上限。BG-20 随机方向直线、BG-22 加减速与 BG-23 游荡仍待开发。曲线开关不影响 BG-42 静止请求、Repeat 或 Paradox；尚未接入 BG-39 Tier 运动权重。Paradox 阶段按 CB-13 读取一真五假六句。
 
 | 卡片 | 按实际代码核对后的唯一功能 | 状态 |
 | --- | --- | --- |
 | [BG-16](tasks/BG-16_high-density-cap.md) | 按 Tier 读取前景容量 | 已合并 main；Tier 容量回归通过 |
 | [BG-17](tasks/BG-17_pc-android-performance.md) | 分层性能与可读性验收 | 待组合实测 |
 | [BG-42](tasks/BG-42_static-random-placement.md) | 复读和遮挡共用的中央区域随机静止落点 | 已合并 main |
+| [BG-21](tasks/BG-21_curved-motion.md) | 普通前景可选平滑曲线运动 | 已实现；聚焦回归和 GUI 运动证据通过，待合并 |
 | [BG-24](tasks/BG-24_overlap-pass-through.md) | 实例出生与运动允许重叠 | 待开发 |
 | [BG-27](tasks/BG-27_animated-size.md) | 连续缩放 | 已有脉冲入口 |
 | [BG-28](tasks/BG-28_mixed-rich-text-style.md) | 前景富文本 | 待开发 |
@@ -26,7 +27,7 @@
 | [BG-37](tasks/BG-37_foreground-text-outline.md) | 非复读文字描边 | 待开发 |
 | [BG-38](tasks/BG-38_effective-area-clear.md) | 现有命中结束目标接线回归 | 已有链路 |
 | [BG-39](tasks/BG-39_tier-motion-proportions.md) | 四种运动类型随 Tier 权重变化 | 待开发 |
-| [BG-40](tasks/BG-40_foreground-speed-ceiling.md) | 前景话语最大速度 | 当前直线运动已实现，待合并 main；BG-20～BG-23 实现后补验 |
+| [BG-40](tasks/BG-40_foreground-speed-ceiling.md) | 前景话语最大速度 | 普通直线与 BG-21 曲线路径使用统一上限；后续运动按各自任务补验 |
 | [BG-41](tasks/BG-41_random-trait-selection.md) | 按已解锁池随机分配特性 | 技能池待定 |
 
 **BG-34（2026-10-10）** `CombatStage` 将 T2=13 发布给 `BarrageArea`。满槽后移除 4 条，现场数量回到 9；容量释放恢复现有 `SpawnTimer`，下一次批次经 `NormalSpeechSelector` 补到 13，额外普通生成由现有上限拦截。复读继续走独立账本。本卡确认现有 BG-16 接线已满足频率补位规则，并新增真实组件回归。
@@ -41,9 +42,11 @@
 
 `test_bg42_static_random_placement.gd` 用实际 `BarrageArea` / `BarrageView` 覆盖默认移动、短长文本边界、随机位置分布、1024×760 当前尺寸、1024×1008 扩高、缩小区域时视图夹回 / 移除与容量恢复、过小区域拒绝、暂停和寿命。图形运行保存当前战斗区视觉截图到 `evidence/BG42_static_random_placement.png`；真实 Sandbox 场景文件未修改。
 
-**BG-40（2026-10-11）** `BarrageArea.maximum_foreground_move_speed_pixels_per_second` 是 Inspector 可调的普通移动前景速度上限，默认值为 100 px/s，与当前 `LevelProfile.base_move_speed_pixels_per_second` 基础值一致。`get_foreground_move_speed_pixels_per_second(level_profile)` 是普通前景唯一限速入口，按 `max(基础速度, 0) × max(当前 CS-07 Tier 倍率, 0)` 计算后裁切到上限；倍率更新继续只影响之后新建的普通前景实例。当前 `BarrageView._process()` 只实现向左平移，因此 BG-20～BG-23 的直线、曲线、加减速和游荡行为不在本次实现或验证范围；这些后续模式应以该接口返回值作为速度幅度上限。
+**BG-40（2026-10-11）** `BarrageArea.maximum_foreground_move_speed_pixels_per_second` 是 Inspector 可调的普通移动前景速度上限，默认值为 100 px/s，与当前 `LevelProfile.base_move_speed_pixels_per_second` 基础值一致。`get_foreground_move_speed_pixels_per_second(level_profile)` 是普通前景唯一限速入口，按 `max(基础速度, 0) × max(当前 CS-07 Tier 倍率, 0)` 计算后裁切到上限；倍率更新继续只影响之后新建的普通前景实例。当前 `BarrageView._process()` 保留默认向左移动，并支持 BG-21 对普通前景显式开启的曲线路径；曲线路径沿弧长按该入口的返回值推进，瞬时路径速度受同一上限约束。BG-20 随机方向直线、BG-22 加减速与 BG-23 游荡仍需在各自任务中接入并验收。
 
 该限速只接在普通移动前景生成路径。显式 BG-42 静止请求传入零速度；Repeat 沿用原基础速度与当前倍率计算；Paradox 六候选继续读取自身 `ContradictionWindowConfig`。`test_bg40_foreground_speed_ceiling.gd` 使用实际 Tier Catalog 与 `CombatStage` 检查 T1～T5、T1/T5 真实位移、降档后的新实例、Repeat / Paradox 隔离和静止请求。测试句为脚本内 TEST_ONLY 合成数据，不作为正式关卡或正式玩法可读性验收。GUI smoke 保存 TEST_ONLY 短句的 Godot 渲染截图到 `evidence/BG40_foreground_speed_ceiling_test.png`。
+
+**BG-21（2026-10-11）** `BarrageArea.curved_foreground_motion_enabled` 默认关闭；开启后仅后续普通移动前景实例使用平滑单弧，`curved_foreground_motion_amplitude_pixels` 调整最大弧高，实际幅度按落点可用上下空间收窄。`BarrageView` 使用 2 px 烘焙步长的 `Curve2D` 弧长，以线性采样推进并满足 BG-40 限速入口；视图高度保持在区域内。默认关闭时沿用原横向直线；BG-42 静止请求优先保持静止，Repeat 与 Paradox 仍使用独立既有路径。没有接入 BG-39 Tier 权重。`test_bg21_curved_motion.gd` 覆盖开关、弧高调整、BG-40 逐帧速度上限、完整视图边界，以及静止、Repeat 和 Paradox 隔离。图形测试保存 TEST_ONLY 轨迹图到 `evidence/BG21_curved_motion_gui.png`；图中尾迹记录实际视图位置，正式词库可读性仍需完整游戏人工验收。
 
 本节是当前派工依据；历史章节中的旧默认值与旧任务说明保留用来追溯已有系统演变。开发时以单卡现行版和本节为准。
 
