@@ -1,6 +1,6 @@
 # CS-18 升档时清理本发结算后仍待生成的旧普通复读
 
-**状态：待升档接线 · 复用现有队列清理**
+**状态：已完成 · 复用现有队列清理 · 2026-10-11**
 
 ## 开始前先阅读以下文档
 - `docs/Original/任务卡模板.md` 与 `known_traps.md`（通用执行规范与已知风险）
@@ -10,7 +10,7 @@
 - 后续消费者：CS-14 在整发提交后协调队列清理
 
 ## 已经实现的功能
-RepeatDelayQueue.clear_normal_queue() 已实现，当前仅在普通战斗结束等节点调用。
+`RepeatDelayQueue.clear_normal_queue()` 已实现。`BattleAttemptFlow` 在 `shot_arrival_resolved` 时记录本发开始结算的 Tier；整发命中事实、普通复读计划登记与 `shot_resolved` 消费者处理完成后，若当前 Tier 更高，则调用 `clear_pending_normal_repeats()` 清除旧档和本发新建的普通等待请求。该清理发生在当前提交回调返回及延迟突破完成之前；未升档的命中和飞行期间由对手回拉造成的 Tier 变化不会触发本卡清理。
 
 ## 本次任务
 升档时清理本发结算后仍待生成的旧普通复读。

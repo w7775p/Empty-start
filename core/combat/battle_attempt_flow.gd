@@ -34,6 +34,8 @@ var _opening_fan_count: int = 0
 var _is_configured: bool = false
 var _normal_combat_active: bool = false
 var _normal_completion_pending: bool = false
+var _shot_tier_at_arrival: int = CombatStage.INITIAL_TIER
+var _has_shot_tier_at_arrival: bool = false
 
 
 # 组合本场已有系统；PK、Tier、复读统计继续由各自对象持有。
@@ -80,6 +82,7 @@ func configure(
 	_audio_manager = audio_manager
 	_opening_fan_count = run_data.live_session.fan_count
 	_opponent_pk_bar.attempt_failed.connect(_on_attempt_failed)
+	_attack_input.shot_arrival_resolved.connect(_on_shot_arrival_resolved)
 	_attack_input.shot_hit_resolution_submitted.connect(_on_shot_hit_resolution_submitted)
 	_is_configured = true
 	return true
@@ -112,6 +115,7 @@ func _start_attempt(is_restart: bool) -> bool:
 	_run_data.tendency_state.rollback_attempt_tendency()
 	_run_data.live_session.initialize_session(_opening_fan_count)
 	_normal_completion_pending = false
+	_has_shot_tier_at_arrival = false
 
 	_hit_resolution = HitResolution.new(
 		_battle_config.initial_player_pk,
@@ -211,13 +215,26 @@ func _on_attempt_failed() -> void:
 	attempt_failed.emit(failed_level, loss_streak_count, _hit_resolution, _repeat_queue.get_generation_stats())
 
 
+# 在本发 PK 结算前记录 Tier，避免把飞行期间的对手回拉误判为本发升档。
+func _on_shot_arrival_resolved(_snapshot: AttackTargetSnapshot, _target_results: Array[Dictionary]) -> void:
+	_has_shot_tier_at_arrival = _normal_combat_active and _combat_stage != null
+	if _has_shot_tier_at_arrival:
+		_shot_tier_at_arrival = _combat_stage.get_current_tier()
+
+
 # 命中信号到达时，HitResolution 和 CombatStage 已完成本发唯一结算。
 func _on_shot_hit_resolution_submitted(snapshot: AttackTargetSnapshot, submission: Dictionary) -> void:
+	var has_arrival_tier: bool = _has_shot_tier_at_arrival
+	var arrival_tier: int = _shot_tier_at_arrival
+	_has_shot_tier_at_arrival = false
 	if not _normal_combat_active:
 		return
 	var result: Dictionary = submission.get("hit_resolution_result", {})
 	if bool(result.get("cancelled_by_zero_pk", false)):
 		return
+	var tier_increased_this_shot: bool = (
+		has_arrival_tier and _combat_stage.get_current_tier() > arrival_tier
+	)
 	var normal_hit_count: int = 0
 	var repeat_hit_count: int = 0
 	for target_result: Dictionary in result.get("target_results", []):
@@ -253,6 +270,9 @@ func _on_shot_hit_resolution_submitted(snapshot: AttackTargetSnapshot, submissio
 	else:
 		battle_state_changed.emit("未命中有效话语")
 	shot_resolved.emit(snapshot, submission.duplicate(true), _combat_stage.get_current_tier(), _repeat_queue.get_generation_stats())
+	if tier_increased_this_shot:
+		# 本发命中消费者和同发复读登记完成后，清除旧档位及本发新建的普通等待请求。
+		clear_pending_normal_repeats()
 	if _hit_resolution.get_player_pk() >= _battle_config.maximum_player_pk:
 		_complete_normal_combat(_hit_resolution)
 

@@ -90,7 +90,16 @@ func _execute() -> void:
 	_sandbox.debug_set_player_pk(1.0)
 	await _frames()
 	system = flow.get_contradiction_system()
-	await get_tree().create_timer(10.2).timeout
+	# 复用正式矛盾窗口 Timer 的超时回调，不为同一个 Rest 分支重复等待完整十秒。
+	var window_timer: Timer = null
+	for child: Node in system.get_children():
+		if child is Timer:
+			window_timer = child as Timer
+			break
+	_check(window_timer != null, "正式矛盾窗口存在计时器")
+	if window_timer != null:
+		window_timer.start(0.1)
+		await get_tree().create_timer(0.2).timeout
 	_check(system.get_outcome() == ContradictionBreakSystem.Outcome.NOT_BROKEN
 		and flow.get_result().get_result_snapshot()["result_kind"] == "pk_win_unbroken", "十秒窗口到期交付未击破 Rest")
 	_check(run.scripture_data.entries.size() == 1 and run.loser_card_data.acquired_streamer_ids.size() == 1, "超时未击破无新增奖励")

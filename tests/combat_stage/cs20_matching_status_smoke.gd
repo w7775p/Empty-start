@@ -37,7 +37,7 @@ func _run_smoke() -> void:
 	hud.call("show_battle_state", "关键战斗警告：注意命中窗口")
 	sandbox.call("debug_set_player_pk", 0.50)
 	_check(attempt_flow.get_combat_stage().get_current_tier() == 0, "PK 下降通过正式流程返回 T0")
-	_check(state_label.text == "关键战斗警告：注意命中窗口", "Tier 刷新保留正在显示的战斗警告")
+	_check(state_label.text == DEFAULT_T0_STATUS, "对手离线时优先显示 T0 匹配状态")
 
 	hud.set("t0_matching_status_text", "正在搜索 PK 对手……")
 	sandbox.call("restart_current_attempt")

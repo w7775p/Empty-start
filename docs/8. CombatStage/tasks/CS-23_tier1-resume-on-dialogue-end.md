@@ -12,6 +12,9 @@
 ## 已经实现的功能
 当前回拉在 restart_current_attempt 里 start_pullback 后即运行；进入 T1 仅更新倍率，缺少对白期间的生命周期衔接。
 
+## SD-06 接口交接（2026-10-11）
+CS-23 可订阅 Sandbox 的 `dialogue_event_sequence_completed(event_id, sequence_id, side)`，只在 `event_id == &"combat_connected"` 且当前尝试仍为 T1 时恢复生成与回拉。该通知只在 SD-03 最后一句气泡实际到期后发出；无匹配配置时以空 `sequence_id` 表示零句序列已完成。被重开或离线清理取消的序列不会发完成通知。CS-23 具体暂停/恢复实现仍属于本卡。
+
 ## 本次任务
 T1 对话完成后恢复生成和 PK 回拉。
 

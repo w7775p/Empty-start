@@ -8,7 +8,7 @@
 
 ## 2026-10-09 现行实现核对与任务状态
 
-**阶段结构：** `CombatStage` 的运行档位为 T0～T5，普通 T5 继续战斗到满 PK。进入真实 `ContradictionBreak` 后，SandboxBattleHud 显示 `T6 / Paradox`（CS-25）；此文案沿用运行 Tier 5、PK 比例与现有胜负流程。现有 `tier_state_changed` 在最终结算后发出，但本发 Sandbox 仍需完成命中处理；CS-14/CS-18 应在当发事实及队列协调后执行升档清屏、清旧请求。T0 回拉倍率为 0（CS-19）；T1 开场对白完成后再进入回拉与生成，当前接线待 CS-22/23。T2～T5 每档仅在本场首次到达时抽取一项反击（CS-28）；已抽技能按当前 Tier 生效，降档暂停高档反击、回升恢复原抽取结果（CS-29），具体候选池后续确定。降至 T0 对手离线（CS-26），降至 T1 触发嘲讽（CS-27）。
+**阶段结构：** `CombatStage` 的运行档位为 T0～T5，普通 T5 继续战斗到满 PK。进入真实 `ContradictionBreak` 后，SandboxBattleHud 显示 `T6 / Paradox`（CS-25）；此文案沿用运行 Tier 5、PK 比例与现有胜负流程。CS-18 已在整发命中、倾向及复读登记和 `shot_resolved` 消费者处理后，仅对本发实际升档调用 `clear_pending_normal_repeats()` 清空旧普通请求；CS-14 仍负责升档后的可见弹幕清理。T0 回拉倍率为 0（CS-19）；T1 开场对白完成后再进入回拉与生成，当前接线待 CS-22/23。T2～T5 每档仅在本场首次到达时抽取一项反击（CS-28）；已抽技能按当前 Tier 生效，降档暂停高档反击、回升恢复原抽取结果（CS-29），具体候选池后续确定。降至 T0 对手离线（CS-26），降至 T1 触发嘲讽（CS-27）。
 
 | 卡片 | 按实际代码核对后的唯一功能 | 状态 |
 | --- | --- | --- |
@@ -16,14 +16,15 @@
 | [CS-15](tasks/CS-15_tier-up-breakthrough.md) | 升档短暂突破演出 | 待开发 |
 | [CS-16](tasks/CS-16_tier-down-shake.md) | 降档统一震动（离线与嘲讽由 CS-26/27 叠加） | 待开发 |
 | [CS-17](tasks/CS-17_silence-and-burst.md) | 沉默爆发候选节点 | 待策划 |
-| [CS-18](tasks/CS-18_tier-up-clear-old-repeat-requests.md) | 现有队列清理升档接线 | 待接线 |
+| [CS-18](tasks/CS-18_tier-up-clear-old-repeat-requests.md) | 现有队列清理升档接线 | 已完成 · Godot 4.7.2 聚焦运行通过 |
 | [CS-19](tasks/CS-19_tier0-zero-pullback.md) | T0 回拉倍率数值 0 | 配置完成；Sandbox T0/T1 现行回拉验证通过，对白后时点待 CS-22/23 |
 | [CS-20](tasks/CS-20_tier0-matching-status.md) | T0 搜索对手文案 | 已完成：开局/重开显示可配置等待状态，T1 接线后切换为对手已连线 |
-| [CS-21](tasks/CS-21_tier1-opponent-portrait.md) | T0/T1 对手立绘出现 | 已有资源 |
+| [CS-21](tasks/CS-21_tier1-opponent-portrait.md) | T0/T1 对手立绘出现 | 部分完成：显隐与回切已验证；level_001 素材映射待确认 |
 | [CS-22](tasks/CS-22_tier1-bubble-dialogue.md) | T1 开场气泡对白 | 待开发 |
 | [CS-23](tasks/CS-23_tier1-resume-on-dialogue-end.md) | T1 对话后恢复战斗 | 待接线 |
 | [CS-24](tasks/CS-24_tier-foreground-slot-catalog.md) | Tier 唯一前景容量字段与 BarrageArea 读取接口 | 已完成 |
 | [CS-25](tasks/CS-25_paradox-tier6-stage-label.md) | T6/Paradox HUD 阶段标记 | 已完成 |
+| [CS-26](tasks/CS-26_tier1-to-tier0-disconnect.md) | 降至 T0 时对手离线 | 部分完成：离线与对白清理已验收；震屏待 CS-16 |
 
 本节是当前派工依据；历史章节中的旧默认值与旧任务说明保留用来追溯已有系统演变。开发时以单卡现行版和本节为准。
 
@@ -48,7 +49,11 @@ INT-01 已在正式 Sandbox 完成 HitResolution、BarrageArea、OpponentPKBar �
 
 CS-25 由 `ContradictionOracleFlow.entered` 驱动 SandboxBattleHud 的 `set_paradox_stage_active(active, current_tier)`。真实矛盾流程进入时显示 `T6 / Paradox`；Final Oracle、Rest、失败和新尝试接线会按当前 `CombatStage.get_current_tier()` 恢复普通档位文字。该展示不增加 Tier 6 配置，也不改 PK 比例、胜负判定或矛盾规则。聚焦场景 `tests/combat_stage/cs25_paradox_stage_label_smoke.tscn` 覆盖 HUD 内容、真实矛盾流程、六个候选、Rest、失败重试及第二次尝试；GUI 视口截图保存在 `evidence/cs25_2026-10-11/`。截图与运行断言使用现有 `level_001.tres` 示例内容，正式四关文本仍需策划确认。
 
-CS-20 通过 `SandboxBattleHud.t0_matching_status_text` 暴露可配置的 T0 等待文案，默认显示「等待对手连线……」。新开局和重开沿用 `show_battle_state()` 显示该状态；`refresh_pk()` 收到 Tier 变化后，仅在当前文案仍由 HUD 管理时切换 T0 等待状态或 T1「对手已连线」，其他来源的即时战斗提示会保留。该刷新复用既有 `BattleAttemptFlow.pk_feedback_changed` 接口，不改 Sandbox 根脚本或战斗流程。聚焦场景 `tests/combat_stage/cs20_matching_status_smoke.tscn` 覆盖开局、重开、T0/T1 和警告保留；GUI 截图保存在 `evidence/cs20_2026-10-11/`。
+CS-20 通过 `SandboxBattleHud.t0_matching_status_text` 暴露可配置的 T0 等待文案，默认显示「等待对手连线……」。新开局和重开沿用 `show_battle_state()` 显示该状态；进入 T1 时，仅在当前文案仍由 HUD 管理时切换为「对手已连线」，普通 Tier 刷新继续保留其他来源的即时战斗提示。CS-26 增加明确的已连线→T0 离线优先级：切断对手时显示 T0 匹配状态，避免旧战斗提示遮住离线事实。刷新复用既有 `BattleAttemptFlow.pk_feedback_changed` 接口，不改 Sandbox 根脚本或战斗流程。
+
+CS-21 复用 `SandboxBattleHud.set_opponent_portrait_connected()` 与 `refresh_pk()` 的当前 Tier 反馈：T0 隐藏对手立绘与对白侧，进入 T1 显示已配置的待机立绘，降回 T0 后再次隐藏，再进入 T1 可重新显示。连接状态仅在 Tier 实际变化时切换。当前正式 `level_001.tres` 的 `streamer_portrait` 为空；素材台账仍要求关卡角色映射确认后再绑定，因此正式 Sandbox 的 T1 暂时继续显示占位内容。聚焦场景 `tests/combat_stage/cs21_opponent_portrait_smoke.tscn` 使用仓库现有 `alien_idle.png` 经 HUD 公开素材接口做视图验收，不代表 `streamer_sample` 已映射为 alien；四张 GUI 证据保存在 `evidence/cs21_2026-10-11/`。Tier 接线沿用当前 `BattleAttemptFlow.pk_feedback_changed` 时点；CS-14 的本发清屏及 CS-15 过渡仍待阶段联调，本卡未修改 Sandbox 根脚本。
+
+CS-26 复用同一 Tier 刷新入口：从 T1 或更高档降到 T0 时，HUD 显示配置的匹配提示、隐藏对手立绘，并通过 `set_opponent_portrait_connected(false)` 关闭 SD-03 对手侧、清空活动与待播对白及中断剧情序列。离线期间新对白会被拒绝；重新升到 T1 后，对手侧队列和立绘恢复。`tests/combat_stage/cs26_tier1_to_tier0_disconnect_smoke.tscn` 以正式 Sandbox 验收该完整路径、状态提示优先级及现存弹幕运动，GUI 证据保存在 `evidence/cs26_2026-10-11/`。CS-16 降档震屏仍待开发，震屏验收需在该卡完成后联测；`level_001.tres` 尚无正式 `streamer_portrait` 映射，截图测试仅经 HUD 接口临时使用仓库已有 `alien_idle.png`。
 
 CS-24 增加 `CombatStageTierConfig.foreground_slot_count`。正式配置 T0=0（尚待策划填写）、T1～T5=10/13/16/19/22；各档 Resource 可独立调整。CombatStage 在绑定 BarrageArea、开局和档位切换时通过 `barrage_foreground_slot_count_changed` 发布当前值；BarrageArea 通过 `set_foreground_slot_count()` 接收并由 `get_foreground_slot_count()` 提供受控读取。0 保留为未配置标记，后续 BG-16 应沿用 `LevelProfile.normal_barrage_screen_cap` 的现有行为；CS-24 不改变容量准入或生成逻辑。
 
@@ -61,6 +66,8 @@ CS-06 的 `bind_hit_resolution(hit_resolution)` 连接 `HitResolution.final_play
 CS-07 通过 `bind_barrage_area(barrage_area)` 连接 BarrageArea 的真实倍率入口：`set_generation_multipliers()` 接收生成数量、频率和移动速度倍率，`set_lifetime_multiplier()` 接收寿命倍率。开局和最终 Tier 变化后，CombatStage 从当前 Tier 配置广播四个值；绑定时也立即补发当前配置。倍率具体应用和新弹幕实例仍由 BarrageArea 负责，既有弹幕保留生成时的速度和寿命。Sandbox 组合时由场景拥有者实例化并加入 BarrageArea 后，再调用 `bind_barrage_area()`；Lane C 不修改 Sandbox。
 
 CS-08 提供 `get_current_repeat_count_per_hit()`，返回当前 Tier 配置的 `repeat_count_per_hit`。命中结算完成并更新 Tier 后，普通复读计划创建方读取该数量与 `get_current_tier()`，传给 `RepeatPlan.create_normal_hit_plan()`；RepeatPlan 在创建时保存固定数量和结算档位。CombatStage 不缓存复读计划，也不拥有复读统计。
+
+CS-18 在 `shot_arrival_resolved` 到达时记录本发 Tier，避免飞行期间的对手回拉变化被误认作本发升档。整发命中、倾向和复读计划处理完成并发出 `shot_resolved` 后，若结算 Tier 高于到达 Tier，`BattleAttemptFlow` 调用 `clear_pending_normal_repeats()`，复用 `RepeatDelayQueue.clear_normal_queue()` 清除旧档与同发仍待生成的普通请求；本发提交回调返回后，延迟中的普通战斗完成才可进入突破流程。队列清理只撤销待生成请求，实际已生成统计继续沿用原规则，新档请求可正常入队。
 
 CS-10 提供 `tier_state_changed(current_tier)`，在开局同步 Tier 0，并在跨档计算完成后只广播一次最终 Tier。Tier 上升时发出 `audio_event_requested(&"tier_up")`；`bind_audio_manager(audio_manager)` 将该事件接到 AU-01 的 `AudioManager.play_event(StringName)`。当前 LiveDataHud 只显示四项计数，没有 Tier 接收端；Sandbox 场景拥有者需把 `tier_state_changed` 接到实际 Tier 表现组件。此接口不包含 AU-02 音乐状态切换。
 

@@ -18,6 +18,8 @@ var runtime_record: BarrageRuntimeRecord
 var _move_speed_pixels_per_second: float = 0.0
 var _stationary_position: bool = false
 var _requested_curve_amplitude_pixels: float = 0.0
+var _speed_change_cycle_seconds: float = 0.0
+var _speed_change_elapsed_seconds: float = 0.0
 var _motion_curve: Curve2D
 var _motion_curve_origin: Vector2 = Vector2.ZERO
 var _motion_curve_offset: float = 0.0
@@ -66,19 +68,22 @@ func pulse_presentation(scale_multiplier: float, return_seconds: float) -> bool:
 	return true
 
 
-# 在添加到区域之前配置尺寸和材质；普通前景可选曲线幅度，其他实例沿用原移动。
+# 在添加到区域之前配置尺寸和材质；周期加减速只由普通移动前景显式传入。
 func setup(
 	barrage_record: BarrageRuntimeRecord,
 	move_speed_pixels_per_second: float,
 	active_area: Control,
 	stationary_position: bool = false,
-	curve_amplitude_pixels: float = 0.0
+	curve_amplitude_pixels: float = 0.0,
+	speed_change_cycle_seconds: float = 0.0
 ) -> void:
 	runtime_record = barrage_record
 	text = barrage_record.text
 	_stationary_position = stationary_position
 	_move_speed_pixels_per_second = 0.0 if stationary_position else move_speed_pixels_per_second
 	_requested_curve_amplitude_pixels = maxf(curve_amplitude_pixels, 0.0) if is_finite(curve_amplitude_pixels) else 0.0
+	_speed_change_cycle_seconds = maxf(speed_change_cycle_seconds, 0.0) if is_finite(speed_change_cycle_seconds) else 0.0
+	_speed_change_elapsed_seconds = 0.0
 	_active_area = active_area
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -260,16 +265,31 @@ func _process(delta: float) -> void:
 		if not _constrain_stationary_position_to_area():
 			queue_free()
 		return
+	var current_move_speed: float = _get_current_move_speed(delta)
 	if _requested_curve_amplitude_pixels > 0.0 and _ensure_curved_motion():
-		_move_along_curve(delta)
+		_move_along_curve(delta, current_move_speed)
 	else:
-		position.x -= _move_speed_pixels_per_second * delta
+		position.x -= current_move_speed * delta
 	if not is_instance_valid(_active_area):
 		queue_free()
 		return
 	var active_rect: Rect2 = Rect2(Vector2.ZERO, _active_area.size)
 	if not active_rect.intersects(Rect2(position, size)):
 		queue_free()
+
+
+## 普通前景沿平滑周期从零速加到 BG-40 上限，再平滑减速；周期两端保持连续。
+func _get_current_move_speed(delta: float) -> float:
+	if _speed_change_cycle_seconds <= 0.0:
+		return _move_speed_pixels_per_second
+	_speed_change_elapsed_seconds = fposmod(
+		_speed_change_elapsed_seconds + maxf(delta, 0.0), _speed_change_cycle_seconds
+	)
+	var cycle_phase: float = _speed_change_elapsed_seconds / _speed_change_cycle_seconds
+	var speed_progress: float = 1.0 - absf(cycle_phase * 2.0 - 1.0)
+	# Smoothstep 让加速、减速的起点、峰值和周期接缝都没有速度突变。
+	var eased_progress: float = speed_progress * speed_progress * (3.0 - 2.0 * speed_progress)
+	return _move_speed_pixels_per_second * eased_progress
 
 
 ## 按生成时落点构造完整横穿战斗区的单弧路径，幅度受区域上下边界约束。
@@ -304,10 +324,10 @@ func _ensure_curved_motion() -> bool:
 	return _motion_curve.get_baked_length() > 0.0
 
 
-## 沿细分弧长按 BG-40 传入的速度线性采样，避免三次插值造成单帧超速。
-func _move_along_curve(delta: float) -> void:
+## 沿细分弧长按当帧速度线性采样，避免加减速与曲线叠加后超过 BG-40 上限。
+func _move_along_curve(delta: float, current_move_speed: float) -> void:
 	var curve_length: float = _motion_curve.get_baked_length()
-	_motion_curve_offset = minf(_motion_curve_offset + _move_speed_pixels_per_second * delta, curve_length)
+	_motion_curve_offset = minf(_motion_curve_offset + current_move_speed * delta, curve_length)
 	position = _motion_curve_origin + _motion_curve.sample_baked(_motion_curve_offset, false)
 
 
