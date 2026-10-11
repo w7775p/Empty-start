@@ -114,7 +114,11 @@ func bind_portrait_attack(attack: AttackChargeInput) -> void:
 
 # 此入口仅接收正式满蓄快照；命中、飞行到达和蓄力刷新均不触发射击动作。
 func play_player_shot(snapshot: AttackTargetSnapshot) -> void:
-	if snapshot != null and _player_portrait.is_visible_in_tree():
+	if snapshot == null:
+		return
+	# 同一份正式发射快照驱动立绘与 PA-08 准星短闪；立绘不可见也能播放准星反馈。
+	_aim_reticle.play_shot_feedback()
+	if _player_portrait.is_visible_in_tree():
 		player_portrait_motion.play_shot()
 
 
@@ -217,6 +221,10 @@ func _refresh_stage_label(current_tier: int) -> void:
 func refresh_attack(progress: float, phase: int) -> void:
 	var charge_progress: float = clampf(progress, 0.0, 1.0)
 	_charge_progress.value = charge_progress
+	# PA-08 与既有蓄力条读取同一个 CombatAttack 状态，不复制蓄力计时。
+	var holding: bool = is_instance_valid(_portrait_attack) and _portrait_attack.is_charge_held()
+	var full: bool = is_instance_valid(_portrait_attack) and _portrait_attack.is_fully_charged()
+	_aim_reticle.set_charge_visual_state(charge_progress, holding, full)
 	match phase:
 		AttackChargeInput.AttackPhase.PROJECTILE_FLIGHT:
 			_charge_label.text = "飞行中"
@@ -254,6 +262,8 @@ func show_failure() -> void:
 
 # 重开复位本场 HUD 提示并读取当前 T0 等待文案，各系统状态仍由所属对象初始化。
 func reset_for_attempt() -> void:
+	# 重开/失败后的下一场从待机准星开始，避免保留上一发充能高亮。
+	_aim_reticle.reset_visual_state()
 	player_portrait_motion.reset_shot()
 	opponent_portrait_motion.reset_shot()
 	clear_dialogue_bubbles()

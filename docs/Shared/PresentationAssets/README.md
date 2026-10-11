@@ -166,3 +166,7 @@ PA-02 负责把正式美术资产导入工程并接到对应 Resource；PA-03 �
 已复用 `systems/presentation/combat_hit_feedback.gd` 同时运行独立选型 Demo 与 Sandbox 正式命中反馈。现场信号来源：`shot_arrival_resolved` 提供结果词/目标位置，`shot_hit_resolution_submitted` 提供整发真实 PK 净值和准星冻结位置。正常 `+0.12%`、落空 `-1% / MISS` 已在 Godot 4.7.2 实际发射并 GPU 截图：`previews/pa09_real_battle_hit.jpg`、`previews/pa09_real_battle_miss.jpg`。旧的独立 `pa09_feedback_overlay.gd` 已合入正式组件，避免两份实现。必要异常的真实联动、Android 真机及美术最终选型继续待验收，PR #148 保持 Draft。
 
 **真实异常补充：** 通过 AttackChargeInput 正式结算，遮挡反馈对应 BLOCK 与 PK -1%，反弹对应 REFLECT 与 PK -1%；两张实际 GPU 截图在 previews/pa09_real_occlusion.jpg、previews/pa09_real_reflect.jpg。其余视觉审美与 Android 待人工验收。
+
+## PA-08 正式 Sandbox 视觉接线补齐（2026-10-11）
+
+`PA-08` 独立组件已于 PR #111 合并，但真实 Sandbox 的 HUD 原来只刷新蓄力条，缺少调用 `AimReticle.set_charge_visual_state()` 与 `play_shot_feedback()`。现由 `scenes/sandbox/sandbox_battle_hud.gd` 复用既有 `bind_portrait_attack` 所绑定的 AttackChargeInput：每帧把真实蓄力进度/按住/满蓄同步给准星，正式 `shot_snapshot_created` 时触发短闪，重开清理视觉状态。视觉设计 96×96、实际命中直径 144 与现有游戏 HUD 都未修改。Windows Godot 4.7.2 的真实 Sandbox 四态 GPU 截图在 `previews/pa08_sandbox_{idle,charging,full,firing}_1280.jpg`；验收与遗留见 `表现资产_PA-08_2026-10-11_log.md`。Android 真机仍需后续验收。
