@@ -3,8 +3,8 @@
 [ext_resource type="Script" path="res://data/shared/presentation_asset_config.gd" id="1_config"]
 [ext_resource type="Theme" path="res://ui/theme/base_theme.tres" id="2_ui_theme"]
 [ext_resource type="Texture2D" path="res://assets/characters/player/hamster_idle.png" id="3_player_streamer_art"]
-[ext_resource type="Texture2D" path="res://assets/environment/live/player_live_temp.png" id="4_player_live_background"]
-[ext_resource type="Texture2D" path="res://assets/environment/rooms/player_room_01.png" id="5_player_room_background"]
+[ext_resource type="Texture2D" path="res://assets/environment/live/hamster/background.png" id="4_player_live_background"]
+[ext_resource type="Texture2D" path="res://assets/environment/player_room/background.png" id="5_player_room_background"]
 [ext_resource type="Texture2D" path="res://assets/ui/combat/fan_badges/player_fan_badge_01.png" id="6_player_fan_badge"]
 
 [resource]

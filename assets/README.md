@@ -1,106 +1,116 @@
-# 美术资产目录与交付台账
+# 美术与音频资源目录（2026-10-11 更新）
 
-> 资源整理：2026-10-10。本表对应仓库当前已收到的 PNG；正式角色关卡绑定仍以关卡配置和策划确定的出场顺序为准。
+本目录按**运行用途**整理素材，保留美术交付的独立图片。角色所属直播间的背景统一归 `environment/live/`，主角休息房间归 `environment/player_room/`。
 
-## 目录
+## 当前结构
+
 ```text
 assets/
 ├── characters/
-│   ├── player/hamster_idle.png                      # 主角仓鼠，1 张
+│   ├── player/
+│   │   └── hamster_idle.png
 │   └── opponents/
-│       ├── alien/                                   # 外星人：待机、Tier 01~03、击败过渡、击败（6 张）
-│       ├── kiwi/                                    # Kiwi：待机、Tier 01~03、击败（5 张）
-│       └── fox/                                     # 狐狸：待机、Tier 01~03、击败（5 张）
-│           └── effects/                             # 四张独立玫瑰/花瓣部件（4 张）
+│       ├── alien/    # idle、tier_01~03、defeat_transition、defeat
+│       ├── fox/      # idle、tier_01~03、defeat；effects/ 独立花瓣
+│       ├── frog/     # idle、tier_01~03、defeat（新接收）
+│       └── kiwi/     # idle、tier_01~03、defeat
 ├── environment/
-│   ├── rooms/player_room_01.png                     # 主角房间
-│   ├── rooms/kiwi_room.png                          # Kiwi 房间
-│   └── live/player_live_temp.png                    # 临时玩家直播背景；原名 temporal
+│   ├── player_room/
+│   │   ├── background.png       # 非直播：主角休息房间
+│   │   └── foreground_desk.png  # 同房间透明桌子前景
+│   └── live/
+│       ├── hamster/
+│       │   ├── background.png       # 主角直播背景（原 bg_ham_live_room）
+│       │   └── foreground_desk.png  # 主角直播桌子前景
+│       ├── alien/background.png
+│       ├── frog/
+│       │   ├── background.png       # 10-11 版：原 bg_frog_room1011
+│       │   ├── background_alt.png   # 保留早期完整背景：原 bg_frog_room_01
+│       │   └── foreground_cutout.png  # 透明前景：原 bg_frog_room_02
+│       └── kiwi/background.png
 ├── ui/
-│   └── combat/
-│       ├── pk_bar/                                  # 10 张分段 + 2 张指示器
-│       ├── fan_badges/                              # 玩家粉丝牌 2 张
-│       └── feedback/player_hit_comic_01.png          # 玩家受击漫画效果 1 张
-├── fonts/                                           # 待交付
-└── audio/                                           # 现有音频，目录保持原样
+│   ├── combat/
+│   │   ├── fan_badges/  # 下文详列 6 张正式金银瓜子/粉丝 UI 资源
+│   │   ├── feedback/
+│   │   ├── impact_marks/
+│   │   └── pk_bar/
+│   ├── input_escape.svg
+│   └── input_mouse_left.svg
+├── audio/
+│   ├── music/
+│   └── sfx/  # interface、magical、Kenney 音效等（沿用已有内容）
+└── fonts/
 ```
 
-## 已接收清单
+## 直播画面的图层规则
 
-| 类别 | 内容 | PNG 数量 |
-| --- | --- | ---: |
-| 主角 | 仓鼠待机 | 1 |
-| 对手 | 外星人：idle、tier_01~03、defeat_transition、defeat | 6 |
-| 对手 | Kiwi：idle、tier_01~03、defeat | 5 |
-| 对手 | 狐狸：idle、tier_01~03、defeat；独立玫瑰部件 01~04 | 9 |
-| 背景 | 主角房间、Kiwi 房间、临时玩家直播背景 | 3 |
-| PK 条 | neg_01~04、pos_01~06、pk_indicator_01~02 | 12 |
-| 玩家粉丝牌 | player_fan_badge_01、02 | 2 |
-| 受击漫画 | player_hit_comic_01 | 1 |
-| **合计** | | **39** |
+| 渲染顺序 | 内容 | 是否必须 | 说明 |
+| --- | --- | --- | --- |
+| Layer 0（底层） | `environment/live/<主播>/background.png` | 是 | 背景 |
+| Layer 1（中层） | `characters/...` 对应主播立绘 | 是 | 主播 |
+| Layer 2（顶层） | `foreground_desk.png` / `foreground_cutout.png` | 否 | 桌子或其他前景切图，在立绘之前遮挡 |
 
-## 接入说明
-- 主角固定立绘、临时直播背景、主角房间、粉丝牌 01 已映射至 `data/shared/presentation_asset_config.tres` 的现有字段。主角房间 `ui/rest/rest_room_environment.tscn` 同步更新路径。
-- 对手待机及多档变化/击败帧目前已经入库。文件名中的 `tier_01~03` 表示**美术提供的三个变化版本**，不是实际战斗 T1/T2/T3，实际阶段映射以如下表格为准。当前关卡模板仍是示例主播，不据此猜测外星人、Kiwi、狐狸的关卡出场顺序。
-- 狐狸玫瑰 4 张位于 `assets/characters/opponents/fox/effects/`，是角色独立装饰部件。
-- 外星人原 `defeat1` 与 `defeat2` 暂分别归为 `defeat_transition`、`defeat`；以美术最终标注为准。
-- PK 条来源编号 1~6 保留为 `pos_01~06`，来源编号 -1~-4 保留为 `neg_01~04`；0 号素材当前**未收到**，具体见下表。
-- 两张玩家粉丝牌均保存，当前共享配置使用 01；直播评论中有粉丝牌的用户按 LD-12～LD-16 的已有规则显示对应阵营牌，路人不显示。普通弹幕 / 复读沿用当前已接线状态，最终样式在 PA-10 整屏验收时调整。
-- 现有历史 `.png.import` 的 UID 随搬移保留并更新 source / dest 路径；其余 PNG 交由 Godot 下次导入时生成元数据。
-- 日期日志中的旧资源路径属于历史交付记录，新任务使用本表和仓库最新 Resource 路径。
+这些层级是**直播主播区的绘制前后顺序**；Godot 具体用节点先后顺序或 `z_index` 实现即可。各主播是否拥有前景层由资源配置决定，未提供切图的主播直接显示背景和角色。
 
-## 已确认：对手立绘与战斗阶段（2026-10-10）
+- **主角休息房间**是独立场景，用 `environment/player_room/background.png`，桌子切图属于该房间的可选前景。
+- **仓鼠直播间**使用 `environment/live/hamster/background.png`，直播桌子独立使用同目录 `foreground_desk.png`。
+- **外星人、青蛙、Kiwi 房间**均按直播背景管理。
+- 青蛙的 `background.png` 是 10-11 交付版本，`background_alt.png` 为保留版本；透明的 `foreground_cutout.png` 单独放在 Layer 2，具体遮挡内容可在视觉集成时确认。
+- 狐狸直播间背景暂未收到；不以其他主播图片代替。
 
-以下三名对手（alien、kiwi、fox）共用同一套**运行阶段到美术版本**的映射：
+## 粉丝牌（正式资源）
 
-| 运行阶段 | 立绘版本 | 对应现有文件 |
+全部归到 `assets/ui/combat/fan_badges/`，来源为“金银瓜子描边+主角粉丝UI投影”目录：
+
+| 文件 | 用途 | 分辨率 |
 | --- | --- | --- |
-| T0 | 对手未接入，不展示立绘 | 无 |
-| T1 | 待机 | `{alien/kiwi/fox}_idle.png` |
-| T2 | **仍为 idle，叠加程序绘制漫画汗滴** | `{alien/kiwi/fox}_idle.png`（汗滴由 PA-15 绘制） |
-| T3 | 美术变化版本 1 | `{alien/kiwi/fox}_tier_01.png` |
-| T4 | 美术变化版本 2 | `{alien/kiwi/fox}_tier_02.png` |
-| T5 | 美术变化版本 3 | `{alien/kiwi/fox}_tier_03.png` |
-| 矛盾阶段（Paradox） | **先维持 T5 的变化版本 3**；**只有真矛盾击破成功后**才进入败北演出 | `{alien/kiwi/fox}_tier_03.png` → （成功时）`{alien/kiwi/fox}_defeat.png` |
+| `player_fan_badge_01.png` | 粉丝牌图标版本 01 | 144×144 |
+| `player_fan_badge_02.png` | 粉丝牌图标版本 02 | 144×144 |
+| `player_fan_ui_01_shadow.png` | 版本 01 完整 UI（带投影） | 256×144 |
+| `player_fan_ui_01_no_shadow.png` | 版本 01 完整 UI（无投影） | 256×144 |
+| `player_fan_ui_02_shadow.png` | 版本 02 完整 UI（带投影） | 256×144 |
+| `player_fan_ui_02_no_shadow.png` | 版本 02 完整 UI（无投影） | 256×144 |
 
-外星人真击破后使用 `alien_defeat_transition.png` 的融化过渡帧并变为 `alien_defeat.png`；狐狸使用现有四张花瓣部件形成花瓣雨；Kiwi 先用整张图局部变形模拟翅膀 / 双腿乱舞（方案 A），再切至 `kiwi_defeat.png`。Paradox 未击破时对手保留 `tier_03` 然后离线。详见 [PA-17](../docs/Shared/PresentationAssets/tasks/PA-17_opponent-breakthrough-defeat-performances.md)。
+版本 01/02 保留原始对应关系，具体金银配置由 UI 系统确认。右上角主播名与粉丝团名的文字布局沿用已确认设计，粉丝牌图片的接入位置由对应直播 UI 组件决定。
 
-## 已确认：PK 条素材来源编号与阶段（2026-10-10）
+## 角色立绘与阶段
 
-| 来源编号 | 运行意义 | 当前文件 |
-| --- | --- | --- |
-| 0 | T0 | **0 号图尚未交付**，由现有 UI / 底板暂时代替，待美术确认 |
-| 1 | T1 | `assets/ui/combat/pk_bar/pk_bar_pos_01.png` |
-| 2 | T2 | `assets/ui/combat/pk_bar/pk_bar_pos_02.png` |
-| 3 | T3 | `assets/ui/combat/pk_bar/pk_bar_pos_03.png` |
-| 4 | T4 | `assets/ui/combat/pk_bar/pk_bar_pos_04.png` |
-| 5 | T5 | `assets/ui/combat/pk_bar/pk_bar_pos_05.png` |
-| 6 | Paradox / T6 | `assets/ui/combat/pk_bar/pk_bar_pos_06.png` |
-| -4 | 玩家 PK 0%～10% | `pk_bar_neg_04.png` |
-| -3 | 玩家 PK 10%～20% | `pk_bar_neg_03.png` |
-| -2 | 玩家 PK 20%～30% | `pk_bar_neg_02.png` |
-| -1 | 玩家 PK 30%～40% | `pk_bar_neg_01.png` |
+现有对手 alien、fox、frog、kiwi 均具备 idle、tier_01~03、defeat；alien 另有 defeat_transition，fox 另有 4 张玫瑰效果。
 
-- 负向素材 -4～-1 与玩家 PK **0%～10%、10%～20%、20%～30%、30%～40%** 的四段对应关系已由策划确认。**负向贴图优先级高于普通 Tier 贴图**：PK <40% 时按四段区间显示 -4～-1，PK ≥40% 时恢复显示当前 Tier 对应贴图。边界采用 [0%,10%)、[10%,20%)、[20%,30%)、[30%,40%)，40% 归普通 Tier。0% 触发的失败演出按 PA-18 播放。
-- `pk_indicator_01.png` 为 PK 条**默认笑脸仓鼠球**，`pk_indicator_02.png` 为**仅降档时短暂出现的惊慌仓鼠球**。二者使用同一个指示器位置：按玩家 PK 比例沿轨道移动，移动时伴随自身滚动；升档时笑脸蹦跳，降档时惊慌脸抖动蹦跳、结束恢复笑脸。接入详见 [PA-13](../docs/Shared/PresentationAssets/tasks/PA-13_pk-hamster-ball-indicator-animation.md)。
+| 实际战斗阶段 | 美术文件 |
+| --- | --- |
+| T0 | 不展示对手立绘 |
+| T1 | idle |
+| T2 | idle + 程序绘制汗滴 |
+| T3 | tier_01 |
+| T4 | tier_02 |
+| T5 | tier_03 |
+| Paradox | 继续显示 tier_03；真矛盾击破成功后进入 defeat 演出 |
 
-## 新确认的动画资产使用
+- Alien：真击破使用 `alien_defeat_transition.png` 融化过渡后转 `alien_defeat.png`。
+- Fox：使用 `effects/fox_rose_01~04.png` 构成花瓣演出。
+- Kiwi：整张图局部变形演出后切换败北图。
+- Frog：本次归档只整理立绘，实际出场配置与演出需求另行联调。
 
-- 日常全部主播立绘由 PA-14 用整图轻量呼吸 / 摇晃动效表现，仓鼠每次真实射击时有短促身体回弹。
-- PA-15 在 T2 用现有 idle 立绘叠加程序漫画汗滴，实际图像变化档位用卡片翻转与受击图形切换。
-- PA-16 对 PK 条正式底板使用短闪 / 调色换图，并保留 PA-13 仓鼠球独立滚动蹦跳。
-- PA-18：PK0 战败仓鼠球跌落、玩家直播断流、对手继续直播，然后进入失败 UI。
-- PA-19：Paradox 真击破走完终结神谕、或 Paradox 未击破进入 Rest 前，均播放直播 CRT 关机、画面上翻页、回主角房间、弹出结算。
+## 其他已接入或交付的 UI
 
-## 可由程序美术交付
+- `ui/combat/pk_bar/`：`pk_bar_pos_01~06`、`pk_bar_neg_01~04`、`pk_indicator_01~02`。
+- `ui/combat/impact_marks/`：4 套漫画命中图形及 SVG 原件。
+- `ui/combat/feedback/player_hit_comic_01.png`：主角受击漫画画面。
+- `ui/input_mouse_left.svg`、`ui/input_escape.svg`：按键图标。
+- PK 来源 0 号正式图片仍未提供；当前 0 档使用已有 UI 底板占位。更多分段规则见原任务卡及提交历史。
 
-- 双主播对话气泡：可用 Godot `Control._draw()` 绘制底板、描边和可左右调整的尖尾，使用 `RichTextLabel` 加载对白、Tween 上浮与淡出。复用 SD-02 现有显示组件及 SD-03 的队列时序；正式字体后接 Theme，可保留气泡贴图替换入口。
+## Godot 资源与 .import
 
-## 尚需美术交付（已提出）
-- 房间背景：外星人、狐狸、蛙蛙。
-- 角色：蛙蛙完整立绘组。
-- UI：开始菜单、暂停菜单、身份卡片、败者卡片、圣典。
-- 开场：封面、配合文案的漫画分镜。
-- 字体：正式可商用字体文件及许可信息。
+- 原始 `.png` 和对应 `.png.import` **正常应在同一个目录**。Godot 自动生成/更新 `.import` 里的来源路径、资源 UID 和导入参数。
+- Godot 的导入缓存放在项目根目录 `.godot/imported/`，这里的目录不同于源 PNG，是正常现象。
+- 本次按用途移动了 **20 张 PNG**，并同步搬移存在的侧车 `.import`；改写了共享资源配置、休息室场景和 5 个演示场景中的旧背景路径。
+- 历史遗留的 **37 个孤立 `.import`** 已备份到仓库外 `D:\Godot\Empty-start-asset-import-backup-20261011\`（保留原目录层级），供必要时取回旧 UID/设置。
+- 运行 Godot 编辑器导入后，以**新位置**生成的元数据为准。临时资源旧引用 `environment/live/player_live_temp.png` 和 `environment/rooms/player_room_01.png` 已替换为正式图。
+- 音频文件及尚未取得的正式字体原样保留。本次目录整理未做全套关卡接线，也未推断对手关卡顺序。
 
-后续补充时按用途放入对应已有目录，新系统专属 UI 可在 `assets/ui/` 中增加对应模块目录。
+## 尚待美术/系统接入
+
+- 狐狸主播直播间背景；其他主播如需独立前景切图，按 `environment/live/<主播>/foreground_*.png` 补充。
+- 正式字体及许可证；其他主菜单、身份卡、败者卡、圣典、开场漫画资源。
+- 新增的背景、桌子、青蛙立绘需要由直播场景和关卡配置接入，验证真实 Layer 0/1/2 遮挡关系。

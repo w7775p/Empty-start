@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://ui/rest/rest_room_environment.gd" id="1_environment"]
-[ext_resource type="Texture2D" path="res://assets/environment/rooms/player_room_01.png" id="2_room"]
+[ext_resource type="Texture2D" path="res://assets/environment/player_room/background.png" id="2_room"]
 
 [node name="RoomEnvironment" type="Control"]
 layout_mode = 3
