@@ -5,12 +5,14 @@
 
 ## 2026-10-11 现行实现核对与任务状态
 
-**现行生成规则：** 前景普通话语与挂特性的特殊话语共用 T0～T5 各档少量容量，T1=10、T2=13、T3=16、T4=19、T5=22。T0 的 0 表示未填，普通阶段沿用 `LevelProfile.normal_barrage_screen_cap`。BG-16 已接入 CS-24 的 Tier 名额；普通话语与带特性话语共用同一账本，实例离树释放容量。Paradox 继续采用关卡上限，复读保留独立容量。复读可由生成调用方显式请求中央战斗区随机静止落点；普通话语装配 `occlusion` 后由 BT-15 自动使用该能力。其他普通话语默认沿用既有移动。普通前景默认向左平移；`BarrageArea` 可选开启 BG-21 平滑曲线或 BG-22 周期加减速，两种运动都使用 BG-40 速度上限。BG-22 默认关闭，打开后只影响新生成的普通移动前景；曲线与加减速可以组合使用。BG-20 随机方向直线和 BG-23 游荡仍待开发。BG-42 静止请求、Repeat 与 Paradox 不受普通前景变速选项影响；尚未接入 BG-39 Tier 运动权重。Paradox 阶段按 CB-13 读取一真五假六句。
+**现行生成规则：** 前景普通话语与挂特性的特殊话语共用 T0～T5 各档少量容量，T1=10、T2=13、T3=16、T4=19、T5=22。T0 的 0 表示未填，普通阶段沿用 `LevelProfile.normal_barrage_screen_cap`。BG-16 已接入 CS-24 的 Tier 名额；普通话语与带特性话语共用同一账本，实例离树释放容量。Paradox 继续采用关卡上限，复读保留独立容量。复读可由生成调用方显式请求中央战斗区随机静止落点；普通话语装配 `occlusion` 后由 BT-15 自动使用该能力。其他普通话语默认沿用既有移动。`BarrageArea.interior_foreground_spawn_ratio` 可调普通话语从中央战斗区内部随机出生的比例，默认 0 保留右侧轮换出生；当前 main 尚无 BG-18 四边随机出生接口，故其互补模式暂为原轮换出生。静止请求、遮挡、Repeat 与 Paradox 不读取该比例。普通前景默认向左平移；`BarrageArea` 可选开启 BG-21 平滑曲线或 BG-22 周期加减速，两种运动都使用 BG-40 速度上限。BG-22 默认关闭，打开后只影响新生成的普通移动前景；曲线与加减速可以组合使用。BG-20 随机方向直线和 BG-23 游荡仍待开发。BG-42 静止请求、Repeat 与 Paradox 不受普通前景变速选项影响；尚未接入 BG-39 Tier 运动权重。Paradox 阶段按 CB-13 读取一真五假六句。
 
 | 卡片 | 按实际代码核对后的唯一功能 | 状态 |
 | --- | --- | --- |
 | [BG-16](tasks/BG-16_high-density-cap.md) | 按 Tier 读取前景容量 | 已合并 main；Tier 容量回归通过 |
 | [BG-17](tasks/BG-17_pc-android-performance.md) | 分层性能与可读性验收 | 待组合实测 |
+| [BG-18](tasks/BG-18_four-edge-spawn.md) | 普通前景从四周边缘随机出生 | 当前 main 未实现 |
+| [BG-19](tasks/BG-19_interior-random-spawn.md) | 普通前景按可调比例从区域内部随机出生 | 已实现，等待 PR 合并 |
 | [BG-42](tasks/BG-42_static-random-placement.md) | 复读和遮挡共用的中央区域随机静止落点 | 已合并 main |
 | [BG-21](tasks/BG-21_curved-motion.md) | 普通前景可选平滑曲线运动 | 已合并 main；聚焦回归和 GUI 运动证据通过 |
 | [BG-22](tasks/BG-22_speed-change-motion.md) | 普通前景可选周期加减速 | 已实现；BG-40 限速、BG-21 曲线组合及 GUI 运动验证通过 |

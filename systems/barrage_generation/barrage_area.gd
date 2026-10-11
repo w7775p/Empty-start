@@ -12,6 +12,9 @@ signal barrage_generated(view: BarrageView)
 @export var repeat_barrage_screen_cap: int = 24
 ## 普通移动前景的最高速度；默认沿用现有关卡基础速度，避免 Tier 倍率让短句快速掠过。
 @export var maximum_foreground_move_speed_pixels_per_second: float = 100.0
+@export_group("BG-19 普通前景内部随机出生")
+## 每条普通话语选择区域内部出生的比例；默认 0 保留现有右侧轮换出生。
+@export_range(0.0, 1.0, 0.05) var interior_foreground_spawn_ratio: float = 0.0
 @export_group("BG-21 普通前景曲线运动")
 ## 开启后，仅新生成的普通移动前景使用平滑曲线；静止请求、复读与矛盾保持原行为。
 @export var curved_foreground_motion_enabled: bool = false
@@ -349,6 +352,11 @@ func spawn_normal_barrage(
 	var should_use_random_static_placement: bool = (
 		random_static_placement or barrage_record.trait_set.has_trait(BarrageTraitSet.OCCLUSION)
 	)
+	# 普通移动前景每次生成按配置抽取内部随机出生；静止请求继续由 BG-42 控制。
+	var should_use_random_interior_placement: bool = (
+		not should_use_random_static_placement
+		and randf() < clampf(interior_foreground_spawn_ratio, 0.0, 1.0)
+	)
 	# BG-42 静止实例保持零速度；移动前景沿用限速、曲线和周期加减速配置。
 	var effective_move_speed: float = (
 		0.0 if should_use_random_static_placement else get_foreground_move_speed_pixels_per_second(level_profile)
@@ -370,9 +378,14 @@ func spawn_normal_barrage(
 		view.free()
 		return null
 	add_child(view)
-	if not _place_barrage_for_spawn_request(
-		view, should_use_random_static_placement, not should_use_random_static_placement
-	):
+	var placement_succeeded: bool = false
+	if should_use_random_static_placement:
+		placement_succeeded = _place_barrage_for_spawn_request(view, true)
+	elif should_use_random_interior_placement:
+		placement_succeeded = _place_random_interior_barrage(view)
+	else:
+		placement_succeeded = _place_barrage_for_spawn_request(view, false, true)
+	if not placement_succeeded:
 		# 场上没有可见空位时归还刚申请的容量，普通 Timer 后续继续尝试。
 		end_barrage(view.get_instance_id())
 		return null
@@ -470,6 +483,16 @@ func _place_barrage_for_spawn_request(
 
 ## 按实际视图尺寸和当前区域尺寸均匀抽取完整位于区域内的静止落点。
 func _place_random_static_barrage(view: BarrageView) -> bool:
+	return _place_random_position_inside_area(view)
+
+
+## 普通移动话语从当前战斗区域内均匀抽取出生点。
+func _place_random_interior_barrage(view: BarrageView) -> bool:
+	return _place_random_position_inside_area(view)
+
+
+## 静止与移动的随机落点共用完整视图边界，运动行为仍由 BarrageView 自己决定。
+func _place_random_position_inside_area(view: BarrageView) -> bool:
 	var max_x: float = size.x - view.size.x
 	var max_y: float = size.y - view.size.y
 	if max_x < 0.0 or max_y < 0.0:
