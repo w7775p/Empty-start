@@ -2,6 +2,10 @@
 class_name BarrageView
 extends Label
 
+const REPEAT_Z_INDEX: int = 0
+const FOREGROUND_Z_INDEX: int = 1
+const OCCLUSION_Z_INDEX: int = RenderingServer.CANVAS_ITEM_Z_MAX
+
 @export_group("文字玻璃统一样式")
 @export_range(14, 42, 1) var visual_font_size: int = 24
 @export_range(5, 26, 1) var horizontal_padding: int = 19
@@ -87,8 +91,16 @@ func setup(
 	_active_area = active_area
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# 层级只在弹幕区域内部比较：复读最低，前景留给后续特性更高层级。
-	z_index = 0 if barrage_record.is_repeat else 1
+	# 保留普通前景层级供后续换层；遮挡使用引擎允许的最大 Z，始终压过前景和复读。
+	var has_occlusion: bool = (
+		barrage_record.trait_set != null and barrage_record.trait_set.has_trait(BarrageTraitSet.OCCLUSION)
+	)
+	if has_occlusion:
+		z_index = OCCLUSION_Z_INDEX
+	elif barrage_record.is_repeat:
+		z_index = REPEAT_Z_INDEX
+	else:
+		z_index = FOREGROUND_Z_INDEX
 	autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vertical_alignment = VERTICAL_ALIGNMENT_CENTER
