@@ -1,151 +1,107 @@
 extends Control
 
-## PA-09 三风格 Godot 动态对照，完整游戏 UI 背景 + 正式 BarrageView + 正式受击素材。
+## 使用未改动的正式 Sandbox 场景树作预览背景，只关闭其开局流程。
+## 三版仅替换局部命中词、准星旁结算数值、仓鼠受击动画；无额外 HUD。
+const SANDBOX_SCENE: PackedScene = preload("res://scenes/sandbox/sandbox.tscn")
 const VIEW: PackedScene = preload("res://systems/barrage_generation/barrage_view.tscn")
+const ASSET_CONFIG: PresentationAssetConfig = preload("res://data/shared/presentation_asset_config.tres")
+const KIWI: Texture2D = preload("res://assets/characters/opponents/kiwi/kiwi_idle.png")
 const PREVIEW_DIR := "res://docs/Shared/PresentationAssets/previews"
-const STYLE_NAMES := ["A  /  HADES  —  QUIET VALUE", "B  /  PERSONA  —  SLASHED TAG", "C  /  HI-FI RUSH  —  COMIC BEAT"]
-const STYLE_DESC := [
-	"Warm gold number • short lift • subtle response",
-	"Red/black diagonal tag • assertive contrast • cut-paper motion",
-	"Heavy outline • pop-and-shake • syncopated comic impact"
-]
-const EVENT_NAMES := ["NORMAL HIT", "BLOCK / OCCLUSION", "REFLECT", "MULTI x3 / NET NEGATIVE", "MISS"]
+const STYLE_NAMES := ["a_clean", "b_ink", "c_impact"]
+const CASE_NAMES := ["small", "large", "block", "reflect", "multi", "miss"]
+const AIM_DESIGN := Vector2(945, 655)
 
-@onready var _stage: Control = $Stage
-@onready var _barrage_zone: Control = $BarrageZone
 @onready var _feedback: Control = $Feedback
-var _title: Label
-var _desc: Label
-var _status: Label
-var _hotkeys: Label
-var _case_label: Label
-var _buttons: Array[Button] = []
+var _sandbox: Control
+var _hud: Control
+var _reticle: AimReticle
 var _targets: Array[BarrageView] = []
-var _style_idx: int = 0
-var _event_idx: int = 1
+var _style: int = 0
+var _case: int = 2
+var _auto: bool = false
+var _auto_time: float = 0.0
 var _capture: bool = false
-var _capture720: bool = false
-var _auto_events: bool = false
-var _auto_timer: float = 0.0
-var _paused: bool = false
-
-
-# 自动演示循环五种本发结果，保持真实节点的正常可操作状态。
-func _process(delta: float) -> void:
-	if _capture or not _auto_events or _paused:
-		return
-	_auto_timer += delta
-	if _auto_timer >= 2.0:
-		_auto_timer = 0.0
-		_select(_style_idx, (_event_idx + 1) % EVENT_NAMES.size())
 
 
 func _ready() -> void:
 	_capture = OS.get_cmdline_user_args().has("--capture-pa09")
-	_capture720 = OS.get_cmdline_user_args().has("--capture-720")
-	_build_real_barrage_views()
-	_build_ui()
-	_select(0, 1)
+	# 复用正式布局和节点；不运行 Sandbox 会启动正式周目的 _ready()。
+	_sandbox = SANDBOX_SCENE.instantiate() as Control
+	_sandbox.set_script(null)
+	_sandbox.name = "ExistingSandbox"
+	var unconfigured_input := _sandbox.get_node_or_null("AttackChargeInput")
+	if unconfigured_input != null:
+		unconfigured_input.set_script(null)
+	add_child(_sandbox)
+	move_child(_sandbox, 0)
+	_sandbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_hud = _sandbox.get_node("BattleHud")
+	_reticle = _sandbox.get_node("BattleHud/AimReticle") as AimReticle
+	var battle_zone: Control = _sandbox.get_node("BattleHud/BattleArea/BarrageArea") as Control
+	_hud.call("configure_streamers", "煲煲", "Kiwi")
+	_hud.call("configure_streamer_assets", ASSET_CONFIG.player_streamer_portrait, ASSET_CONFIG.player_live_background, null, KIWI, null, null)
+	_hud.call("refresh_pk", 0.62, 2)
+	_create_real_barrage_views(battle_zone)
+	resized.connect(_fit_preview)
+	_fit_preview()
+	_choose(0, 2)
 	if _capture:
-		call_deferred("_capture_all")
+		call_deferred("_capture_variants")
 
 
-# 目标是真正的项目 BarrageView（包含 PA-04/05 玻璃材质），背景来自项目正式贴图。
-func _build_real_barrage_views() -> void:
-	var entries := [
-		{"text":"神说：今晚必须早睡","pos":Vector2(475,324),"tendency":"orthodox"},
-		{"text":"这是你应得的福报","pos":Vector2(780,411),"tendency":"heretical"},
-		{"text":"不许质疑我的教条","pos":Vector2(1110,318),"tendency":"absurd"},
-		{"text":"我只是想要点赞","pos":Vector2(543,643),"tendency":"neutral"},
-		{"text":"谁同意谁就复读","pos":Vector2(991,653),"tendency":"orthodox"}
+func _create_real_barrage_views(zone: Control) -> void:
+	var lines := [
+		{"text":"神说：睡觉也算上班", "at":Vector2(540,295),"id":"orthodox"},
+		{"text":"这属于另一种福报", "at":Vector2(225,450),"id":"heretical"},
+		{"text":"今日宜拜一拜自己", "at":Vector2(740,530),"id":"absurd"}
 	]
-	for item in entries:
+	for entry in lines:
 		var record := BarrageRuntimeRecord.new()
-		record.text = String(item["text"])
+		record.text = String(entry["text"])
+		record.original_sentence_id = "pa09_" + String(entry["id"])
 		record.original_sentence_text = record.text
-		record.original_sentence_id = "pa09_preview_" + String(item["tendency"])
-		record.tendency_id = String(item["tendency"])
+		record.tendency_id = String(entry["id"])
 		record.strength = 2.0
 		record.expires_at_msec = Time.get_ticks_msec() + 1200000
 		var view := VIEW.instantiate() as BarrageView
-		view.setup(record, 0.0, _barrage_zone)
-		_barrage_zone.add_child(view)
-		view.position = item["pos"]
+		view.setup(record, 0.0, zone)
+		zone.add_child(view)
+		view.position = entry["at"]
 		_targets.append(view)
 
 
-func _build_ui() -> void:
-	_title = _label("", Vector2(429, 199), 37, Color("#fff7eb"))
-	_desc = _label("", Vector2(433, 254), 20, Color("#c5e1df"))
-	_status = _label("", Vector2(423, 933), 22, Color("#f6edda"))
-	_hotkeys = _label("1/2/3  STYLE     Q/W/E/R/T  EVENTS     SPACE  PAUSE     P  REPLAY     TAB  AUTO", Vector2(421, 998), 19, Color("#a8becf"))
-	_case_label = _label("", Vector2(1307, 258), 18, Color("#f5d793"))
-	_label("PA-09 / PROGRAMMATIC FEEDBACK", Vector2(42, 25), 24, Color("#ffffff"))
-	_label("VISUAL STYLE LAB  •  1920 × 1080", Vector2(42, 65), 18, Color("#b7d0d7"))
-	_label("P  K", Vector2(914, 60), 26, Color("#fff3d7"))
-	_label("PLAYER PK", Vector2(470, 62), 18, Color("#6be9ef"))
-	_label("OPPONENT PK", Vector2(1320, 62), 18, Color("#fb8296"))
-	_label("LIVE  ·  我方", Vector2(42, 194), 23, Color("#9de9d9"))
-	_label("LIVE  ·  对手", Vector2(1566, 194), 23, Color("#fcaac4"))
-	_label("煲煲", Vector2(62, 722), 36, Color("#fff5e6"))
-	_label("❤ 吱吱叫 ❤", Vector2(145, 738), 21, Color("#ffcfaa"))
-	_label("观看 233      喜爱 88", Vector2(48, 798), 20, Color("#d8f6e5"))
-	_label("评论 123      粉丝 60", Vector2(48, 831), 20, Color("#d8f6e5"))
-	_label("对手主播", Vector2(1580, 724), 35, Color("#fff5e6"))
-	_label("❤ 小教会 ❤", Vector2(1700, 744), 18, Color("#ffc7d2"))
-	_label("观看 920      喜爱 56", Vector2(1575, 798), 19, Color("#fbe8ef"))
-	_label("评论 122      粉丝 400", Vector2(1575, 831), 19, Color("#fbe8ef"))
-	_label("CENTRAL BARRAGE FIELD", Vector2(475, 847), 19, Color("#a9cdd8"))
-	_label("REAL BARRAGE VIEW  /  HUD ART TEST", Vector2(956, 848), 18, Color("#9dc4cf"))
-	_label("DEMO ONLY · READ-ONLY PK", Vector2(43, 970), 17, Color("#acbcc9"))
-	if not _capture:
-		_add_button("A", Vector2(1511, 958), func(): _select(0, _event_idx))
-		_add_button("B", Vector2(1632, 958), func(): _select(1, _event_idx))
-		_add_button("C", Vector2(1753, 958), func(): _select(2, _event_idx))
+# 当前场景由正式 Sandbox 处理 UI 比例；同一坐标尺度供三个局部效果共用。
+func _fit_preview() -> void:
+	var ratio := Vector2(size.x / 1920.0, size.y / 1080.0)
+	_feedback.position = Vector2.ZERO
+	_feedback.size = Vector2(1920,1080)
+	_feedback.scale = ratio
+	if _reticle != null:
+		_reticle.move_touch_aim(AIM_DESIGN * ratio, 144.0)
 
 
-func _label(message: String, at: Vector2, font_size: int, color: Color) -> Label:
-	var result := Label.new()
-	result.text = message
-	result.position = at
-	result.add_theme_font_size_override("font_size", font_size)
-	result.add_theme_color_override("font_color", color)
-	result.add_theme_constant_override("outline_size", 2)
-	result.add_theme_color_override("font_outline_color", Color("#172026"))
-	result.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(result)
-	return result
+func _choose(next_style: int, next_case: int) -> void:
+	_style = next_style
+	_case = next_case
+	_feedback.call("preview", _style, _case)
+	# 画面始终固定同一批真实玻璃弹幕和准心位置，比较仅集中在效果。
+	for target in _targets:
+		target.modulate.a = 1.0
+	if _reticle != null:
+		_fit_preview()
+		_reticle.play_shot_feedback()
 
 
-func _add_button(caption: String, at: Vector2, callback: Callable) -> void:
-	var b := Button.new()
-	b.text = caption
-	b.position = at
-	b.custom_minimum_size = Vector2(104, 62)
-	b.pressed.connect(callback)
-	b.add_theme_font_size_override("font_size", 28)
-	add_child(b)
-	_buttons.append(b)
+func _process(delta: float) -> void:
+	if _capture or not _auto:
+		return
+	_auto_time += delta
+	if _auto_time >= 2.0:
+		_auto_time = 0.0
+		_choose(_style, (_case+1) % CASE_NAMES.size())
 
 
-# 所有样式只改变 UI 演出，不修改 BarrageView/CombatAttack 的真实数据。
-func _select(style_value: int, event_value: int) -> void:
-	_style_idx = style_value
-	_event_idx = event_value
-	_title.text = STYLE_NAMES[_style_idx]
-	_desc.text = STYLE_DESC[_style_idx]
-	_case_label.text = EVENT_NAMES[_event_idx]
-	_stage.call("select_style", _style_idx, _event_idx)
-	_feedback.call("select_visual", _style_idx, _event_idx)
-	var change: String = ["+8 PK", "-6 PK", "-12 PK", "-9 PK", "+0 PK"][_event_idx]
-	_status.text = "SAMPLE : %s     FINAL SHOT : %s   /   PLAYER COMIC ONLY IF NET < 0" % [EVENT_NAMES[_event_idx], change]
-	for i in range(_buttons.size()):
-		_buttons[i].disabled = i == _style_idx
-	for i in range(_targets.size()):
-		_targets[i].modulate.a = 0.52 if i == 3 else 1.0
-
-
-func _input(event: InputEvent) -> void:
+func _unhandled_key_input(event: InputEvent) -> void:
 	if _capture or not event is InputEventKey:
 		return
 	var key := event as InputEventKey
@@ -153,61 +109,52 @@ func _input(event: InputEvent) -> void:
 		return
 	match key.keycode:
 		KEY_1, KEY_2, KEY_3:
-			_select(int(key.keycode) - int(KEY_1), _event_idx)
+			_choose(int(key.keycode)-int(KEY_1), _case)
 		KEY_Q:
-			_select(_style_idx, 0)
+			_choose(_style, 0)
 		KEY_W:
-			_select(_style_idx, 1)
+			_choose(_style, 1)
 		KEY_E:
-			_select(_style_idx, 2)
+			_choose(_style, 2)
 		KEY_R:
-			_select(_style_idx, 3)
+			_choose(_style, 3)
 		KEY_T:
-			_select(_style_idx, 4)
-		KEY_SPACE:
-			_paused = not _paused
-			_feedback.call("set_playing", not _paused)
+			_choose(_style, 4)
+		KEY_Y:
+			_choose(_style, 5)
 		KEY_P:
-			_paused = false
-			_feedback.call("restart")
+			_feedback.call("replay")
+		KEY_SPACE:
+			_feedback.call("toggle_pause")
 		KEY_TAB:
-			_auto_events = not _auto_events
-			_auto_timer = 0.0
-			_paused = false
-			_feedback.call("set_playing", true)
+			_auto = not _auto
+			_auto_time = 0.0
+		_:
+			return
+	get_viewport().set_input_as_handled()
 
 
-# 图形卡用 GPU Viewport 捕获；每个风格同数据同进度，避免视觉比较时信息不同。
-func _capture_all() -> void:
-	var target_dir := ProjectSettings.globalize_path(PREVIEW_DIR)
-	var ok := DirAccess.make_dir_recursive_absolute(target_dir)
-	if ok != OK:
-		push_error("PA09_CAPTURE_DIR_FAILED=%d" % ok)
+# 由 Godot GUI 的真实 GPU 帧截取；不对截图进行模拟绘制。
+func _capture_variants() -> void:
+	var dir_absolute := ProjectSettings.globalize_path(PREVIEW_DIR)
+	var err := DirAccess.make_dir_recursive_absolute(dir_absolute)
+	if err != OK:
+		push_error("PA09 preview directory error %s" % err)
 		get_tree().quit(2)
 		return
-	for next_style in range(3):
-		var cases: Array[int] = [0, 1, 2, 3, 4]
-		if _capture720:
-			cases.clear()
-			cases.append(1)
-		for next_case in cases:
-			_select(next_style, next_case)
-			_feedback.call("seek_at", 0.25)
-			await get_tree().create_timer(0.30).timeout
+	for i in range(3):
+		for j in [0,1,2,4,5]:
+			_choose(i,j)
+			_feedback.call("seek_at", 0.24)
+			await get_tree().create_timer(0.22).timeout
 			await RenderingServer.frame_post_draw
-			var style_label: String = ["hades", "persona", "hifi"][next_style]
-			var case_label: String = ["normal", "block", "reflect", "multi", "miss"][next_case]
-			var resolution := "1280" if _capture720 else "1920"
-			_save_frame("pa09_%s_%s_%s.jpg" % [style_label, case_label, resolution])
-	print("PA09_GPU_CAPTURE_DONE styles=3 variant_cases=%d" % (1 if _capture720 else 5))
+			var img := get_viewport().get_texture().get_image()
+			var resolution: String = "1280" if img.get_width() <= 1300 else "1920"
+			var filename: String = "pa09_v2_%s_%s_%s.jpg" % [STYLE_NAMES[i],CASE_NAMES[j],resolution]
+			var save_err := img.save_jpg(dir_absolute.path_join(filename),0.94)
+			print("PA09_V2_FRAME %s %s saved=%d pixels=%s" % [STYLE_NAMES[i],CASE_NAMES[j],save_err,img.get_size()])
+			if save_err != OK:
+				get_tree().quit(2)
+				return
+	print("PA09_V2_DONE frames=15 styles=3 cases=5")
 	get_tree().quit(0)
-
-
-func _save_frame(filename: String) -> void:
-	var image := get_viewport().get_texture().get_image()
-	var full_path := ProjectSettings.globalize_path(PREVIEW_DIR.path_join(filename))
-	var err := image.save_jpg(full_path, 0.93)
-	print("PA09_GPU_CAPTURE %s error=%d size=%s" % [filename,err,image.get_size()])
-	if err != OK:
-		push_error("PA09_CAPTURE_FAILED")
-		get_tree().quit(2)
