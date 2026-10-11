@@ -113,14 +113,14 @@ func _verify_real_attack_and_repeat() -> void:
 	_mouse_button(true)
 	await _wait(0.07)
 	_check(_attack.get_charge_progress() > 0.0 and _attack.get_charge_progress() < 1.0, "左键按住实际推进蓄力")
-	_check((_sandbox.get_node("%ChargeProgress") as ProgressBar).value > 0.0, "真实蓄力显示进度")
+	var battle_hud: Control = _sandbox.get_node("%BattleHud") as Control
+	_check(_attack.get_charge_progress() > 0.0 and float(battle_hud.get("attack_progress")) > 0.0, "真实蓄力进度通过 SandboxBattleHud.refresh_attack 保留")
 	_mouse_button(false)
 	await get_tree().process_frame
 	_check(_attack.get_charge_progress() == 0.0 and _snapshots.is_empty(), "未满释放取消且未生成攻击")
 	var target_id: int = target.get_instance_id()
 	var original_id: String = target.runtime_record.original_sentence_id
-	# 这一发真实收益跨过升档阈值，复读必须读取命中完成后的 Tier 1。
-	_hit().apply_player_pk_delta(0.5595 - _hit().get_player_pk())
+	# 保持在当前档位验证普通复读延迟；升档清理由 CS-18 专项 smoke 覆盖。
 	var pk_before: float = _hit().get_player_pk()
 	var tendency_before: int = _attempt_tendency_total()
 	await _fire_at(target)
@@ -135,9 +135,9 @@ func _verify_real_attack_and_repeat() -> void:
 	_check(_attempt_tendency_total() == tendency_before + 1, "普通命中仅增加本场倾向")
 	_check(SaveManager.data.tendency_state.orthodox_total == 11, "此前已提交倾向保持")
 	var queue: RepeatDelayQueue = _queue()
-	_check(_stage().get_current_tier() == 1, "普通命中收益实际触发 Tier 上升")
-	_check(_flow_shot_events.size() == 1 and int(_flow_shot_events.back().get("current_tier", -1)) == 1
-		and _flow_shot_events.back().get("repeat_stats") == queue.get_generation_stats(), "单发事件发布升档后的 Tier 与同一复读统计")
+	_check(_stage().get_current_tier() == 0, "当前档位命中保持 T0")
+	_check(_flow_shot_events.size() == 1 and int(_flow_shot_events.back().get("current_tier", -1)) == 0
+		and _flow_shot_events.back().get("repeat_stats") == queue.get_generation_stats(), "单发事件发布当前 Tier 与同一复读统计")
 	var comment_before: int = SaveManager.data.live_session.comment_count
 	await _wait(3.12)
 	var repeats: Array[BarrageView] = _views(true)
@@ -184,14 +184,23 @@ func _verify_tier_and_new_barrage_parameters() -> void:
 	var before_spawn_msec: int = Time.get_ticks_msec()
 	var new_view: BarrageView = _spawn_test_normal()
 	_check(absi(new_view.runtime_record.expires_at_msec - before_spawn_msec - roundi(_area.base_lifetime_seconds * tier.lifetime_multiplier * 1000.0)) <= 20, "新弹幕使用 Tier 寿命倍率")
-	# 比较同一段实际帧中的移动距离，验证升档只改变新实例，避免读取私有速度缓存。
+	# 比较同一时间段的移动距离，并按正式速度上限计算本次 Tier 的有效倍率。
 	var old_x: float = old_view.position.x
 	var new_x: float = new_view.position.x
 	await _wait(0.12)
 	var old_distance: float = old_x - old_view.position.x
 	var new_distance: float = new_x - new_view.position.x
-	_check(old_distance > 0.0 and absf(new_distance / old_distance - tier.movement_speed_multiplier
-		/ TIER_CATALOG.get_tier_config(0).movement_speed_multiplier) < 0.02, "升档后新旧弹幕实际移动保持各自倍率")
+	var level: LevelProfile = _level()
+	var tier_zero: CombatStageTierConfig = TIER_CATALOG.get_tier_config(0)
+	var old_speed: float = minf(level.base_move_speed_pixels_per_second * tier_zero.movement_speed_multiplier,
+		_area.maximum_foreground_move_speed_pixels_per_second)
+	var new_speed: float = minf(level.base_move_speed_pixels_per_second * tier.movement_speed_multiplier,
+		_area.maximum_foreground_move_speed_pixels_per_second)
+	var expected_speed_ratio: float = new_speed / old_speed if old_speed > 0.0 else 0.0
+	var measured_speed_ratio: float = new_distance / old_distance if old_distance > 0.0 else 0.0
+	print("INT01 TIER_MOVE old_distance=%.3f new_distance=%.3f expected_ratio=%.3f measured_ratio=%.3f" % [old_distance, new_distance, expected_speed_ratio, measured_speed_ratio])
+	_check(old_distance > 0.0 and absf(measured_speed_ratio - expected_speed_ratio) < 0.02,
+		"升档后新旧弹幕实际移动遵守 Tier 倍率和 100px/s 上限")
 	_check(old_view.runtime_record.expires_at_msec == old_expiry, "既有弹幕保留生成时寿命")
 	_area.clear_barrages()
 	_area.start_normal_generation(_level())

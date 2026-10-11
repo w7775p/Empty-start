@@ -1,6 +1,13 @@
 # INT-06 中央战斗场全高布局与操作 ICON 浮层
 
-**状态：待开发 · 单功能程序任务卡**
+**状态：实现完成 · Godot GUI smoke 通过；编辑器场景预览、实体鼠标/键盘与 Android 验收待补**
+
+## 当前完成状态（2026-10-11）
+- 中央 `BarrageArea` 与 `OracleCandidateDisplay` 当前均使用 `(0,72,1024,1008)`；布局 Resource 保存全画面 `(448,72,1024,1008)` 与顶部 `1024×72`。
+- `ChargeFeedback` 旧栏已移除；`SandboxBattleHud.refresh_attack(progress, phase)` 继续更新公开的 `attack_progress`、`attack_phase`，重开时复位。
+- 鼠标左键与 ESC 两枚操作 ICON 竖排固定在中央区域左下角，鼠标输入通过浮层继续进入现有攻击逻辑。
+- Godot 4.7.2 GUI smoke 已验证底边普通目标命中、神谕目标选择、窗口缩放、ICON 输入穿透、ESC 暂停/恢复和全屏切换。详见 `../Sandbox布局_INT-06_2026-10-11_log.md` 与 `../evidence/INT-06_2026-10-11/`。
+- Godot MCP 当前连接到 `D:/Godot/Empty-start`，无法检查本工作树的编辑器预览；实体设备和 Android 尚未验收。
 
 ## 开始前先阅读以下文档
 - AGENTS.md、known_traps.md、project.godot
@@ -8,7 +15,7 @@
 - docs/Integration/README.md 与相关完成日志
 - 当前相关 Scene、Resource、代码与前置任务卡
 
-## 已经实现的功能
+## 开工基线（开工时已经实现的功能）
 - `INT-02` 已建立 1920×1080 三列战斗界面：左 448、中 1024、右 448；中央顶部状态区 72px。
 - `scenes/sandbox/sandbox.tscn` 当前中央 `BarrageArea` 为相对中央区的 `(0,72,1024,760)`，`OracleCandidateDisplay` 同范围，底部 `ChargeFeedback` 占 `(0,832,1024,248)`。
 - `scenes/sandbox/sandbox_battle_hud.gd` 目前从 `ChargeState` 和 `ChargeProgress` 读取占位显示控件，`refresh_attack(progress,phase)` 接收实际攻击状态。

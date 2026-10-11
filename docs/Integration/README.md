@@ -28,7 +28,7 @@ INT-09/10 使用现有接口和独立测试配置，不等待正式四关导表�
 | --- | --- | --- |
 | 前置不变 | CA-15 → BG-38；HR-16 → HR-17；CS-18 → CS-14 → CS-15；BG-16/34/36；RP-15～21 | 命中规则、PK 限幅、Tier 规则、弹幕与复读规则仍归原系统。逐发整合经 `AttackChargeInput.shot_hit_resolution_submitted` 进入 `BattleAttemptFlow`，完成事实读 `shot_resolved`。 |
 | 改用三流程公开接口 | CA-15、BG-38、CS-14/22、SD-06、PA-17/18/19 | 普通阶段消费 `shot_resolved`、`tier_changed`、`attempt_failed` 等；Paradox 消费 `ContradictionOracleFlow.outcome_resolved` / `rest_ready`；Ending 消费 `DivineDescentFlow.entered` / `completed`。Sandbox 保持顶层接线 Owner。`battle_state_changed(text)` 只供显示，不能作为稳定剧情事件 ID。 |
-| 独立组件待接入 | SD-02～07、CS-22/27、LD-13～16、PA-03～20、INT-06、BG/RP 后续局部卡 | 对白、弹幕、立绘、转场、布局和直播 UI 继续由各自 Owner 修改。Lane A 负责把已验收组件接回现有公开接口；INT-06 使用 `%BarrageArea`、`%AttackChargeInput`、`%AimReticle`、`%BattleHud` 稳定节点引用。 |
+| 独立组件待接入 | SD-02～07、CS-22/27、LD-13～16、PA-03～20、BG/RP 后续局部卡 | 对白、弹幕、立绘、转场、布局和直播 UI 继续由各自 Owner 修改。Lane A 负责把已验收组件接回现有公开接口；已完成的 INT-06 使用 `%BarrageArea`、`%AttackChargeInput`、`%AimReticle`、`%BattleHud` 稳定节点引用。 |
 | 等正式字段与资源 | LC-10/12/13、LD-12、SD-08、CS-28/29、BG-35/41 | 四关数据、表字段、正式资源映射、Importer 及反击池等待策划定稿；当前任务不修改生产表、存档或导表器。 |
 | 等视觉验收 | PA-03～20、INT-05/BG-17 与人审视觉 PR #131/#132/#142 | 本次保留这些独立视觉工作。静态 Sandbox / Ending 截图证明场景可见，不等于动画、物理输入、全屏缩放、Android 或美术终稿通过。 |
 
@@ -116,6 +116,6 @@ godot.windows.opt.tools.64.exe --path <隔离项目绝对路径> res://tests/int
 
 早期空经文截图在布局稳定前裁切标题；补齐输入抬起并等待布局稳定后，最终两条路线标题 Y=24、scroll=0，截图完整，无 Ending 源码修改。Android 设备、打包、正式美术与平衡、音频听感及完整人工操作体验均 UNVERIFIED。
 
-## INT-06 中央战斗区全高与操作 ICON（待开发）
+## INT-06 中央战斗区全高与操作 ICON（2026-10-11 实现完成）
 
-[INT-06 单功能程序任务卡](tasks/INT-06_battle-area-full-height-and-input-icon-overlay.md)：中央顶部保持 1024×72，中央 `BarrageArea` 调整为 1024×1008；旧底部交互栏空间归还弹幕场；中央战斗区左下角悬浮鼠标左键、ESC 两枚竖排操作 ICON。现有攻击进度与阶段程序入口继续提供给后续正式美术蓄力反馈，场景布局及 Paradox/神谕中央目标显示随之统一。该布局更新覆盖旧 INT-02 的中央 760px 弹幕区和 248px 底部区设计基线。
+[INT-06 单功能程序任务卡](tasks/INT-06_battle-area-full-height-and-input-icon-overlay.md)已完成全高布局与操作浮层实现。中央顶部保持 1024×72，`BarrageArea` 和 `OracleCandidateDisplay` 使用中央局部矩形 `(0,72,1024,1008)`；旧底部交互栏移除，鼠标左键与 ESC ICON 固定在中央区左下角，HUD 继续保存蓄力进度与阶段供后续正式反馈读取。Godot GUI smoke 已覆盖 1920×1080 请求、1280×720、960×540、底边普通目标与神谕目标、ICON 输入穿透、ESC 暂停恢复及全屏切换。Editor 场景预览独立检查、实体鼠标键盘手动验收和 Android 设备验收仍未完成；工具连接边界及运行证据见 [INT-06 任务日志](Sandbox布局_INT-06_2026-10-11_log.md)。该布局更新覆盖旧 INT-02 的中央 760px 弹幕区和 248px 底部区设计基线。

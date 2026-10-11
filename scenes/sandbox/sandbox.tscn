@@ -10,6 +10,8 @@
 [ext_resource type="PackedScene" path="res://ui/debug/debug_panel.tscn" id="8_debug_panel"]
 [ext_resource type="PackedScene" path="res://ui/final_oracle/final_oracle_candidate_display.tscn" id="9_oracle_candidate_display"]
 [ext_resource type="Script" path="res://ui/streamer_bubble_dialogue/streamer_bubble_stack.gd" id="10_bubble_stack"]
+[ext_resource type="Texture2D" path="res://assets/ui/input_mouse_left.svg" id="11_mouse_left_icon"]
+[ext_resource type="Texture2D" path="res://assets/ui/input_escape.svg" id="12_escape_icon"]
 
 [sub_resource type="StyleBoxFlat" id="PKOpponent"]
 bg_color = Color(0.65, 0.34, 0.39, 1)
@@ -24,20 +26,6 @@ corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
-
-[sub_resource type="StyleBoxFlat" id="ChargeBackground"]
-bg_color = Color(0.16, 0.19, 0.24, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="ChargeFill"]
-bg_color = Color(0.43, 0.66, 0.99, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
 
 [node name="Sandbox" type="Control"]
 layout_mode = 3
@@ -290,7 +278,7 @@ anchor_right = 0.0
 anchor_bottom = 0.0
 offset_top = 72.0
 offset_right = 1024.0
-offset_bottom = 832.0
+offset_bottom = 1080.0
 mouse_filter = 2
 
 [node name="OracleCandidateDisplay" parent="BattleHud/BattleArea" instance=ExtResource("9_oracle_candidate_display")]
@@ -299,57 +287,49 @@ layout_mode = 0
 anchors_preset = 0
 offset_top = 72.0
 offset_right = 1024.0
-offset_bottom = 832.0
-mouse_filter = 2
-
-[node name="ChargeFeedback" type="Control" parent="BattleHud/BattleArea"]
-layout_mode = 0
-offset_top = 832.0
-offset_right = 1024.0
 offset_bottom = 1080.0
 mouse_filter = 2
 
-[node name="FeedbackBackground" type="ColorRect" parent="BattleHud/BattleArea/ChargeFeedback"]
+[node name="OperationHintOverlay" type="VBoxContainer" parent="BattleHud/BattleArea"]
+layout_mode = 1
+anchors_preset = 2
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 0.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -132.0
+offset_right = 72.0
+offset_bottom = -24.0
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="MouseLeftIcon" type="TextureRect" parent="BattleHud/BattleArea/OperationHintOverlay"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("11_mouse_left_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EscapeIcon" type="TextureRect" parent="BattleHud/BattleArea/OperationHintOverlay"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("12_escape_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EscLabel" type="Label" parent="BattleHud/BattleArea/OperationHintOverlay/EscapeIcon"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
-color = Color(0.105, 0.125, 0.15, 1)
-
-[node name="ChargeState" type="Label" parent="BattleHud/BattleArea/ChargeFeedback"]
-layout_mode = 0
-offset_left = 24.0
-offset_top = 10.0
-offset_right = 396.0
-offset_bottom = 42.0
-mouse_filter = 2
-text = "蓄力 0%"
-
-[node name="ChargeProgress" type="ProgressBar" parent="BattleHud/BattleArea/ChargeFeedback"]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 24.0
-offset_top = 54.0
-offset_right = 396.0
-offset_bottom = 74.0
-mouse_filter = 2
-theme_override_styles/background = SubResource("ChargeBackground")
-theme_override_styles/fill = SubResource("ChargeFill")
-max_value = 1.0
-step = 0.001
-show_percentage = false
-
-[node name="ControlsHint" type="Label" parent="BattleHud/BattleArea/ChargeFeedback"]
-layout_mode = 1
-anchor_right = 1.0
-offset_left = 428.0
-offset_top = 10.0
-offset_right = -24.0
-offset_bottom = 92.0
-mouse_filter = 2
-theme_type_variation = &"MutedLabel"
-text = "移动鼠标准心 · 按住左键蓄力\n蓄满松开发射 · 未满松开取消 · Esc 暂停"
+theme_override_colors/font_color = Color(0.95, 0.97, 0.99, 1)
+theme_override_font_sizes/font_size = 11
+text = "ESC"
+horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="OpponentStreamerArea" type="Control" parent="BattleHud"]

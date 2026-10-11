@@ -1,0 +1,873 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+
+[   0% ] first_scan_filesystem | Started 项目初始化 (5 steps)
+[   0% ] first_scan_filesystem | 正在扫描文件结构……
+[  16% ] first_scan_filesystem | 正在加载全局类名……
+[  33% ] first_scan_filesystem | 正在校验 GDExtension……
+[  50% ] first_scan_filesystem | 正在创建自动加载脚本……
+ERROR: Failed loading resource: res://assets/audio/sfx/magical/magical_1.ogg.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Failed loading resource: res://assets/audio/sfx/magical/magical_2.ogg.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Failed loading resource: res://assets/audio/sfx/magical/magical_3.ogg.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Failed loading resource: res://assets/audio/sfx/magical/magical_4.ogg.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Failed loading resource: res://assets/audio/sfx/magical/magical_5.ogg.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Failed loading resource: res://assets/audio/sfx/magical/magical_6.ogg.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Failed loading resource: res://assets/audio/sfx/magical/magical_7.ogg.
+   at: _load (core/io/resource_loader.cpp:317)
+ERROR: Failed loading resource: res://assets/audio/sfx/interface/confirmation_001.ogg.
+   at: _load (core/io/resource_loader.cpp:317)
+[  66% ] first_scan_filesystem | 正在初始化插件……
+[  83% ] first_scan_filesystem | 正在启动文件扫描……
+[ DONE ] first_scan_filesystem
+
+[   0% ] update_scripts_classes | Started 正在注册全局类…… (260 steps)
+[   0% ] update_scripts_classes | CliApiHandler
+[   0% ] update_scripts_classes | CliResultLimiter
+[   0% ] update_scripts_classes | MCPConfigManager
+[   1% ] update_scripts_classes | McpAuthManager
+[   1% ] update_scripts_classes | MCPDebuggerBridge
+[   1% ] update_scripts_classes | 
+[   2% ] update_scripts_classes | McpHttpServer
+[   2% ] update_scripts_classes | MCPResourceManager
+[   3% ] update_scripts_classes | 
+[   3% ] update_scripts_classes | MCPServerCore
+[   3% ] update_scripts_classes | McpStdioServer
+[   4% ] update_scripts_classes | MCPToolClassifier
+[   4% ] update_scripts_classes | McpTransportBase
+[   4% ] update_scripts_classes | MCPTypes
+[   5% ] update_scripts_classes | MCPSettingsManager
+[   5% ] update_scripts_classes | ToolDefinition
+[   6% ] update_scripts_classes | ToolExecutionContext
+[   6% ] update_scripts_classes | ToolExecutionResult
+[   6% ] update_scripts_classes | ToolExecutor
+[   7% ] update_scripts_classes | ToolPolicy
+[   7% ] update_scripts_classes | ToolRegistry
+[   8% ] update_scripts_classes | MCPToolStateManager
+[   8% ] update_scripts_classes | MCPTranslationManager
+[   8% ] update_scripts_classes | 
+[   9% ] update_scripts_classes | DebugToolsNative
+[   9% ] update_scripts_classes | EditorToolsNative
+[   9% ] update_scripts_classes | NodeToolsNative
+[  10% ] update_scripts_classes | ProjectToolsNative
+[  10% ] update_scripts_classes | ResourceToolsNative
+[  11% ] update_scripts_classes | SceneToolsNative
+[  11% ] update_scripts_classes | ScriptToolsNative
+[  11% ] update_scripts_classes | 
+[  12% ] update_scripts_classes | MCPCliInstaller
+[  12% ] update_scripts_classes | 
+[  13% ] update_scripts_classes | MCPToolGroupItem
+[  13% ] update_scripts_classes | MCPToolItem
+[  13% ] update_scripts_classes | NodeUtils
+[  14% ] update_scripts_classes | PathValidator
+[  14% ] update_scripts_classes | ResourceUtils
+[  14% ] update_scripts_classes | ScriptUtils
+[  15% ] update_scripts_classes | MCPVibeCodingPolicy
+[  15% ] update_scripts_classes | 
+[  16% ] update_scripts_classes | AssimilationData
+[  16% ] update_scripts_classes | AudioEvent
+[  16% ] update_scripts_classes | AudioEventConfig
+[  17% ] update_scripts_classes | 
+[  17% ] update_scripts_classes | 
+[  18% ] update_scripts_classes | 
+[  18% ] update_scripts_classes | 
+[  18% ] update_scripts_classes | 
+[  19% ] update_scripts_classes | BattleAttemptFlow
+[  19% ] update_scripts_classes | CombatStage
+[  19% ] update_scripts_classes | CombatStageTierCatalog
+[  20% ] update_scripts_classes | CombatStageTierConfig
+[  20% ] update_scripts_classes | HitResolution
+[  21% ] update_scripts_classes | OpponentPKBar
+[  21% ] update_scripts_classes | ContradictionOracleFlow
+[  21% ] update_scripts_classes | 
+[  22% ] update_scripts_classes | DivineDescentAssimilationInput
+[  22% ] update_scripts_classes | DivineDescentCandidateFilter
+[  22% ] update_scripts_classes | DivineDescentCombatMode
+[  23% ] update_scripts_classes | DivineDescentDecayConfig
+[  23% ] update_scripts_classes | DivineDescentEmphasis
+[  24% ] update_scripts_classes | DivineDescentFlow
+[  24% ] update_scripts_classes | DivineDescentScriptureInput
+[  24% ] update_scripts_classes | DivineDescentSession
+[  25% ] update_scripts_classes | DivineDescentSpread
+[  25% ] update_scripts_classes | EndingDisplayData
+[  26% ] update_scripts_classes | EndingIdentityResultClassifier
+[  26% ] update_scripts_classes | EndingScriptureDisplayData
+[  26% ] update_scripts_classes | EndingSession
+[  27% ] update_scripts_classes | FinalOracleCandidatePool
+[  27% ] update_scripts_classes | FinalOracleConfirmationState
+[  27% ] update_scripts_classes | FinalOracleSelectionTimer
+[  28% ] update_scripts_classes | FinalOracleSession
+[  28% ] update_scripts_classes | IdentityConfirmationState
+[  29% ] update_scripts_classes | IdentityNameRules
+[  29% ] update_scripts_classes | LiveSessionData
+[  29% ] update_scripts_classes | LoserCardCatalog
+[  30% ] update_scripts_classes | LoserCardData
+[  30% ] update_scripts_classes | LoserCardProfile
+[  31% ] update_scripts_classes | RepeatDelayConfig
+[  31% ] update_scripts_classes | RepeatDelayQueue
+[  31% ] update_scripts_classes | RepeatGenerationStats
+[  32% ] update_scripts_classes | RepeatPlan
+[  32% ] update_scripts_classes | RestSession
+[  32% ] update_scripts_classes | SaveData
+[  33% ] update_scripts_classes | 
+[  33% ] update_scripts_classes | ScriptureData
+[  34% ] update_scripts_classes | ScriptureEntry
+[  34% ] update_scripts_classes | ScriptureVerseConfig
+[  34% ] update_scripts_classes | TendencyState
+[  35% ] update_scripts_classes | EndingJudgementTextConfig
+[  35% ] update_scripts_classes | EndingMainArtConfig
+[  36% ] update_scripts_classes | EndingReligionNameConfig
+[  36% ] update_scripts_classes | IdentityOption
+[  36% ] update_scripts_classes | IdentityOptions
+[  37% ] update_scripts_classes | LevelCatalog
+[  37% ] update_scripts_classes | LevelContradiction
+[  37% ] update_scripts_classes | LevelProfile
+[  38% ] update_scripts_classes | LevelRunState
+[  38% ] update_scripts_classes | LevelSpeech
+[  39% ] update_scripts_classes | LevelSpeechPool
+[  39% ] update_scripts_classes | WordPoolInheritanceConfig
+[  39% ] update_scripts_classes | SandboxBattleConfig
+[  40% ] update_scripts_classes | PresentationAssetConfig
+[  40% ] update_scripts_classes | StageLayoutProfile
+[  40% ] update_scripts_classes | BubbleDialogueConfig
+[  41% ] update_scripts_classes | BubbleDialogueEntry
+[  41% ] update_scripts_classes | 
+[  42% ] update_scripts_classes | 
+[  42% ] update_scripts_classes | 
+[  42% ] update_scripts_classes | 
+[  43% ] update_scripts_classes | 
+[  43% ] update_scripts_classes | 
+[  44% ] update_scripts_classes | 
+[  44% ] update_scripts_classes | 
+[  44% ] update_scripts_classes | 
+[  45% ] update_scripts_classes | 
+[  45% ] update_scripts_classes | BarrageArea
+[  45% ] update_scripts_classes | BarrageCapacityLedger
+[  46% ] update_scripts_classes | BarrageGlassSurface
+[  46% ] update_scripts_classes | BarrageRuntimeRecord
+[  47% ] update_scripts_classes | BarrageSpecialSurface
+[  47% ] update_scripts_classes | BarrageView
+[  47% ] update_scripts_classes | NormalSpeechSelector
+[  48% ] update_scripts_classes | BarrageTraitResult
+[  48% ] update_scripts_classes | BarrageTraitSet
+[  49% ] update_scripts_classes | AimReticle
+[  49% ] update_scripts_classes | AttackChargeInput
+[  49% ] update_scripts_classes | AttackChargeProgress
+[  50% ] update_scripts_classes | AttackTargetSnapshot
+[  50% ] update_scripts_classes | AttackTimingConfig
+[  50% ] update_scripts_classes | BarrageAimIntersection
+[  51% ] update_scripts_classes | MobileAttackInputConfig
+[  51% ] update_scripts_classes | ContradictionBreakSystem
+[  52% ] update_scripts_classes | ContradictionWindowConfig
+[  52% ] update_scripts_classes | BarrageImpactFx
+[  52% ] update_scripts_classes | BarrageImpactPresenter
+[  53% ] update_scripts_classes | StreamerPortraitMotion
+[  53% ] update_scripts_classes | 
+[  54% ] update_scripts_classes | 
+[  54% ] update_scripts_classes | 
+[  54% ] update_scripts_classes | 
+[  55% ] update_scripts_classes | 
+[  55% ] update_scripts_classes | 
+[  55% ] update_scripts_classes | 
+[  56% ] update_scripts_classes | 
+[  56% ] update_scripts_classes | 
+[  57% ] update_scripts_classes | 
+[  57% ] update_scripts_classes | 
+[  57% ] update_scripts_classes | 
+[  58% ] update_scripts_classes | 
+[  58% ] update_scripts_classes | 
+[  59% ] update_scripts_classes | 
+[  59% ] update_scripts_classes | 
+[  59% ] update_scripts_classes | 
+[  60% ] update_scripts_classes | 
+[  60% ] update_scripts_classes | 
+[  60% ] update_scripts_classes | 
+[  61% ] update_scripts_classes | 
+[  61% ] update_scripts_classes | 
+[  62% ] update_scripts_classes | 
+[  62% ] update_scripts_classes | 
+[  62% ] update_scripts_classes | 
+[  63% ] update_scripts_classes | 
+[  63% ] update_scripts_classes | 
+[  63% ] update_scripts_classes | 
+[  64% ] update_scripts_classes | 
+[  64% ] update_scripts_classes | 
+[  65% ] update_scripts_classes | 
+[  65% ] update_scripts_classes | 
+[  65% ] update_scripts_classes | 
+[  66% ] update_scripts_classes | 
+[  66% ] update_scripts_classes | 
+[  67% ] update_scripts_classes | 
+[  67% ] update_scripts_classes | 
+[  67% ] update_scripts_classes | 
+[  68% ] update_scripts_classes | 
+[  68% ] update_scripts_classes | 
+[  68% ] update_scripts_classes | 
+[  69% ] update_scripts_classes | 
+[  69% ] update_scripts_classes | 
+[  70% ] update_scripts_classes | 
+[  70% ] update_scripts_classes | 
+[  70% ] update_scripts_classes | 
+[  71% ] update_scripts_classes | 
+[  71% ] update_scripts_classes | 
+[  72% ] update_scripts_classes | 
+[  72% ] update_scripts_classes | 
+[  72% ] update_scripts_classes | 
+[  73% ] update_scripts_classes | 
+[  73% ] update_scripts_classes | 
+[  73% ] update_scripts_classes | 
+[  74% ] update_scripts_classes | 
+[  74% ] update_scripts_classes | 
+[  75% ] update_scripts_classes | 
+[  75% ] update_scripts_classes | 
+[  75% ] update_scripts_classes | 
+[  76% ] update_scripts_classes | 
+[  76% ] update_scripts_classes | 
+[  77% ] update_scripts_classes | 
+[  77% ] update_scripts_classes | 
+[  77% ] update_scripts_classes | 
+[  78% ] update_scripts_classes | 
+[  78% ] update_scripts_classes | 
+[  78% ] update_scripts_classes | 
+[  79% ] update_scripts_classes | 
+[  79% ] update_scripts_classes | 
+[  80% ] update_scripts_classes | 
+[  80% ] update_scripts_classes | 
+[  80% ] update_scripts_classes | 
+[  81% ] update_scripts_classes | 
+[  81% ] update_scripts_classes | 
+[  81% ] update_scripts_classes | 
+[  82% ] update_scripts_classes | 
+[  82% ] update_scripts_classes | 
+[  83% ] update_scripts_classes | 
+[  83% ] update_scripts_classes | 
+[  83% ] update_scripts_classes | 
+[  84% ] update_scripts_classes | 
+[  84% ] update_scripts_classes | 
+[  85% ] update_scripts_classes | 
+[  85% ] update_scripts_classes | 
+[  85% ] update_scripts_classes | 
+[  86% ] update_scripts_classes | 
+[  86% ] update_scripts_classes | 
+[  86% ] update_scripts_classes | 
+[  87% ] update_scripts_classes | 
+[  87% ] update_scripts_classes | 
+[  88% ] update_scripts_classes | 
+[  88% ] update_scripts_classes | 
+[  88% ] update_scripts_classes | 
+[  89% ] update_scripts_classes | 
+[  89% ] update_scripts_classes | 
+[  90% ] update_scripts_classes | 
+[  90% ] update_scripts_classes | 
+[  90% ] update_scripts_classes | 
+[  91% ] update_scripts_classes | 
+[  91% ] update_scripts_classes | EndingPage
+[  91% ] update_scripts_classes | EndingScriptureRow
+[  92% ] update_scripts_classes | FinalOracleCandidateDisplay
+[  92% ] update_scripts_classes | ComicPanelPlaybackControl
+[  93% ] update_scripts_classes | 
+[  93% ] update_scripts_classes | 
+[  93% ] update_scripts_classes | 
+[  94% ] update_scripts_classes | 
+[  94% ] update_scripts_classes | 
+[  95% ] update_scripts_classes | LoserCardHistoryRow
+[  95% ] update_scripts_classes | LoserCardHistoryView
+[  95% ] update_scripts_classes | 
+[  96% ] update_scripts_classes | RestResultView
+[  96% ] update_scripts_classes | RestRoomEnvironment
+[  96% ] update_scripts_classes | ScriptureHistoryView
+[  97% ] update_scripts_classes | SettingsPanel
+[  97% ] update_scripts_classes | 
+[  98% ] update_scripts_classes | StreamerBubbleHitEchoPresenter
+[  98% ] update_scripts_classes | StreamerBubbleSpecificSentenceReplyPresenter
+[  98% ] update_scripts_classes | StreamerBubbleStack
+[  99% ] update_scripts_classes | StreamerBubbleView
+[ DONE ] update_scripts_classes
+
+[   0% ] _update_scan_actions | Started 正在扫描动作…… (159 steps)
+[   0% ] _update_scan_actions | mcp_panel.csv
+[   0% ] _update_scan_actions | tool_descriptions.csv
+[   1% ] _update_scan_actions | icon.png
+[   1% ] _update_scan_actions | icon.svg
+[   2% ] _update_scan_actions | confirmation_001.ogg
+[   3% ] _update_scan_actions | magical_1.ogg
+[   3% ] _update_scan_actions | magical_2.ogg
+[   4% ] _update_scan_actions | magical_3.ogg
+[   5% ] _update_scan_actions | magical_4.ogg
+[   5% ] _update_scan_actions | magical_5.ogg
+[   6% ] _update_scan_actions | magical_6.ogg
+[   6% ] _update_scan_actions | magical_7.ogg
+[   7% ] _update_scan_actions | alien_defeat.png
+[   8% ] _update_scan_actions | alien_defeat_transition.png
+[   8% ] _update_scan_actions | alien_idle.png
+[   9% ] _update_scan_actions | alien_tier_01.png
+[  10% ] _update_scan_actions | alien_tier_02.png
+[  10% ] _update_scan_actions | alien_tier_03.png
+[  11% ] _update_scan_actions | fox_rose_01.png
+[  11% ] _update_scan_actions | fox_rose_02.png
+[  12% ] _update_scan_actions | fox_rose_03.png
+[  13% ] _update_scan_actions | fox_rose_04.png
+[  13% ] _update_scan_actions | fox_defeat.png
+[  14% ] _update_scan_actions | fox_idle.png
+[  15% ] _update_scan_actions | fox_tier_01.png
+[  15% ] _update_scan_actions | fox_tier_02.png
+[  16% ] _update_scan_actions | fox_tier_03.png
+[  16% ] _update_scan_actions | kiwi_defeat.png
+[  17% ] _update_scan_actions | kiwi_idle.png
+[  18% ] _update_scan_actions | kiwi_tier_01.png
+[  18% ] _update_scan_actions | kiwi_tier_02.png
+[  19% ] _update_scan_actions | kiwi_tier_03.png
+[  20% ] _update_scan_actions | hamster_idle.png
+[  20% ] _update_scan_actions | player_live_temp.png
+[  21% ] _update_scan_actions | kiwi_room.png
+[  21% ] _update_scan_actions | player_room_01.png
+[  22% ] _update_scan_actions | player_fan_badge_01.png
+[  23% ] _update_scan_actions | player_fan_badge_02.png
+[  23% ] _update_scan_actions | player_hit_comic_01.png
+[  24% ] _update_scan_actions | impact_01_razor.png
+[  25% ] _update_scan_actions | impact_01_razor.svg
+[  25% ] _update_scan_actions | impact_02_ink.png
+[  26% ] _update_scan_actions | impact_02_ink.svg
+[  26% ] _update_scan_actions | impact_03_krak.png
+[  27% ] _update_scan_actions | impact_03_krak.svg
+[  28% ] _update_scan_actions | impact_04_manga.png
+[  28% ] _update_scan_actions | impact_04_manga.svg
+[  29% ] _update_scan_actions | pk_bar_neg_01.png
+[  30% ] _update_scan_actions | pk_bar_neg_02.png
+[  30% ] _update_scan_actions | pk_bar_neg_03.png
+[  31% ] _update_scan_actions | pk_bar_neg_04.png
+[  31% ] _update_scan_actions | pk_bar_pos_01.png
+[  32% ] _update_scan_actions | pk_bar_pos_02.png
+[  33% ] _update_scan_actions | pk_bar_pos_03.png
+[  33% ] _update_scan_actions | pk_bar_pos_04.png
+[  34% ] _update_scan_actions | pk_bar_pos_05.png
+[  35% ] _update_scan_actions | pk_bar_pos_06.png
+[  35% ] _update_scan_actions | pk_indicator_01.png
+[  36% ] _update_scan_actions | pk_indicator_02.png
+[  36% ] _update_scan_actions | input_escape.svg
+[  37% ] _update_scan_actions | input_mouse_left.svg
+[  38% ] _update_scan_actions | 01_身份配置.csv
+[  38% ] _update_scan_actions | 02_主播关卡.csv
+[  39% ] _update_scan_actions | 03_普通词库.csv
+[  40% ] _update_scan_actions | 04_矛盾内容.csv
+[  40% ] _update_scan_actions | 05_关卡生成.csv
+[  41% ] _update_scan_actions | 06_基础参数.csv
+[  41% ] _update_scan_actions | 06_战斗数值.csv
+[  42% ] _update_scan_actions | 06_生命周期.csv
+[  43% ] _update_scan_actions | 07_特性参数.csv
+[  43% ] _update_scan_actions | 08_Tier档位.csv
+[  44% ] _update_scan_actions | 09_直播数据.csv
+[  45% ] _update_scan_actions | 10_复读配置.csv
+[  45% ] _update_scan_actions | 11_矛盾参数.csv
+[  46% ] _update_scan_actions | 12_神谕参数.csv
+[  46% ] _update_scan_actions | 13_吞并奖励.csv
+[  47% ] _update_scan_actions | 14_败者卡.csv
+[  48% ] _update_scan_actions | 15_神降临.csv
+[  48% ] _update_scan_actions | 16_结局配置.csv
+[  49% ] _update_scan_actions | 17_音频事件.csv
+[  50% ] _update_scan_actions | 18_表现资产.csv
+[  50% ] _update_scan_actions | 02_主播关卡.csv
+[  51% ] _update_scan_actions | 03_普通词库.csv
+[  51% ] _update_scan_actions | 04_矛盾内容.csv
+[  52% ] _update_scan_actions | 05_关卡生成.csv
+[  53% ] _update_scan_actions | 07_特性参数.csv
+[  53% ] _update_scan_actions | 09_直播数据.csv
+[  54% ] _update_scan_actions | 10_复读配置.csv
+[  55% ] _update_scan_actions | 11_矛盾参数.csv
+[  55% ] _update_scan_actions | 12_神谕参数.csv
+[  56% ] _update_scan_actions | 13_吞并奖励.csv
+[  56% ] _update_scan_actions | 14_败者卡.csv
+[  57% ] _update_scan_actions | 15_神降临.csv
+[  58% ] _update_scan_actions | 16_结局配置.csv
+[  58% ] _update_scan_actions | 17_音频事件.csv
+[  59% ] _update_scan_actions | 18_表现资产.csv
+[  60% ] _update_scan_actions | BG21_curved_motion_gui.png
+[  60% ] _update_scan_actions | BG40_foreground_speed_ceiling_test.png
+[  61% ] _update_scan_actions | BG42_static_random_placement.png
+[  61% ] _update_scan_actions | CA-14_2026-10-10_overlapped_targets.png
+[  62% ] _update_scan_actions | cs20_t0_waiting.png
+[  63% ] _update_scan_actions | cs20_t1_connected.png
+[  63% ] _update_scan_actions | cs25_t5_normal.png
+[  64% ] _update_scan_actions | cs25_t6_real_paradox.png
+[  65% ] _update_scan_actions | RP16_static_repeat_after_0.75s.png
+[  65% ] _update_scan_actions | RP16_static_repeat_spawn.png
+[  66% ] _update_scan_actions | paradox-six.png
+[  66% ] _update_scan_actions | paradox-six.png
+[  67% ] _update_scan_actions | TEST_ONLY_empty_ending.png
+[  68% ] _update_scan_actions | TEST_ONLY_graphics.png
+[  68% ] _update_scan_actions | TEST_ONLY_emphasis.png
+[  69% ] _update_scan_actions | SD-02_1280x720_both-sides.png
+[  70% ] _update_scan_actions | SD-02_1920x1055_both-sides.png
+[  70% ] _update_scan_actions | SD-02_1920x1055_opponent-right.png
+[  71% ] _update_scan_actions | SD-02_1920x1055_player-left.png
+[  71% ] _update_scan_actions | SD-02_v2_1280x720_both-sides.jpg
+[  72% ] _update_scan_actions | SD-02_v2_1920x1055_both-sides.jpg
+[  73% ] _update_scan_actions | SD-02_v2_1920x1055_opponent-right.jpg
+[  73% ] _update_scan_actions | SD-02_v2_1920x1055_player-left.jpg
+[  74% ] _update_scan_actions | sd02_three_styles_long_1280.jpg
+[  75% ] _update_scan_actions | sd02_three_styles_long_1920.jpg
+[  75% ] _update_scan_actions | sd02_three_styles_medium_1920.jpg
+[  76% ] _update_scan_actions | sd02_three_styles_short_1280.jpg
+[  76% ] _update_scan_actions | sd02_three_styles_short_1920.jpg
+[  77% ] _update_scan_actions | sd04_actual_hit_echo_1280x720.png
+[  78% ] _update_scan_actions | sd05_specific_sentence_reply_1280x720.png
+[  78% ] _update_scan_actions | TEST_ONLY_empty_ending.png
+[  79% ] _update_scan_actions | TEST_ONLY_main_ending.png
+[  80% ] _update_scan_actions | TEST_ONLY_main_full_screen_emphasis.png
+[  80% ] _update_scan_actions | TEST_ONLY_main_rest_0.png
+[  81% ] _update_scan_actions | TEST_ONLY_opening_room.png
+[  81% ] _update_scan_actions | int04_empty_ending.png
+[  82% ] _update_scan_actions | int04_main_rest_0.png
+[  83% ] _update_scan_actions | int04_empty_ending.png
+[  83% ] _update_scan_actions | int04_main_full_screen_emphasis.png
+[  84% ] _update_scan_actions | int04_main_rest_0.png
+[  85% ] _update_scan_actions | ending_page.png
+[  85% ] _update_scan_actions | sandbox_direct.png
+[  86% ] _update_scan_actions | pa04_overlap.png
+[  86% ] _update_scan_actions | pa04_palette.png
+[  87% ] _update_scan_actions | pa04_preview.jpg
+[  88% ] _update_scan_actions | pa04_pulse.png
+[  88% ] _update_scan_actions | pa04_reset.png
+[  89% ] _update_scan_actions | pa05_all_materials.jpg
+[  90% ] _update_scan_actions | pa05_jelly_wobble.jpg
+[  90% ] _update_scan_actions | pa05_preview.jpg
+[  91% ] _update_scan_actions | pa06_before.jpg
+[  91% ] _update_scan_actions | pa06_followthrough.jpg
+[  92% ] _update_scan_actions | pa06_four_marks_before.jpg
+[  93% ] _update_scan_actions | pa06_four_marks_followthrough.jpg
+[  93% ] _update_scan_actions | pa06_four_marks_impact.jpg
+[  94% ] _update_scan_actions | pa06_impact.jpg
+[  95% ] _update_scan_actions | pa06_recovered.jpg
+[  95% ] _update_scan_actions | pa08_approved_96x144_detail.jpg
+[  96% ] _update_scan_actions | pa08_charging.png
+[  96% ] _update_scan_actions | pa08_contact_sheet.jpg
+[  97% ] _update_scan_actions | pa08_firing.png
+[  98% ] _update_scan_actions | pa08_full.png
+[  98% ] _update_scan_actions | pa08_idle.png
+[ DONE ] _update_scan_actions
+
+[   0% ] reimport | Started 正在导入或重新导入资产 (157 steps)
+[   0% ] reimport | 正在准备重新导入文件……
+[   0% ] reimport | 正在准备重新导入文件……
+[   1% ] reimport | 正在准备重新导入文件……
+[   1% ] reimport | 正在准备重新导入文件……
+[   2% ] reimport | 正在准备重新导入文件……
+[   3% ] reimport | 正在准备重新导入文件……
+[   3% ] reimport | 正在准备重新导入文件……
+[   4% ] reimport | 正在准备重新导入文件……
+[   5% ] reimport | 正在准备重新导入文件……
+[   5% ] reimport | 正在准备重新导入文件……
+[   6% ] reimport | 正在准备重新导入文件……
+[   6% ] reimport | 正在准备重新导入文件……
+[   7% ] reimport | 正在准备重新导入文件……
+[   8% ] reimport | 正在准备重新导入文件……
+[   8% ] reimport | 正在准备重新导入文件……
+[   9% ] reimport | 正在准备重新导入文件……
+[  10% ] reimport | 正在准备重新导入文件……
+[  10% ] reimport | 正在准备重新导入文件……
+[  11% ] reimport | 正在准备重新导入文件……
+[  12% ] reimport | 正在准备重新导入文件……
+[  12% ] reimport | 正在准备重新导入文件……
+[  13% ] reimport | 正在准备重新导入文件……
+[  13% ] reimport | 正在准备重新导入文件……
+[  14% ] reimport | 正在准备重新导入文件……
+[  15% ] reimport | 正在准备重新导入文件……
+[  15% ] reimport | 正在准备重新导入文件……
+[  16% ] reimport | 正在准备重新导入文件……
+[  17% ] reimport | 正在准备重新导入文件……
+[  17% ] reimport | 正在准备重新导入文件……
+[  18% ] reimport | 正在准备重新导入文件……
+[  18% ] reimport | 正在准备重新导入文件……
+[  19% ] reimport | 正在准备重新导入文件……
+[  20% ] reimport | 正在准备重新导入文件……
+[  20% ] reimport | 正在准备重新导入文件……
+[  21% ] reimport | 正在准备重新导入文件……
+[  22% ] reimport | 正在准备重新导入文件……
+[  22% ] reimport | 正在准备重新导入文件……
+[  23% ] reimport | 正在准备重新导入文件……
+[  24% ] reimport | 正在准备重新导入文件……
+[  24% ] reimport | 正在准备重新导入文件……
+[  25% ] reimport | 正在准备重新导入文件……
+[  25% ] reimport | 正在准备重新导入文件……
+[  26% ] reimport | 正在准备重新导入文件……
+[  27% ] reimport | 正在准备重新导入文件……
+[  27% ] reimport | 正在准备重新导入文件……
+[  28% ] reimport | 正在准备重新导入文件……
+[  29% ] reimport | 正在准备重新导入文件……
+[  29% ] reimport | 正在准备重新导入文件……
+[  30% ] reimport | 正在准备重新导入文件……
+[  31% ] reimport | 正在准备重新导入文件……
+[  31% ] reimport | 正在准备重新导入文件……
+[  32% ] reimport | 正在准备重新导入文件……
+[  32% ] reimport | 正在准备重新导入文件……
+[  33% ] reimport | 正在准备重新导入文件……
+[  34% ] reimport | 正在准备重新导入文件……
+[  34% ] reimport | 正在准备重新导入文件……
+[  35% ] reimport | 正在准备重新导入文件……
+[  36% ] reimport | 正在准备重新导入文件……
+[  36% ] reimport | 正在准备重新导入文件……
+[  37% ] reimport | 正在准备重新导入文件……
+[  37% ] reimport | 正在准备重新导入文件……
+[  38% ] reimport | 正在准备重新导入文件……
+[  39% ] reimport | 正在准备重新导入文件……
+[  39% ] reimport | 正在准备重新导入文件……
+[  40% ] reimport | 正在准备重新导入文件……
+[  41% ] reimport | 正在准备重新导入文件……
+[  41% ] reimport | 正在准备重新导入文件……
+[  42% ] reimport | 正在准备重新导入文件……
+[  43% ] reimport | 正在准备重新导入文件……
+[  43% ] reimport | 正在准备重新导入文件……
+[  44% ] reimport | 正在准备重新导入文件……
+[  44% ] reimport | 正在准备重新导入文件……
+[  45% ] reimport | 正在准备重新导入文件……
+[  46% ] reimport | 正在准备重新导入文件……
+[  46% ] reimport | 正在准备重新导入文件……
+[  47% ] reimport | 正在准备重新导入文件……
+[  48% ] reimport | 正在准备重新导入文件……
+[  48% ] reimport | 正在准备重新导入文件……
+[  49% ] reimport | 正在准备重新导入文件……
+[  50% ] reimport | 正在准备重新导入文件……
+[  50% ] reimport | 正在准备重新导入文件……
+[  51% ] reimport | 正在准备重新导入文件……
+[  51% ] reimport | 正在准备重新导入文件……
+[  52% ] reimport | 正在准备重新导入文件……
+[  53% ] reimport | 正在准备重新导入文件……
+[  53% ] reimport | 正在准备重新导入文件……
+[  54% ] reimport | 正在准备重新导入文件……
+[  55% ] reimport | 正在准备重新导入文件……
+[  55% ] reimport | 正在准备重新导入文件……
+[  56% ] reimport | 正在准备重新导入文件……
+[  56% ] reimport | 正在准备重新导入文件……
+[  57% ] reimport | 正在准备重新导入文件……
+[  58% ] reimport | 正在准备重新导入文件……
+[  58% ] reimport | 正在准备重新导入文件……
+[  59% ] reimport | 正在准备重新导入文件……
+[  60% ] reimport | 正在准备重新导入文件……
+[  60% ] reimport | 正在准备重新导入文件……
+[  61% ] reimport | 正在准备重新导入文件……
+[  62% ] reimport | 正在准备重新导入文件……
+[  62% ] reimport | 正在准备重新导入文件……
+[  63% ] reimport | 正在准备重新导入文件……
+[  63% ] reimport | 正在准备重新导入文件……
+[  64% ] reimport | 正在准备重新导入文件……
+[  65% ] reimport | 正在准备重新导入文件……
+[  65% ] reimport | 正在准备重新导入文件……
+[  66% ] reimport | 正在准备重新导入文件……
+[  67% ] reimport | 正在准备重新导入文件……
+[  67% ] reimport | 正在准备重新导入文件……
+[  68% ] reimport | 正在准备重新导入文件……
+[  68% ] reimport | 正在准备重新导入文件……
+[  69% ] reimport | 正在准备重新导入文件……
+[  70% ] reimport | 正在准备重新导入文件……
+[  70% ] reimport | 正在准备重新导入文件……
+[  71% ] reimport | 正在准备重新导入文件……
+[  72% ] reimport | 正在准备重新导入文件……
+[  72% ] reimport | 正在准备重新导入文件……
+[  73% ] reimport | 正在准备重新导入文件……
+[  74% ] reimport | 正在准备重新导入文件……
+[  74% ] reimport | 正在准备重新导入文件……
+[  75% ] reimport | 正在准备重新导入文件……
+[  75% ] reimport | 正在准备重新导入文件……
+[  76% ] reimport | 正在准备重新导入文件……
+[  77% ] reimport | 正在准备重新导入文件……
+[  77% ] reimport | 正在准备重新导入文件……
+[  78% ] reimport | 正在准备重新导入文件……
+[  79% ] reimport | 正在准备重新导入文件……
+[  79% ] reimport | 正在准备重新导入文件……
+[  80% ] reimport | 正在准备重新导入文件……
+[  81% ] reimport | 正在准备重新导入文件……
+[  81% ] reimport | 正在准备重新导入文件……
+[  82% ] reimport | 正在准备重新导入文件……
+[  82% ] reimport | 正在准备重新导入文件……
+[  83% ] reimport | 正在准备重新导入文件……
+[  84% ] reimport | 正在准备重新导入文件……
+[  84% ] reimport | 正在准备重新导入文件……
+[  85% ] reimport | 正在准备重新导入文件……
+[  86% ] reimport | 正在准备重新导入文件……
+[  86% ] reimport | 正在准备重新导入文件……
+[  87% ] reimport | 正在准备重新导入文件……
+[  87% ] reimport | 正在准备重新导入文件……
+[  88% ] reimport | 正在准备重新导入文件……
+[  89% ] reimport | 正在准备重新导入文件……
+[  89% ] reimport | 正在准备重新导入文件……
+[  90% ] reimport | 正在准备重新导入文件……
+[  91% ] reimport | 正在准备重新导入文件……
+[  91% ] reimport | 正在准备重新导入文件……
+[  92% ] reimport | 正在准备重新导入文件……
+[  93% ] reimport | 正在准备重新导入文件……
+[  93% ] reimport | 正在准备重新导入文件……
+[  94% ] reimport | 正在准备重新导入文件……
+[  94% ] reimport | 正在准备重新导入文件……
+[  95% ] reimport | 正在准备重新导入文件……
+[  96% ] reimport | 正在准备重新导入文件……
+[  96% ] reimport | 正在准备重新导入文件……
+[  97% ] reimport | 正在准备重新导入文件……
+[  98% ] reimport | 正在准备重新导入文件……
+[  98% ] reimport | 正在准备重新导入文件……
+[   0% ] reimport | 正在执行重新导入的前置操作……
+[   0% ] reimport | 07_特性参数.csv
+WARNING: Locale 'asset' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'volume' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'text' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+[   0% ] reimport | 05_关卡生成.csv
+WARNING: Locale 'streamer' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'display' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'art' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'description' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'enabled' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'notes' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+[   1% ] reimport | 04_矛盾内容.csv
+WARNING: Locale 'portrait' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'avatar' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+[   1% ] reimport | 03_普通词库.csv
+WARNING: Locale 'background' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'special' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+[   2% ] reimport | 02_主播关卡.csv
+[   3% ] reimport | 18_表现资产.csv
+[   3% ] reimport | 17_音频事件.csv
+[   4% ] reimport | 16_结局配置.csv
+[   5% ] reimport | 15_神降临.csv
+[   5% ] reimport | 14_败者卡.csv
+[   6% ] reimport | 13_吞并奖励.csv
+[   6% ] reimport | 12_神谕参数.csv
+[   7% ] reimport | 11_矛盾参数.csv
+WARNING: Locale 'base' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'spawn' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+[   8% ] reimport | 10_复读配置.csv
+WARNING: Locale 'move' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'normal' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'set' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'streamer' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'type' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'text' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'clue' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'enabled' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'notes' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+[   8% ] reimport | 09_直播数据.csv
+[   9% ] reimport | 08_Tier档位.csv
+WARNING: Locale 'level' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'streamer' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'streamer' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'portrait' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'avatar' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'live' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'fan' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'background' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'special' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'word' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'contradiction' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'loser' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'enabled' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'notes' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+[  10% ] reimport | 07_特性参数.csv
+[  10% ] reimport | 06_生命周期.csv
+[  11% ] reimport | 06_战斗数值.csv
+WARNING: Locale 'asset' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'volume' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'icon' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+WARNING: Locale 'player' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+[  12% ] reimport | 06_基础参数.csv
+[  12% ] reimport | 05_关卡生成.csv
+[  13% ] reimport | 04_矛盾内容.csv
+WARNING: Locale 'transition' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+[  13% ] reimport | 03_普通词库.csv
+[  14% ] reimport | 02_主播关卡.csv
+WARNING: Locale 'art' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+[  15% ] reimport | 01_身份配置.csv
+[  15% ] reimport | 18_表现资产.csv
+[  16% ] reimport | 17_音频事件.csv
+[  17% ] reimport | 16_结局配置.csv
+[  17% ] reimport | 15_神降临.csv
+[  18% ] reimport | 14_败者卡.csv
+[  18% ] reimport | 13_吞并奖励.csv
+[  19% ] reimport | 12_神谕参数.csv
+[  20% ] reimport | 11_矛盾参数.csv
+[  20% ] reimport | 10_复读配置.csv
+[  21% ] reimport | 09_直播数据.csv
+WARNING: Locale 'duration' does not contain any translation. This locale will be ignored.
+   at: import (editor/import/resource_importer_csv_translation.cpp:239)
+[  22% ] reimport | 07_特性参数.csv
+[  22% ] reimport | 05_关卡生成.csv
+[  23% ] reimport | 04_矛盾内容.csv
+[  24% ] reimport | 03_普通词库.csv
+[  24% ] reimport | 02_主播关卡.csv
+[  25% ] reimport | 18_表现资产.csv
+[  25% ] reimport | 17_音频事件.csv
+[  26% ] reimport | 16_结局配置.csv
+[  27% ] reimport | 07_特性参数.csv
+[  27% ] reimport | 05_关卡生成.csv
+[  28% ] reimport | 04_矛盾内容.csv
+[  29% ] reimport | 03_普通词库.csv
+[  29% ] reimport | 02_主播关卡.csv
+[  30% ] reimport | 18_表现资产.csv
+[  31% ] reimport | 17_音频事件.csv
+[  31% ] reimport | 16_结局配置.csv
+[  32% ] reimport | 15_神降临.csv
+[  32% ] reimport | 14_败者卡.csv
+[  33% ] reimport | 13_吞并奖励.csv
+[  34% ] reimport | 12_神谕参数.csv
+[  34% ] reimport | 11_矛盾参数.csv
+[  35% ] reimport | 10_复读配置.csv
+[  36% ] reimport | 09_直播数据.csv
+[  36% ] reimport | 08_Tier档位.csv
+[  37% ] reimport | 07_特性参数.csv
+[  37% ] reimport | 06_生命周期.csv
+[  38% ] reimport | 06_战斗数值.csv
+[  39% ] reimport | 06_基础参数.csv
+[  39% ] reimport | 05_关卡生成.csv
+[  40% ] reimport | 04_矛盾内容.csv
+[  41% ] reimport | 03_普通词库.csv
+[  41% ] reimport | 02_主播关卡.csv
+[  42% ] reimport | 01_身份配置.csv
+[  43% ] reimport | 18_表现资产.csv
+[  43% ] reimport | 17_音频事件.csv
+[  44% ] reimport | 16_结局配置.csv
+[  44% ] reimport | 15_神降临.csv
+[  45% ] reimport | 14_败者卡.csv
+[  46% ] reimport | 13_吞并奖励.csv
+[  46% ] reimport | 12_神谕参数.csv
+[  47% ] reimport | 11_矛盾参数.csv
+[  48% ] reimport | 10_复读配置.csv
+[  48% ] reimport | 09_直播数据.csv
+[  49% ] reimport | confirmation_001.ogg
+[  50% ] reimport | magical_7.ogg
+[  50% ] reimport | magical_6.ogg
+[  51% ] reimport | magical_5.ogg
+[  51% ] reimport | magical_4.ogg
+[  52% ] reimport | magical_3.ogg
+[  53% ] reimport | magical_2.ogg
+[  53% ] reimport | magical_1.ogg
+[  54% ] reimport | SD-02_1920x1055_both-sides.png
+[  55% ] reimport | SD-02_1280x720_both-sides.png
+[  55% ] reimport | TEST_ONLY_emphasis.png
+[  56% ] reimport | TEST_ONLY_graphics.png
+[  56% ] reimport | TEST_ONLY_empty_ending.png
+[  57% ] reimport | paradox-six.png
+[  58% ] reimport | paradox-six.png
+[  58% ] reimport | RP16_static_repeat_spawn.png
+[  59% ] reimport | RP16_static_repeat_after_0.75s.png
+[  60% ] reimport | cs25_t6_real_paradox.png
+[  60% ] reimport | cs25_t5_normal.png
+[  61% ] reimport | ending_page.png
+[  62% ] reimport | sandbox_direct.png
+[  62% ] reimport | pa04_overlap.png
+[  63% ] reimport | pa04_palette.png
+[  63% ] reimport | pa04_preview.jpg
+[  64% ] reimport | pa04_pulse.png
+[  65% ] reimport | pa04_reset.png
+[  65% ] reimport | pa05_all_materials.jpg
+[  66% ] reimport | pa05_jelly_wobble.jpg
+[  67% ] reimport | pa05_preview.jpg
+[  67% ] reimport | pa06_before.jpg
+[  68% ] reimport | pa06_followthrough.jpg
+[  68% ] reimport | pa06_four_marks_before.jpg
+[  69% ] reimport | pa06_four_marks_followthrough.jpg
+[  70% ] reimport | pa06_four_marks_impact.jpg
+[  70% ] reimport | pa06_impact.jpg
+[  71% ] reimport | pa06_recovered.jpg
+[  72% ] reimport | pa08_approved_96x144_detail.jpg
+[  72% ] reimport | pa08_charging.png
+[  73% ] reimport | pa08_contact_sheet.jpg
+[  74% ] reimport | pa08_firing.png
+[  74% ] reimport | pa08_full.png
+[  75% ] reimport | pa08_idle.png
+[  75% ] reimport | SD-02_1920x1055_opponent-right.png
+[  76% ] reimport | SD-02_1920x1055_player-left.png
+[  77% ] reimport | SD-02_v2_1280x720_both-sides.jpg
+[  77% ] reimport | SD-02_v2_1920x1055_both-sides.jpg
+[  78% ] reimport | SD-02_v2_1920x1055_opponent-right.jpg
+[  79% ] reimport | SD-02_v2_1920x1055_player-left.jpg
+[  79% ] reimport | sd02_three_styles_long_1280.jpg
+[  80% ] reimport | sd02_three_styles_long_1920.jpg
+[  81% ] reimport | sd02_three_styles_medium_1920.jpg
+[  81% ] reimport | sd02_three_styles_short_1280.jpg
+[  82% ] reimport | sd02_three_styles_short_1920.jpg
+[  82% ] reimport | sd04_actual_hit_echo_1280x720.png
+[  83% ] reimport | sd05_specific_sentence_reply_1280x720.png
+[  84% ] reimport | TEST_ONLY_empty_ending.png
+[  84% ] reimport | TEST_ONLY_main_ending.png
+[  85% ] reimport | TEST_ONLY_main_full_screen_emphasis.png
+[  86% ] reimport | TEST_ONLY_main_rest_0.png
+[  86% ] reimport | TEST_ONLY_opening_room.png
+[  87% ] reimport | int04_empty_ending.png
+[  87% ] reimport | int04_main_rest_0.png
+[  88% ] reimport | int04_empty_ending.png
+[  89% ] reimport | int04_main_full_screen_emphasis.png
+[  89% ] reimport | int04_main_rest_0.png
+[  90% ] reimport | player_fan_badge_02.png
+[  91% ] reimport | player_fan_badge_01.png
+[  91% ] reimport | player_room_01.png
+[  92% ] reimport | kiwi_room.png
+[  93% ] reimport | player_live_temp.png
+[  93% ] reimport | hamster_idle.png
+[  94% ] reimport | kiwi_tier_03.png
+[  94% ] reimport | kiwi_tier_02.png
+[  95% ] reimport | kiwi_tier_01.png
+[  96% ] reimport | kiwi_idle.png
+[  96% ] reimport | kiwi_defeat.png
+[  97% ] reimport | fox_tier_03.png
+[  98% ] reimport | fox_tier_02.png
+[  98% ] reimport | fox_tier_01.png
+[  98% ] reimport | fox_tier_01.png
+[  98% ] reimport | fox_tier_01.png
+[  98% ] reimport | fox_tier_01.png
+[  99% ] reimport | 正在结束资产导入……
+[ DONE ] reimport
+
+[   0% ] reimport | Started 正在导入或重新导入资产 (157 steps)
+[   0% ] reimport | 正在执行重新导入的后置操作……
+[ DONE ] reimport
+
+[   0% ] loading_editor_layout | Started 正在加载编辑器 (5 steps)
+[   0% ] loading_editor_layout | 正在加载编辑器布局……
+[  16% ] loading_editor_layout | 正在加载停靠面板……
+[ DONE ] loading_editor_layout
+
