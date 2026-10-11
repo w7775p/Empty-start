@@ -5,13 +5,13 @@
 
 ## 2026-10-11 现行实现核对与任务状态
 
-**现行生成规则：** 前景普通话语与挂特性的特殊话语共用 T0～T5 各档少量容量，T1=10、T2=13、T3=16、T4=19、T5=22。T0 的 0 表示未填，普通阶段沿用 `LevelProfile.normal_barrage_screen_cap`。BG-16 已接入 CS-24 的 Tier 名额；普通话语与带特性话语共用同一账本，实例离树释放容量。Paradox 继续采用关卡上限，复读保留独立容量。复读和遮挡特性话语可由生成调用方显式请求中央战斗区随机静止落点；默认仍沿用既有定位和移动。普通前景采用可读的多运动方式。Paradox 阶段按 CB-13 读取一真五假六句。
+**现行生成规则：** 前景普通话语与挂特性的特殊话语共用 T0～T5 各档少量容量，T1=10、T2=13、T3=16、T4=19、T5=22。T0 的 0 表示未填，普通阶段沿用 `LevelProfile.normal_barrage_screen_cap`。BG-16 已接入 CS-24 的 Tier 名额；普通话语与带特性话语共用同一账本，实例离树释放容量。Paradox 继续采用关卡上限，复读保留独立容量。复读和遮挡特性话语可由生成调用方显式请求中央战斗区随机静止落点；默认仍沿用既有定位和移动。当前普通前景只实现向左平移，移动速度由 BG-40 的可调上限统一裁切；BG-20～BG-23 的其他运动类型仍待开发。Paradox 阶段按 CB-13 读取一真五假六句。
 
 | 卡片 | 按实际代码核对后的唯一功能 | 状态 |
 | --- | --- | --- |
 | [BG-16](tasks/BG-16_high-density-cap.md) | 按 Tier 读取前景容量 | 已合并 main；Tier 容量回归通过 |
 | [BG-17](tasks/BG-17_pc-android-performance.md) | 分层性能与可读性验收 | 待组合实测 |
-| [BG-42](tasks/BG-42_static-random-placement.md) | 复读和遮挡共用的中央区域随机静止落点 | 已实现，待合并 main |
+| [BG-42](tasks/BG-42_static-random-placement.md) | 复读和遮挡共用的中央区域随机静止落点 | 已合并 main |
 | [BG-24](tasks/BG-24_overlap-pass-through.md) | 实例出生与运动允许重叠 | 待开发 |
 | [BG-27](tasks/BG-27_animated-size.md) | 连续缩放 | 已有脉冲入口 |
 | [BG-28](tasks/BG-28_mixed-rich-text-style.md) | 前景富文本 | 待开发 |
@@ -26,7 +26,7 @@
 | [BG-37](tasks/BG-37_foreground-text-outline.md) | 非复读文字描边 | 待开发 |
 | [BG-38](tasks/BG-38_effective-area-clear.md) | 现有命中结束目标接线回归 | 已有链路 |
 | [BG-39](tasks/BG-39_tier-motion-proportions.md) | 四种运动类型随 Tier 权重变化 | 待开发 |
-| [BG-40](tasks/BG-40_foreground-speed-ceiling.md) | 前景话语最大速度 | 待开发 |
+| [BG-40](tasks/BG-40_foreground-speed-ceiling.md) | 前景话语最大速度 | 当前直线运动已实现，待合并 main；BG-20～BG-23 实现后补验 |
 | [BG-41](tasks/BG-41_random-trait-selection.md) | 按已解锁池随机分配特性 | 技能池待定 |
 
 **BG-34（2026-10-10）** `CombatStage` 将 T2=13 发布给 `BarrageArea`。满槽后移除 4 条，现场数量回到 9；容量释放恢复现有 `SpawnTimer`，下一次批次经 `NormalSpeechSelector` 补到 13，额外普通生成由现有上限拦截。复读继续走独立账本。本卡确认现有 BG-16 接线已满足频率补位规则，并新增真实组件回归。
@@ -40,6 +40,10 @@
 **BG-42（2026-10-11）** `spawn_normal_barrage(..., random_static_placement=false)` 与 `spawn_repeat_barrage(..., random_static_placement=false)` 为单次请求提供可选的随机静止定位。默认值保持普通生成与已有复读调用的原定位 / 移动；显式传 `true` 时，在视图完成排版后按 `BarrageArea.size - BarrageView.size` 均匀抽取位置，视图无法完整放入当前区域时拒绝生成并归还刚申请的容量。静止视图沿用原暂停补偿、绝对寿命、普通或复读容量账本；区域缩放后可容纳时夹回完整边界，容纳不了时自然移除。RP-16 复读与 BT-15 遮挡实例可通过对应生成入口显式启用。Paradox 仍走 `_place_new_barrage()`，CB-13 一真五假候选逻辑没有变化。
 
 `test_bg42_static_random_placement.gd` 用实际 `BarrageArea` / `BarrageView` 覆盖默认移动、短长文本边界、随机位置分布、1024×760 当前尺寸、1024×1008 扩高、缩小区域时视图夹回 / 移除与容量恢复、过小区域拒绝、暂停和寿命。图形运行保存当前战斗区视觉截图到 `evidence/BG42_static_random_placement.png`；真实 Sandbox 场景文件未修改。
+
+**BG-40（2026-10-11）** `BarrageArea.maximum_foreground_move_speed_pixels_per_second` 是 Inspector 可调的普通移动前景速度上限，默认值为 100 px/s，与当前 `LevelProfile.base_move_speed_pixels_per_second` 基础值一致。`get_foreground_move_speed_pixels_per_second(level_profile)` 是普通前景唯一限速入口，按 `max(基础速度, 0) × max(当前 CS-07 Tier 倍率, 0)` 计算后裁切到上限；倍率更新继续只影响之后新建的普通前景实例。当前 `BarrageView._process()` 只实现向左平移，因此 BG-20～BG-23 的直线、曲线、加减速和游荡行为不在本次实现或验证范围；这些后续模式应以该接口返回值作为速度幅度上限。
+
+该限速只接在普通移动前景生成路径。显式 BG-42 静止请求传入零速度；Repeat 沿用原基础速度与当前倍率计算；Paradox 六候选继续读取自身 `ContradictionWindowConfig`。`test_bg40_foreground_speed_ceiling.gd` 使用实际 Tier Catalog 与 `CombatStage` 检查 T1～T5、T1/T5 真实位移、降档后的新实例、Repeat / Paradox 隔离和静止请求。测试句为脚本内 TEST_ONLY 合成数据，不作为正式关卡或正式玩法可读性验收。GUI smoke 保存 TEST_ONLY 短句的 Godot 渲染截图到 `evidence/BG40_foreground_speed_ceiling_test.png`。
 
 本节是当前派工依据；历史章节中的旧默认值与旧任务说明保留用来追溯已有系统演变。开发时以单卡现行版和本节为准。
 
@@ -267,7 +271,7 @@ INT-02 采用静态 Scene 方案：`sandbox.tscn` 保存所有区域 Rect，编�
 
 ## 2026-10-09 新确认规则与单功能任务卡
 
-前景包含普通话语及挂有特性的普通话语，二者共用当前 Tier 少量同屏名额，击中后按配置的正常生成频率补充。前景话语具备描边，运动方式与速度按可读性限制；复读在中央区随机静止生成并始终底层、按寿命渐隐；遮挡特性实例在随机位置静止显示并保持最高层。旧 BG-16、BG-17 需求已改为少量前景及背景复读的实际性能与可读性验收，BG-32 伪纵深保持候选暂缓状态。
+前景包含普通话语及挂有特性的普通话语，二者共用当前 Tier 少量同屏名额，击中后按配置的正常生成频率补充。当前实际移动只有向左平移，普通移动速度按 BG-40 上限裁切；四种计划中的运动模式留给 BG-20～BG-23。复读在中央区随机静止生成并始终底层、按寿命渐隐；遮挡特性实例在随机位置静止显示并保持最高层。旧 BG-16、BG-17 需求已改为少量前景及背景复读的实际性能与可读性验收，BG-32 伪纵深保持候选暂缓状态。
 
 | 任务卡 | 唯一功能 | 状态 |
 | --- | --- | --- |
@@ -277,7 +281,7 @@ INT-02 采用静态 Scene 方案：`sandbox.tscn` 保存所有区域 Rect，编�
 | [BG-37](tasks/BG-37_foreground-text-outline.md) | 所有非复读话语文字描边 | 待实施 |
 | [BG-38](tasks/BG-38_effective-area-clear.md) | 有效攻击后清除命中区域全部话语 | 待实施 |
 | [BG-39](tasks/BG-39_tier-motion-proportions.md) | 按 Tier 改变前景运动类型权重 | 待实施 |
-| [BG-42](tasks/BG-42_static-random-placement.md) | 复读与遮挡共享静止随机落点 | 待实施 |
-| [BG-40](tasks/BG-40_foreground-speed-ceiling.md) | 普通前景话语速度上限 | 待实施 |
+| [BG-42](tasks/BG-42_static-random-placement.md) | 复读与遮挡共享静止随机落点 | 已合并 main |
+| [BG-40](tasks/BG-40_foreground-speed-ceiling.md) | 普通前景话语速度上限 | 当前直线运动已实现，待合并 main；BG-20～BG-23 实现后补验 |
 
 本轮任务卡逐项说明触发条件、应发生的行为与验收结果；派工时依赖最新卡片和系统当前代码。
