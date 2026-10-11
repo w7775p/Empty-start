@@ -1,6 +1,6 @@
 # PA-09 战斗结果 UI 提示：准星数值与必要异常结果词
 
-> 状态：2026-10-11 确认精简为命中材质 + 准星数值 + 必要异常词，三套 Godot 预览待人工选型；正式战斗接线待实施
+> 状态：2026-10-11 Godot 视觉自验未通过（碎裂黑缝、局部词与目标联系、动效层次待调整），PR #148 保持 Draft；正式战斗接线待实施
 > 类型：P0 / PresentationAssets
 > 依赖：PA-06 命中材质反馈；现有 CombatAttack、BarrageTraits、HitResolution 与战斗 HUD
 

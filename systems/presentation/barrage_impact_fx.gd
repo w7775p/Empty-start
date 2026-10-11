@@ -5,9 +5,9 @@ const BARRAGE_SCENE: PackedScene = preload("res://systems/barrage_generation/bar
 
 @export_group("碎裂 / 曲线")
 @export_range(0.08, 0.6, 0.01) var break_seconds: float = 0.28
-@export_range(5.0, 52.0, 1.0) var shard_push: float = 27.0
+@export_range(5.0, 52.0, 1.0) var shard_push: float = 11.0
 @export_range(0.0, 0.25, 0.01) var curve_depth: float = 0.11
-@export_range(0.0, 0.4, 0.01) var shard_rotation: float = 0.09
+@export_range(0.0, 0.4, 0.01) var shard_rotation: float = 0.025
 @export var fracture_color: Color = Color("#F8F5E9")
 
 @export_group("漫画强调符号")

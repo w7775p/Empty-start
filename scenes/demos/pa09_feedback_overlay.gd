@@ -7,7 +7,7 @@ enum Case { SMALL, LARGE, BLOCK, REFLECT, MULTI, MISS }
 
 @export_group("准星旁数值")
 @export_range(18, 60, 1) var minimum_font_size: int = 28
-@export_range(40, 110, 1) var maximum_font_size: int = 78
+@export_range(40, 110, 1) var maximum_font_size: int = 90
 @export_range(0.05, 2.0, 0.05) var effect_seconds: float = 1.05
 @export_range(10, 70, 1) var float_distance: float = 34.0
 @export var positive_color: Color = Color("#aff7db")
@@ -79,7 +79,7 @@ func _new_label() -> Label:
 
 # 本发结算绝对值越大，字号及阴影越重。
 func _font_size_for(delta: int) -> int:
-	return clampi(roundi(float(minimum_font_size) + sqrt(float(absi(delta))) * 9.3), minimum_font_size, maximum_font_size)
+	return clampi(roundi(float(minimum_font_size) + sqrt(float(absi(delta))) * 12.8), minimum_font_size, maximum_font_size)
 
 
 func _build_labels() -> void:
@@ -119,7 +119,7 @@ func _build_labels() -> void:
 			positions = [target_positions[1], target_positions[2]]
 		Case.MISS:
 			captions = ["MISS"]
-			positions = [aim_center + Vector2(32, 22)]
+			positions = [aim_center + Vector2(64, 28)]
 	for i in range(captions.size()):
 		var label := _new_label()
 		label.text = captions[i]
