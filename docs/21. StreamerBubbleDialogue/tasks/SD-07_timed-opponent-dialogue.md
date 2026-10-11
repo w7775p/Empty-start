@@ -1,6 +1,6 @@
 # SD-07 战斗进行时按时间触发对手对白
 
-**状态：待开发 · 2026-10-09 新确认需求**
+**状态：已完成 · 2026-10-11 · [完成日志](../双主播气泡对话系统_SD-07_2026-10-11_log.md)**
 
 ## 开始前先阅读以下文档
 - `docs/Original/任务卡模板.md` 与 `known_traps.md`（通用执行规范与已知风险）
@@ -10,6 +10,12 @@
 
 ## 已经实现的功能
 - 现有战斗状态、命中与主播画面由对应系统维护。已完成的 `SD-01` 提供 `data/streamer_bubble_dialogue/` 资源与条目读取接口；其他 SD 前置功能按系统 README、最新日志及当前代码确认。
+
+## 已完成实现（2026-10-11）
+- `BubbleDialogueEntry` 新增 `trigger_time_seconds`，SD-08 将表格 `trigger_time_s` 映射到该字段；定时对白稳定事件 ID 为 `timed`，只消费对手侧条目。
+- `StreamerBubbleTimedOpponentDialoguePresenter` 订阅 `BattleAttemptFlow`，每次 `attempt_started`（含重开）重新读取定时配置并清零秒数；普通胜负结束时停止计时。节点使用 `PROCESS_MODE_PAUSABLE`，暂停时冻结累计时间。
+- 到点条目复制后统一设为 `TIMED_IDLE`，交给 HUD 的 `enqueue_dialogue_bubble()`。同秒条目沿配置顺序提交，T0 离线期间到期的条目等对手重连后提交。
+- 真实 Sandbox GUI smoke 覆盖 T0 到期缓存、连线剧情优先、暂停冻结、重开计时和正式 SD-03 气泡显示。正式对白 Resource 仍为空，台词只在内存测试配置中创建。
 
 ## 本次任务
 战斗进行时按时间触发对手对白。
