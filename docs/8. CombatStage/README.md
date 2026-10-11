@@ -18,7 +18,7 @@
 | [CS-17](tasks/CS-17_silence-and-burst.md) | 沉默爆发候选节点 | 待策划 |
 | [CS-18](tasks/CS-18_tier-up-clear-old-repeat-requests.md) | 现有队列清理升档接线 | 待接线 |
 | [CS-19](tasks/CS-19_tier0-zero-pullback.md) | T0 回拉倍率数值 0 | 配置完成；Sandbox T0/T1 现行回拉验证通过，对白后时点待 CS-22/23 |
-| [CS-20](tasks/CS-20_tier0-matching-status.md) | T0 搜索对手文案 | 已有 HUD |
+| [CS-20](tasks/CS-20_tier0-matching-status.md) | T0 搜索对手文案 | 已完成：开局/重开显示可配置等待状态，T1 接线后切换为对手已连线 |
 | [CS-21](tasks/CS-21_tier1-opponent-portrait.md) | T0/T1 对手立绘出现 | 已有资源 |
 | [CS-22](tasks/CS-22_tier1-bubble-dialogue.md) | T1 开场气泡对白 | 待开发 |
 | [CS-23](tasks/CS-23_tier1-resume-on-dialogue-end.md) | T1 对话后恢复战斗 | 待接线 |
@@ -47,6 +47,8 @@ INT-01 已在正式 Sandbox 完成 HitResolution、BarrageArea、OpponentPKBar �
 `data/combat_stage/tier_catalog.tres` 为 Tier 0～5 的静态配置来源。`CombatStageTierCatalog.get_tier_config(tier)` 按档位读取各自的升/降档阈值、生成数量/频率/移动/寿命倍率、对手回拉倍率、每次命中复读数和对手立绘状态标识。正式对手回拉倍率 T0～T5 为 `0/1.3/1.6/1.8/2.0/2.2`；CS-19 的 Godot 4.7.2 Sandbox 运行测试确认 T0 玩家 PK 稳定、当前 T1 流程仍通过原 PK 所有者回拉。T1 开场对白完成后的时点待 CS-22/23 接线复验。
 
 CS-25 由 `ContradictionOracleFlow.entered` 驱动 SandboxBattleHud 的 `set_paradox_stage_active(active, current_tier)`。真实矛盾流程进入时显示 `T6 / Paradox`；Final Oracle、Rest、失败和新尝试接线会按当前 `CombatStage.get_current_tier()` 恢复普通档位文字。该展示不增加 Tier 6 配置，也不改 PK 比例、胜负判定或矛盾规则。聚焦场景 `tests/combat_stage/cs25_paradox_stage_label_smoke.tscn` 覆盖 HUD 内容、真实矛盾流程、六个候选、Rest、失败重试及第二次尝试；GUI 视口截图保存在 `evidence/cs25_2026-10-11/`。截图与运行断言使用现有 `level_001.tres` 示例内容，正式四关文本仍需策划确认。
+
+CS-20 通过 `SandboxBattleHud.t0_matching_status_text` 暴露可配置的 T0 等待文案，默认显示「等待对手连线……」。新开局和重开沿用 `show_battle_state()` 显示该状态；`refresh_pk()` 收到 Tier 变化后，仅在当前文案仍由 HUD 管理时切换 T0 等待状态或 T1「对手已连线」，其他来源的即时战斗提示会保留。该刷新复用既有 `BattleAttemptFlow.pk_feedback_changed` 接口，不改 Sandbox 根脚本或战斗流程。聚焦场景 `tests/combat_stage/cs20_matching_status_smoke.tscn` 覆盖开局、重开、T0/T1 和警告保留；GUI 截图保存在 `evidence/cs20_2026-10-11/`。
 
 CS-24 增加 `CombatStageTierConfig.foreground_slot_count`。正式配置 T0=0（尚待策划填写）、T1～T5=10/13/16/19/22；各档 Resource 可独立调整。CombatStage 在绑定 BarrageArea、开局和档位切换时通过 `barrage_foreground_slot_count_changed` 发布当前值；BarrageArea 通过 `set_foreground_slot_count()` 接收并由 `get_foreground_slot_count()` 提供受控读取。0 保留为未配置标记，后续 BG-16 应沿用 `LevelProfile.normal_barrage_screen_cap` 的现有行为；CS-24 不改变容量准入或生成逻辑。
 
