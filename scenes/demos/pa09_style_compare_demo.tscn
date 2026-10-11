@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scenes/demos/pa09_style_compare_demo.gd" id="1_demo"]
+[ext_resource type="Script" path="res://scenes/demos/pa09_feedback_overlay.gd" id="2_fx"]
+
+[node name="PA09LocalFeedbackDemo" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_demo")
+
+[node name="Feedback" type="Control" parent="."]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+script = ExtResource("2_fx")
