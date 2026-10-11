@@ -8,12 +8,14 @@ signal divine_descent_entered(session: DivineDescentSession)
 const SAMPLE_TIER_CATALOG: CombatStageTierCatalog = preload("res://data/combat_stage/tier_catalog.tres")
 const PRESENTATION_ASSETS: PresentationAssetConfig = preload("res://data/shared/presentation_asset_config.tres")
 const CONTRADICTION_WINDOW_CONFIG: ContradictionWindowConfig = preload("res://systems/contradiction_break/contradiction_window_config.tres")
-const BUBBLE_DIALOGUE_CONFIG: BubbleDialogueConfig = preload("res://data/streamer_bubble_dialogue/bubble_dialogue_config.tres")
 const HIT_ECHO_PRESENTER_SCRIPT: Script = preload("res://ui/streamer_bubble_dialogue/streamer_bubble_hit_echo_presenter.gd")
+const SPECIFIC_SENTENCE_REPLY_PRESENTER_SCRIPT: Script = preload("res://ui/streamer_bubble_dialogue/streamer_bubble_specific_sentence_reply_presenter.gd")
 const REST_RESULT_VIEW_SCENE: PackedScene = preload("res://ui/rest/rest_result_view.tscn")
 # 关卡资料统一由目录提供，运行验证可注入独立临时目录。
 @export var level_catalog: LevelCatalog = preload("res://data/level_configuration/level_catalog.tres")
 @export var battle_config: SandboxBattleConfig = preload("res://data/sandbox/playable_battle_config.tres")
+# 当前场次的气泡对白配置；测试与后续关卡绑定可以注入独立 Resource。
+@export var bubble_dialogue_config: BubbleDialogueConfig = preload("res://data/streamer_bubble_dialogue/bubble_dialogue_config.tres")
 # 只从正式败者卡目录发卡；目录缺少资料时由 16 的写入接口拒绝。
 @export var loser_card_catalog: LoserCardCatalog = preload("res://data/loser_card/loser_card_catalog.tres")
 # 未批准的演出参数默认留空，仅由明确 TEST_ONLY 夹具或后续正式配置注入。
@@ -92,9 +94,20 @@ func _ready() -> void:
 	if not bool(_hit_echo_presenter.call(
 			"configure",
 			_battle_attempt_flow,
-			BUBBLE_DIALOGUE_CONFIG,
+			bubble_dialogue_config,
 			Callable(_battle_hud, "enqueue_dialogue_bubble"))):
 		push_error("Sandbox: 无法接入实际命中气泡消费者。")
+		return
+	# 特定原句回复独立消费同一最终命中事实，剧情优先级由 SD-03 队列调度。
+	var sentence_reply_presenter: Node = SPECIFIC_SENTENCE_REPLY_PRESENTER_SCRIPT.new()
+	sentence_reply_presenter.name = "StreamerBubbleSpecificSentenceReplyPresenter"
+	add_child(sentence_reply_presenter)
+	if not bool(sentence_reply_presenter.call(
+			"configure",
+			_battle_attempt_flow,
+			bubble_dialogue_config,
+			Callable(_battle_hud, "enqueue_dialogue_bubble"))):
+		push_error("Sandbox: 无法接入特定原句对手回复消费者。")
 		return
 	if not _battle_attempt_flow.start_first_attempt():
 		push_error("Sandbox: 无法启动首场普通战斗。")

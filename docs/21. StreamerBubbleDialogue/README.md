@@ -41,7 +41,7 @@
 SD-01 数据配置已完成。代码和空的正式配置位于 `data/streamer_bubble_dialogue/`，完成记录见 [SD-01 日志](双主播气泡对话系统_SD-01_2026-10-10_log.md)。
 
 - `BubbleDialogueEntry` 是可在 Inspector 编辑的 Resource：`side` 使用 `SpeakerSide.PLAYER / OPPONENT`，`text` 为显示文本，`original_sentence_id` 沿用 `LevelSpeech` 的 String 原句 ID（可空），`event_id` 为 StringName 事件 ID，`display_duration_seconds` 为停留秒数，`priority` 为可编辑优先级。
-- `Priority.PLOT=2 > HIT=1 > TIMED_IDLE=0`；指定原句答话由策划填写对手侧和剧情优先级。条目初值为玩家侧、命中优先级、3 秒，正式时长仍待试玩确认。
+- `Priority.PLOT=2 > HIT=1 > TIMED_IDLE=0`；指定原句答话从对手侧配置项读取，SD-05 以副本提交为剧情优先级，源 Resource 保持只读。条目初值为玩家侧、命中优先级、3 秒，正式时长仍待试玩确认。
 - `BubbleDialogueConfig.entries` 保存本场条目。`find_by_sentence(id, side=ANY_SIDE)` 按原句读取；`find_by_event(event_id, side=ANY_SIDE, original_sentence_id="")` 是事件请求的读取入口，空原句参数表示该事件的全部原句。结果保持配置顺序，允许同事件多句；空或未知查询 ID 返回空数组。读取返回共享的静态条目引用，消费者保持只读。
 - `create_hit_echo(original_sentence_id, original_sentence_text, is_actual_hit, is_repeat)` 从调用方提供的最终事实构造独立条目：实际发生的非复读碰撞映射到玩家侧，事件为 `actual_hit`，优先级为 HIT，文本和原句 ID 完整保留；落空、复读及空白文本返回 null。时长读取当前 `hit_display_duration_seconds`。这里的实际碰撞包含未取得常规收益的负向效果话语；该方法本身不判定目标是否碰撞。
 - `bubble_dialogue_config.tres` 当前无正式对白；策划可新增同类型配置，在 `entries` 中添加条目。后续组合方持有本场配置引用，按事件调用读取接口；本卡未向 `LevelProfile`、Sandbox 或 HUD 增加字段和接线。
@@ -104,3 +104,13 @@ Google Sheets `02_主播关卡.story_config_id` 指向 `20_主播气泡对白.st
 - 最终逐目标结果中的每条实际碰撞只提交一次；按结果数组原序调用 SD-03。仅跳过复读和无可显示文本的目标，不以 `is_valid_hit` 过滤：该字段表示常规收益，`fake_card` 等负向效果碰撞也可能为 `false`。
 - CA-15 的遮挡整发 MISS 会清空最终 `target_results`，自然不生成命中复述。消费者按逐目标最终事实判断，保留确实命中的负向话语。
 - Windows GUI 回归入口：`tests/streamer_bubble_dialogue/sd04_actual_hit_echo_smoke.tscn`。它实例化正式 Sandbox，通过真实攻击组件、目标快照、HitResolution、BattleAttemptFlow 和 SD-03 栈验证正负命中、复读及遮挡整发，并保存实际 Viewport 截图；详细命令、退出码与输入边界见 [SD-04 完成日志](双主播气泡对话系统_SD-04_2026-10-11_log.md)。
+
+## SD-05 指定原句触发对手回复（2026-10-11，[PR #158](https://github.com/w7775p/Empty-start/pull/158)）
+
+`StreamerBubbleSpecificSentenceReplyPresenter` 与 SD-04 共用 `BattleAttemptFlow.shot_resolved`，读取同一最终 `hit_resolution_result.target_results`。每条非空原句 ID 使用 SD-01 的 `find_by_sentence(id, OPPONENT)` 查配置；匹配条目按配置顺序复制为剧情优先级请求，再调用 `SandboxBattleHud.enqueue_dialogue_bubble()` 进入 SD-03。
+
+- 匹配依赖稳定原句 ID 与对手发言侧；展示文本不参与匹配。每条最终实际命中事实各自查询，包含负收益目标及 ID 相同的复读目标；未配置 ID 不产生对手对白。
+- 发送剧情优先级副本，保留静态配置文本、发言侧、原句 ID 与显示时长。相同 ID 的配置项继续按 SD-01 顺序提交，SD-03 负责同侧排队和优先级。
+- CA-15 遮挡整发 MISS 的最终 `target_results` 为空，消费者没有回复请求。HUD 保留既有 T0 对手离线与队列禁用行为；对手连线后可显示答话。
+- Sandbox 根脚本公开 `bubble_dialogue_config` Resource 导出项，默认仍指向 `data/streamer_bubble_dialogue/bubble_dialogue_config.tres`。本卡没有添加正式对白或改动该空配置；GUI 验收只向深复制 Resource 注入 TEST_ONLY 内存条目。
+- Windows GUI 验收入口：`tests/streamer_bubble_dialogue/sd05_specific_sentence_reply_smoke.tscn`。它以真实攻击输入、BarrageView、结算流程和双方 SD-03 气泡栈验证映射、未映射句、低优先级让位及遮挡 MISS。Godot 4.7.2 窗口 `1280×720`，30 项通过、0 失败；实际截图见 [SD-05 证据](evidence/SD-05_2026-10-11/sd05_specific_sentence_reply_1280x720.png)，详细记录见 [SD-05 完成日志](双主播气泡对话系统_SD-05_2026-10-11_log.md)。
