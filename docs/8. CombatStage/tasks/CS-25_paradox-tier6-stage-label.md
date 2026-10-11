@@ -1,6 +1,6 @@
 # CS-25 Paradox 阶段界面显示为 T6
 
-**状态：待显示接线**
+**状态：已完成**
 
 ## 开始前先阅读以下文档
 - `docs/Original/任务卡模板.md` 与 `known_traps.md`（通用执行规范与已知风险）
@@ -23,6 +23,13 @@ Paradox 阶段界面显示为 T6。
 
 ### 验收条件
 T5 正常战斗仍显示 T5，普通满值转入矛盾击破时显示 T6 / Paradox。
+
+## 实现记录
+- SandboxBattleHud 仅在真实 ContradictionOracleFlow 进入矛盾阶段后显示 `T6 / Paradox`。
+- 普通运行档位保留 T0～T5；HUD 继续读取原 PK 比例与当前 CombatStage Tier，胜负逻辑和矛盾判定保持现有归属。
+- Final Oracle、Rest、失败、重试和新尝试按当前普通 Tier 恢复标签。
+- 本卡验收使用现有 `level_001.tres` 示例内容；正式四关内容和不同假句的策划确认继续保留待办状态。
+- 可见场景验收截图：`../evidence/cs25_2026-10-11/cs25_t5_normal.png`、`../evidence/cs25_2026-10-11/cs25_t6_real_paradox.png`。
 
 ## Godot 开发环境
 - Godot 版本：4.7.2（开工核对 `project.godot`）

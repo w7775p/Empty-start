@@ -12,6 +12,7 @@ var player_portrait_motion: StreamerPortraitMotion
 var opponent_portrait_motion: StreamerPortraitMotion
 var _portrait_attack: AttackChargeInput
 var _opponent_connected: bool = false
+var _paradox_stage_active: bool = false
 var _dialogue_queue: Node
 
 @onready var _aim_reticle: AimReticle = %AimReticle
@@ -184,7 +185,18 @@ func refresh_pk(player_pk: float, current_tier: int) -> void:
 	_pk_progress.value = player_share
 	_player_pk_label.text = "玩家 PK %.1f%%" % (player_share * 100.0)
 	_opponent_pk_label.text = "对手 %.1f%%" % ((1.0 - player_share) * 100.0)
-	_tier_label.text = "Tier %d" % current_tier
+	_refresh_stage_label(current_tier)
+
+
+# 仅切换 HUD 阶段文案；普通 CombatStage Tier 与 PK 仍由战斗流程持有。
+func set_paradox_stage_active(active: bool, current_tier: int) -> void:
+	_paradox_stage_active = active
+	_refresh_stage_label(current_tier)
+
+
+func _refresh_stage_label(current_tier: int) -> void:
+	# 文案覆盖只属于视图，普通 Tier 仍从调用方即时读取。
+	_tier_label.text = "T6 / Paradox" if _paradox_stage_active else "Tier %d" % current_tier
 
 
 # 蓄力与阶段归 CombatAttack，HUD 使用公开读取结果提供可释放、飞行和硬直反馈。
@@ -220,6 +232,7 @@ func reset_for_attempt() -> void:
 	player_portrait_motion.set_idle_strength(1.0)
 	opponent_portrait_motion.set_idle_strength(1.0)
 	set_opponent_portrait_connected(false)
+	set_paradox_stage_active(false, 0)
 	_failure_overlay.hide()
 	show_battle_state("瞄准弹幕，蓄满后松开左键")
 	refresh_attack(0.0, AttackChargeInput.AttackPhase.READY)

@@ -50,7 +50,8 @@ func _ready() -> void:
 	_contradiction_oracle_flow = ContradictionOracleFlow.new()
 	add_child(_contradiction_oracle_flow)
 	_contradiction_oracle_flow.state_text_changed.connect(_battle_hud.show_battle_state)
-	_contradiction_oracle_flow.oracle_opened.connect(func(session): final_oracle_opened.emit(session))
+	_contradiction_oracle_flow.entered.connect(_on_contradiction_stage_entered)
+	_contradiction_oracle_flow.oracle_opened.connect(_on_final_oracle_opened)
 	_contradiction_oracle_flow.rest_ready.connect(_on_rest_ready)
 	var opponent_pk_bar := OpponentPKBar.new()
 	opponent_pk_bar.name = "OpponentPKBar"
@@ -100,8 +101,9 @@ func restart_current_attempt() -> void:
 
 
 # 当前关的角色和素材由一次尝试启动事实提供；HUD 只呈现组合方状态。
-func _on_attempt_started(current_level: LevelProfile, _hit: HitResolution, _stage: CombatStage, _queue: RepeatDelayQueue) -> void:
+func _on_attempt_started(current_level: LevelProfile, _hit: HitResolution, stage: CombatStage, _queue: RepeatDelayQueue) -> void:
 	_battle_hud.reset_for_attempt()
+	_battle_hud.set_paradox_stage_active(false, stage.get_current_tier())
 	var player_name: String = SaveManager.data.streamer_name
 	_battle_hud.configure_streamers(player_name if not player_name.is_empty() else "玩家主播", current_level.streamer_name)
 	# 每次启动尝试都按当前关的稳定主播 ID 切换立绘待机配置。
@@ -115,9 +117,21 @@ func _on_attempt_started(current_level: LevelProfile, _hit: HitResolution, _stag
 		current_level.fan_badge_texture
 	)
 
-# 流程已回滚尝试状态并停止攻击；HUD 只负责显示失败界面。
+# 普通战斗失败后，HUD 恢复当前普通阶段文案并显示失败界面。
 func _on_attempt_failed(_level: LevelProfile, _loss_streak_count: int, _hit: HitResolution, _repeat_stats: RepeatGenerationStats) -> void:
+	_battle_hud.set_paradox_stage_active(false, _battle_attempt_flow.get_current_tier())
 	_battle_hud.show_failure()
+
+
+# 真实矛盾流程发出进入事实后，HUD 才展示 T6 / Paradox。
+func _on_contradiction_stage_entered(_system: ContradictionBreakSystem) -> void:
+	_battle_hud.set_paradox_stage_active(true, _battle_attempt_flow.get_current_tier())
+
+
+# 神谕接管阶段展示时恢复当前 CombatStage 档位，再转发既有对外事件。
+func _on_final_oracle_opened(session: FinalOracleSession) -> void:
+	_battle_hud.set_paradox_stage_active(false, _battle_attempt_flow.get_current_tier())
+	final_oracle_opened.emit(session)
 
 
 # 暂停由 SceneTree 冻结此节点，复读等待只使用实际游戏帧时间。
@@ -226,6 +240,7 @@ func debug_set_normal_generation_enabled(enabled: bool) -> bool:
 # 流程已经提交成果并准备好 Rest；根场景只展示同一结果对象。
 func _on_rest_ready(result: RestSession) -> void:
 	_rest_session = result
+	_battle_hud.set_paradox_stage_active(false, _battle_attempt_flow.get_current_tier())
 	if not _rest_result_view.show_result(result, SaveManager.data, level_catalog, loser_card_catalog):
 		push_error("Sandbox: 无法显示本场 Rest 结果。")
 		return
