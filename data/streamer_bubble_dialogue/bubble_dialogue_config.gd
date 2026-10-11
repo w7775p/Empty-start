@@ -40,12 +40,12 @@ func find_by_event(
 	return matches
 
 
-# 消费最终命中事实生成玩家复述数据；收益正负均可，复读及落空返回空。
+# 消费实际碰撞事实生成玩家复述数据；负收益也可复述，复读及落空返回空。
 func create_hit_echo(
 	original_sentence_id: String, original_sentence_text: String,
-	is_valid_hit: bool, is_repeat: bool
+	is_actual_hit: bool, is_repeat: bool
 ) -> Entry:
-	if not is_valid_hit or is_repeat or original_sentence_text.strip_edges().is_empty():
+	if not is_actual_hit or is_repeat or original_sentence_text.strip_edges().is_empty():
 		return null
 	var entry := Entry.new()
 	entry.side = Entry.SpeakerSide.PLAYER

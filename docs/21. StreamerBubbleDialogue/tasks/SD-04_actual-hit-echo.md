@@ -1,6 +1,6 @@
 # SD-04 将实际击中的话语映射为主播气泡
 
-**状态：待开发 · 2026-10-09 新确认需求**
+**状态：已实现 · 2026-10-11 · [完成日志](../双主播气泡对话系统_SD-04_2026-10-11_log.md)**
 
 ## 开始前先阅读以下文档
 - `docs/Original/任务卡模板.md` 与 `known_traps.md`（通用执行规范与已知风险）
@@ -22,6 +22,13 @@
 
 ### 验收条件
 一次有效群体命中多条非复读话语时，在玩家侧按真实顺序出现对应原句气泡；误击的非复读错误话语如确实被命中，也复述其原句；普通复读命中没有此类气泡；遮挡导致整发落空时不生成命中复述；文本与实际目标 ID 对应。
+
+## 本卡完成结果（2026-10-11）
+
+- `StreamerBubbleHitEchoPresenter` 订阅 `BattleAttemptFlow.shot_resolved()`，消费最终 `hit_resolution_result.target_results`，按逐目标顺序向 HUD 的 `enqueue_dialogue_bubble()` 提交玩家侧即时复述。
+- 复述使用最终碰撞列表作为实际命中事实，仅过滤复读和空白文本。常规收益标志为 `false` 的负向碰撞仍保留原句 ID 与文本；CA-15 遮挡整发 MISS 的最终目标列表为空，因此不会生成命中气泡。
+- Sandbox 仅增加 presenter、正式对白配置与 HUD 公开队列接口的组合，不改 BattleAttemptFlow、SandboxBattleHud、战斗数据、Importer 或正式对白表。
+- 正式 Sandbox GUI 测试入口为 `tests/streamer_bubble_dialogue/sd04_actual_hit_echo_smoke.tscn`；真实发射验证正向、负向、复读和遮挡结果，截图与实际 Godot 退出码见[完成日志](../双主播气泡对话系统_SD-04_2026-10-11_log.md)。
 
 ## Godot 开发环境
 - Godot 版本：4.7.2（开工核对 `project.godot`）
