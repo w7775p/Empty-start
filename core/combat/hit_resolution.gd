@@ -158,7 +158,15 @@ func calculate_repeat_hit_result() -> Dictionary:
 	return {"is_valid_hit": true, "pk_delta": 0.0, "tendency_delta": 0}
 
 
-func select_shot_anomaly(has_bounce: bool, has_obstruction: bool, is_miss: bool) -> ShotAnomaly:
+func select_shot_anomaly(
+		has_bounce: bool,
+		has_obstruction: bool,
+		is_miss: bool,
+		has_release_snapshot_occlusion: bool = false
+) -> ShotAnomaly:
+	# 释放快照包含遮挡时整发强制 MISS；其余异常继续沿用单发 BOUNCE > OBSTRUCTION > MISS。
+	if has_release_snapshot_occlusion:
+		return ShotAnomaly.MISS
 	# 每发只选一个异常；布尔输入把同一反弹目标的重复报告折叠为一次。
 	if has_bounce:
 		return ShotAnomaly.BOUNCE

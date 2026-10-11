@@ -2,7 +2,7 @@
 
 > 状态：需求已确认，待实施
 > 类型：程序美术 / PresentationAssets
-> 依赖：OP-05 归零失败通知、现有 `Sandbox._on_attempt_failed()`、PA-13 仓鼠球、PA-11 CRT 材质
+> 依赖：OP-05 归零失败通知、`BattleAttemptFlow.attempt_failed` → Sandbox HUD 回调、PA-13 仓鼠球、PA-11 CRT 材质
 
 ## 开始前先阅读以下文档
 - docs/Original/任务卡模板.md、known_traps.md
@@ -14,9 +14,12 @@
 - `docs/Shared/PresentationAssets/tasks/PA-11_stage-transition-visuals.md`
 
 ## 已经实现的功能
-- 现有 `OpponentPKBar` 和 `Sandbox._on_attempt_failed()` 提供正式 PK0 战败事实；`scenes/sandbox/sandbox_battle_hud.gd` 有 `show_failure()`、`reset_for_attempt()`、`%FailureOverlay` 和 `%RestartButton`。
+- 现有 `OpponentPKBar` 与 `BattleAttemptFlow.attempt_failed(level, loss_streak_count, hit_resolution, repeat_stats)` 提供正式 PK0 战败事实；Sandbox 将它转给 `SandboxBattleHud.show_failure()`。Hud 有 `reset_for_attempt()`、`%FailureOverlay` 和 `%RestartButton`。
 - `SandboxBattleHud.refresh_pk()` 从唯一 PK 值刷新 `%PlayerShare`；`PlayerPortraitArt` 和 `OpponentPortraitArt` 是左右直播画面槽。
 - `pk_indicator_01.png`、`pk_indicator_02.png` 为 PA-13 的正式仓鼠球素材；PA-13 和 PA-11 的待实施动效为本卡实际需要接入的上游。
+
+## INT-10 / S3 接口交接（2026-10-11）
+PA-18 修改表现组件并向 Sandbox 交付完成通知；Lane A 仍拥有失败阶段路由。当前 Sandbox 在 `attempt_failed` 后立即调用 `show_failure()`，要实现“先播动画、后显示失败 UI”，需增加明确的视觉完成接线；不能把 `BattleAttemptFlow` 改成动画状态所有者。
 
 ## 本次任务
 

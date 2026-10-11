@@ -4,7 +4,7 @@
 
 ## 2026-10-10 现行实现核对与任务状态
 
-**现有结算：** `HitResolution.resolve_shot_results()` 汇总整发贡献并一次更新玩家 PK；HR-16 独立限制正向贡献，HR-17 将目标负贡献与单次整发异常扣分合并后限制负值，再与正向限幅结果相抵。玩家 PK `[0,1]` 范围仍由全局限幅处理。区域遮挡整发落空由 CA-15 在提交前统一处理。策划尚未确定单发上限数值，正负上限默认均为 `INF`，有限值仅由可选接口注入。
+**现有结算：** `HitResolution.resolve_shot_results()` 汇总整发贡献并一次更新玩家 PK；HR-16 独立限制正向贡献，HR-17 将目标负贡献与单次整发异常扣分合并后限制负值，再与正向限幅结果相抵。玩家 PK `[0,1]` 范围仍由全局限幅处理。CA-15 的释放快照包含遮挡 ID 时，整发异常选择强制为 `MISS`，CombatAttack 提交空逐目标数组，由本系统沿用一次 `-0.01` 落空惩罚。无快照遮挡时，逐目标结算和既有异常优先级保持原行为。策划尚未确定单发上限数值，正负上限默认均为 `INF`，有限值仅由可选接口注入。
 
 | 卡片 | 按实际代码核对后的唯一功能 | 状态 |
 | --- | --- | --- |
@@ -54,7 +54,7 @@ HR-14 由 `record_normal_word_hit(original_sentence_id, tendency)` 记录有效�
 
 HR-15 由 `HitResolution.commit_normal_hit_history(SaveData)` 在最终 PK 胜利结果提交本场普通命中一次。`SaveData.committed_normal_hit_history` 按原句累计次数，用 `first_committed_hit_order` 保存第一次正式提交的跨关顺序；再次命中旧句不改变该顺序。失败或手动重开调用 `discard_uncommitted_normal_hit_history()` 丢弃本场暂存，之前已提交的周目历史保持不变。读取方使用 `SaveData.get_committed_normal_hit_history()` 的深拷贝。
 
-HR-06 的 `select_shot_anomaly(has_bounce, has_obstruction, is_miss)` 每发只选择一个异常，顺序为 `BOUNCE > OBSTRUCTION > MISS`；没有异常时返回 `NONE`。调用方把同一反弹目标的重复报告合并为 `has_bounce` 后调用。
+HR-06 的 `select_shot_anomaly(has_bounce, has_obstruction, is_miss, has_release_snapshot_occlusion=false)` 每发只选择一个异常。CA-15 的原始释放快照含遮挡 ID 时优先返回 `MISS`；否则沿用 `BOUNCE > OBSTRUCTION > MISS`，无异常时返回 `NONE`。新增参数默认 false，原三参数调用继续兼容。调用方把同一反弹目标的重复报告合并为 `has_bounce` 后调用。
 
 HR-07 的 `is_shot_fully_missed(target_validity)` 仅在没有任何有效目标时返回 true。只要有一个有效目标，其余失效目标不会增加落空异常；全失效或空目标列表仍可交给 HR-06 判断落空。
 
@@ -67,7 +67,7 @@ HR-07 的 `is_shot_fully_missed(target_validity)` 仅在没有任何有效目标
 | HR-03 | 陷阱惩罚事件 | 无 |
 | HR-04 | 复读命中零收益 | 无 |
 | HR-05 | 同一发汇总后一次更新 PK | 1 个关键单元测试 |
-| HR-06 | 单发异常优先级 | 3 个关键单元测试 |
+| HR-06 | 单发异常优先级 | 3 个既有规则用例及 1 个 CA-15 快照遮挡用例 |
 | HR-07 | 部分目标失效不额外落空 | 1 个关键单元测试 |
 | HR-08 | 回拉已归零时取消本次命中 | 1 个关键单元测试 |
 | HR-09 | 最终 PK 交给战斗阶段 | 无新增自动化测试 |
@@ -87,7 +87,7 @@ HR-07 的 `is_shot_fully_missed(target_validity)` 仅在没有任何有效目标
 - PK 低于下限会被限制；
 - PK 高于上限会被限制；
 - 多目标同发只做一次最终 PK 更新；
-- 异常优先级：反弹 > 遮挡 > 落空（3 case）；
+- 异常优先级：常规反弹 > 遮挡 > 落空（3 case）；CA-15 释放快照遮挡强制 MISS（1 case）；
 - 同发仍有有效目标时，其他目标失效不追加落空；
 - 回拉先把 PK 归零时，本次命中取消；
 - 同一原句重复命中时历史正确归并；

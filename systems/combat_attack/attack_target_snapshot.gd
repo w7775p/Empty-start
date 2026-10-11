@@ -3,6 +3,7 @@ extends RefCounted
 
 var _target_instance_ids: Array[int] = []
 var _contradiction_facts: Array[Dictionary] = []
+var _occlusion_target_instance_ids: Array[int] = []
 var _aim_center_global_position: Vector2 = Vector2.ZERO
 
 
@@ -27,6 +28,10 @@ static func capture_at_release(
 		# Paradox 在释放同一帧使用这份文本事实，之后实例移动或离树都不能改变判定。
 		if target is BarrageView:
 			var view := target as BarrageView
+			if (view.runtime_record != null and view.runtime_record.trait_set != null
+					and view.runtime_record.trait_set.has_trait(BarrageTraitSet.OCCLUSION)):
+				# 整发规则读取释放瞬间的原始特性 ID，不受 reflect 等单目标结果优先级影响。
+				snapshot._occlusion_target_instance_ids.append(instance_id)
 			if view.runtime_record != null and view.runtime_record.is_contradiction:
 				snapshot._contradiction_facts.append({
 					"target_instance_id": instance_id,
@@ -40,6 +45,11 @@ static func capture_at_release(
 # 返回 ID 副本，调用方不能修改已经冻结的本发目标集合。
 func get_target_instance_ids() -> Array[int]:
 	return _target_instance_ids.duplicate()
+
+
+# 返回释放瞬间带遮挡特性的原始目标 ID，飞行期间的结果优先级不会改写快照事实。
+func get_occlusion_target_instance_ids() -> Array[int]:
+	return _occlusion_target_instance_ids.duplicate()
 
 
 # 返回释放瞬间的矛盾原句副本；命中判定不依赖飞行后实例是否仍在场。

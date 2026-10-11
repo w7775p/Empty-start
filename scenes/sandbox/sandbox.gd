@@ -8,6 +8,8 @@ signal divine_descent_entered(session: DivineDescentSession)
 const SAMPLE_TIER_CATALOG: CombatStageTierCatalog = preload("res://data/combat_stage/tier_catalog.tres")
 const PRESENTATION_ASSETS: PresentationAssetConfig = preload("res://data/shared/presentation_asset_config.tres")
 const CONTRADICTION_WINDOW_CONFIG: ContradictionWindowConfig = preload("res://systems/contradiction_break/contradiction_window_config.tres")
+const BUBBLE_DIALOGUE_CONFIG: BubbleDialogueConfig = preload("res://data/streamer_bubble_dialogue/bubble_dialogue_config.tres")
+const HIT_ECHO_PRESENTER_SCRIPT: Script = preload("res://ui/streamer_bubble_dialogue/streamer_bubble_hit_echo_presenter.gd")
 const REST_RESULT_VIEW_SCENE: PackedScene = preload("res://ui/rest/rest_result_view.tscn")
 # 关卡资料统一由目录提供，运行验证可注入独立临时目录。
 @export var level_catalog: LevelCatalog = preload("res://data/level_configuration/level_catalog.tres")
@@ -36,6 +38,7 @@ var _rest_session: RestSession
 var _rest_result_view: RestResultView
 var _contradiction_oracle_flow: ContradictionOracleFlow
 var _divine_descent_flow: DivineDescentFlow
+var _hit_echo_presenter: Node
 
 
 # 场景只创建生命周期对象并接线；PK、Tier、倾向等状态留在各自所有者。
@@ -50,13 +53,16 @@ func _ready() -> void:
 	_contradiction_oracle_flow = ContradictionOracleFlow.new()
 	add_child(_contradiction_oracle_flow)
 	_contradiction_oracle_flow.state_text_changed.connect(_battle_hud.show_battle_state)
-	_contradiction_oracle_flow.oracle_opened.connect(func(session): final_oracle_opened.emit(session))
+	_contradiction_oracle_flow.entered.connect(_on_contradiction_stage_entered)
+	_contradiction_oracle_flow.oracle_opened.connect(_on_final_oracle_opened)
 	_contradiction_oracle_flow.rest_ready.connect(_on_rest_ready)
 	var opponent_pk_bar := OpponentPKBar.new()
 	opponent_pk_bar.name = "OpponentPKBar"
 	add_child(opponent_pk_bar)
 	_barrage_area.barrage_generated.connect(_on_barrage_generated)
 	_attack_charge_input.configure_target_query(_aim_reticle, _barrage_area)
+	# 战斗 HUD 只订阅正式释放快照播放立绘动作，不自行判断命中结果。
+	_battle_hud.bind_portrait_attack(_attack_charge_input)
 	_rest_result_view = REST_RESULT_VIEW_SCENE.instantiate() as RestResultView
 	add_child(_rest_result_view)
 	# 创建时注入一次准心，休息及历史页面统一冻结输入，隐藏时恢复。
@@ -79,6 +85,17 @@ func _ready() -> void:
 			CONTRADICTION_WINDOW_CONFIG, AudioManager):
 		push_error("Sandbox: 无法组合 BattleAttemptFlow。")
 		return
+	# 由新消费者读取正式逐目标结算，再通过 HUD 公开队列入口提交玩家复述。
+	_hit_echo_presenter = HIT_ECHO_PRESENTER_SCRIPT.new()
+	_hit_echo_presenter.name = "StreamerBubbleHitEchoPresenter"
+	add_child(_hit_echo_presenter)
+	if not bool(_hit_echo_presenter.call(
+			"configure",
+			_battle_attempt_flow,
+			BUBBLE_DIALOGUE_CONFIG,
+			Callable(_battle_hud, "enqueue_dialogue_bubble"))):
+		push_error("Sandbox: 无法接入实际命中气泡消费者。")
+		return
 	if not _battle_attempt_flow.start_first_attempt():
 		push_error("Sandbox: 无法启动首场普通战斗。")
 
@@ -98,10 +115,13 @@ func restart_current_attempt() -> void:
 
 
 # 当前关的角色和素材由一次尝试启动事实提供；HUD 只呈现组合方状态。
-func _on_attempt_started(current_level: LevelProfile, _hit: HitResolution, _stage: CombatStage, _queue: RepeatDelayQueue) -> void:
+func _on_attempt_started(current_level: LevelProfile, _hit: HitResolution, stage: CombatStage, _queue: RepeatDelayQueue) -> void:
 	_battle_hud.reset_for_attempt()
+	_battle_hud.set_paradox_stage_active(false, stage.get_current_tier())
 	var player_name: String = SaveManager.data.streamer_name
 	_battle_hud.configure_streamers(player_name if not player_name.is_empty() else "玩家主播", current_level.streamer_name)
+	# 每次启动尝试都按当前关的稳定主播 ID 切换立绘待机配置。
+	_battle_hud.configure_portrait_character(str(current_level.streamer_id))
 	_battle_hud.configure_streamer_assets(
 		PRESENTATION_ASSETS.player_streamer_portrait,
 		PRESENTATION_ASSETS.player_live_background,
@@ -111,9 +131,21 @@ func _on_attempt_started(current_level: LevelProfile, _hit: HitResolution, _stag
 		current_level.fan_badge_texture
 	)
 
-# 流程已回滚尝试状态并停止攻击；HUD 只负责显示失败界面。
+# 普通战斗失败后，HUD 恢复当前普通阶段文案并显示失败界面。
 func _on_attempt_failed(_level: LevelProfile, _loss_streak_count: int, _hit: HitResolution, _repeat_stats: RepeatGenerationStats) -> void:
+	_battle_hud.set_paradox_stage_active(false, _battle_attempt_flow.get_current_tier())
 	_battle_hud.show_failure()
+
+
+# 真实矛盾流程发出进入事实后，HUD 才展示 T6 / Paradox。
+func _on_contradiction_stage_entered(_system: ContradictionBreakSystem) -> void:
+	_battle_hud.set_paradox_stage_active(true, _battle_attempt_flow.get_current_tier())
+
+
+# 神谕接管阶段展示时恢复当前 CombatStage 档位，再转发既有对外事件。
+func _on_final_oracle_opened(session: FinalOracleSession) -> void:
+	_battle_hud.set_paradox_stage_active(false, _battle_attempt_flow.get_current_tier())
+	final_oracle_opened.emit(session)
 
 
 # 暂停由 SceneTree 冻结此节点，复读等待只使用实际游戏帧时间。
@@ -222,6 +254,7 @@ func debug_set_normal_generation_enabled(enabled: bool) -> bool:
 # 流程已经提交成果并准备好 Rest；根场景只展示同一结果对象。
 func _on_rest_ready(result: RestSession) -> void:
 	_rest_session = result
+	_battle_hud.set_paradox_stage_active(false, _battle_attempt_flow.get_current_tier())
 	if not _rest_result_view.show_result(result, SaveManager.data, level_catalog, loser_card_catalog):
 		push_error("Sandbox: 无法显示本场 Rest 结果。")
 		return

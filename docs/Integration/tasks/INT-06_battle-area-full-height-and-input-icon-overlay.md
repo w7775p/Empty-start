@@ -15,6 +15,9 @@
 - `data/stage_layout/stage_layout_profile.tres` 仍保存旧的弹幕区高度与底部交互区高度。
 - 攻击输入、蓄力进度、鼠标准心、暂停菜单分别已有对应系统与场景。
 
+## INT-10 / S3 接口交接（2026-10-11）
+Lane A 仍拥有 Sandbox 根场景和 `sandbox.tscn` 节点组合；本卡负责中央区布局，流程数据从 `BattleAttemptFlow` 公开入口读取。保留 `%BarrageArea`、`%AttackChargeInput`、`%AimReticle`、`%BattleHud` 稳定引用，并沿用 `SandboxBattleHud.refresh_attack(progress, phase)`；本卡不接管普通战斗、Paradox 或 Rest 业务状态。布局与操作视觉仍需本卡实际 Godot 验收。
+
 ## 本次任务
 **把中央底部旧交互栏改为弹幕战斗空间，并将鼠标左键、ESC 的纯操作 ICON 竖排显示在中央战斗场左下角。**
 

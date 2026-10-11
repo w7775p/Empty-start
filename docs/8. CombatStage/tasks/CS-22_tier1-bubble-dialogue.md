@@ -12,6 +12,9 @@
 ## 已经实现的功能
 现有 SandboxBattleHud 暂未提供开场气泡；SD-02/SD-03 负责双主播气泡绘制、上浮和顺序，SD-06 负责按状态事件挑选当前关对白。
 
+## INT-10 / S3 接口交接（2026-10-11）
+CS-22 的 Tier 条件读取 `Sandbox.get_battle_attempt_flow()` 的 `attempt_started(level, ...)` 与 `tier_changed(current_tier, player_pk)`；Sandbox 在尝试启动回调中根据本关 `LevelProfile.streamer_id` 更新立绘预设。对白显示仍由 SD 所有，语义对白事件 ID 由 CS/SD 实现时约定。`battle_state_changed(text)` 是本地化 HUD 文案，不可作为对白事件键解析。
+
 ## 本次任务
 T1 对手气泡开场对白。
 

@@ -30,13 +30,13 @@ func _ready() -> void:
 	resized.connect(_layout_active_bubbles)
 
 
-func show_bubble(entry: BubbleDialogueEntry) -> void:
+func show_bubble(entry: BubbleDialogueEntry) -> StreamerBubbleView:
 	if entry == null or entry.text.strip_edges().is_empty():
-		return
+		return null
 	var bubble: StreamerBubbleView = BubbleScene.instantiate() as StreamerBubbleView
 	if bubble == null:
 		push_error("StreamerBubbleStack: failed to instantiate bubble")
-		return
+		return null
 	_configure_bubble(bubble)
 	add_child(bubble)
 	bubble.configure(entry.text, entry.display_duration_seconds)
@@ -44,6 +44,7 @@ func show_bubble(entry: BubbleDialogueEntry) -> void:
 	_active_bubbles.append(bubble)
 	_layout_active_bubbles()
 	bubble.start_lifecycle()
+	return bubble
 
 
 func clear_bubbles() -> void:

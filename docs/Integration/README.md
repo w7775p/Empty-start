@@ -5,11 +5,34 @@
 
 Lane A 持有 Sandbox 与顶层路由接线。系统规则、倾向、历史、奖励及结局显示继续归各系统所有者。
 
-## 2026-10-10 开发优先级：INT-09 → INT-10 → S3 依赖复核
+## INT-09 → INT-10 → S3（状态更新 2026-10-11）
 
-INT-07 / INT-08 已合并，下一张 Sandbox 任务优先做 `BattleAttemptFlow`（INT-09），随后精简 Sandbox 根场景（INT-10）。策划在同时填写正式表和决定字段，详见[现行优先开发计划](../开发计划_2026-10-09_任务卡依赖整合.md)；INT-09/10 使用现有接口和 TEST_ONLY 独立配置即可开始，不等待正式四关导表。
+INT-07/08/09 已合并；INT-10 在当前 PR 分支完成 Sandbox 根场景接线和 S3 依赖复核。INT-01 当前最终检查为 Godot 4.7.2 headless 88 项通过；已有 Windows 图形模式的 Sandbox 与真实流程日志、截图见 `evidence/INT-10_2026-10-10/`。INT-04 本次未执行，不能据此声明本卡全部验收完成或发布就绪。
 
-INT-10 合并后按计划 S3 核对所有后续任务卡的真实前置、Owner 和公开事件接口，再接线 CA/CS/SD/LD/PA/UI；其他 Lane 当前已投入的独立功能和画面稿予以保留。新表字段适配、正式资源映射及 LC-10 四关联调统一安排在功能/场景稳定之后，不能将 TEST_ONLY 的整局冒烟称为正式四关联调。
+INT-09/10 使用现有接口和独立测试配置，不等待正式四关导表。正式四关资料、Importer、正式资源映射与视觉完成回调仍按下方 S3 结论派工；TEST_ONLY 或内存复制关卡只证明所覆盖的流程行为，不代表正式数据验收。
+
+## INT-10 Sandbox 根场景与 S3 实际交接（2026-10-11）
+
+`Sandbox` 是场景组合与流程路由 Owner。它创建并绑定 `BattleAttemptFlow`、`ContradictionOracleFlow`、`DivineDescentFlow`，连接 `BarrageArea`、`AttackChargeInput`、`SandboxBattleHud`、`RestResultView`、`PauseMenu`、`DebugPanel`，并在 Rest、下一关、神降临和 Ending 间转发结果。规则状态仍由流程及原业务对象持有；`get_debug_snapshot()`、`debug_*()` 和 `restart_current_attempt()` 是 DebugPanel 的转发入口。
+
+| Owner / 阶段 | 稳定入口 | 可消费事实 / 边界 |
+| --- | --- | --- |
+| 普通战斗：`BattleAttemptFlow` | `Sandbox.get_battle_attempt_flow()`；`get_current_level_profile()`、`get_hit_resolution()`、`get_combat_stage()`、`get_repeat_queue()`、`get_repeat_generation_stats()`、`get_current_tier()` | `attempt_started`、`attempt_restarted`、`shot_resolved`、`tier_changed`、`battle_state_changed`、`attempt_failed`、`pk_maximum_reached`、`normal_combat_completed`、`contradiction_entered`；`shot_resolved` 在逐目标处理、倾向暂存及复读登记后发出。阶段动作使用 `clear_pending_normal_repeats()`、`clear_barrages_for_stage_transition()`、`complete_current_level()`。 |
+| 矛盾、神谕、Rest：`ContradictionOracleFlow` | `Sandbox.get_contradiction_oracle_flow()`；`get_contradiction_system()`、`get_oracle_session()`、`get_result()` | `entered`、`outcome_resolved`、`oracle_opened`、`rest_ready`、`commit_failed`；`Sandbox._on_rest_ready()` 把同一 `RestSession` 交给 `RestResultView.show_result()`。 |
+| 神降临与 Ending：`DivineDescentFlow` | `Sandbox.get_divine_descent_flow()`；`get_session()`、`get_spread()`、`get_result()` | `entered`、`completed`；Sandbox 处理当前场景收尾、`SaveManager` 存档与 `SceneRouter.goto_ending()`。 |
+| HUD / 当前主播立绘 | `SandboxBattleHud.bind_portrait_attack()`、`configure_portrait_character(streamer_id)`、`configure_streamer_assets(...)` | 根场景在 `_ready()` 绑定正式释放快照，在 `attempt_started` 按本关 `LevelProfile.streamer_id` 更新待机预设和素材。正式 `portrait_set_id` / 四关映射及动画素材验收仍待正式数据与视觉任务。 |
+
+### S3 依赖复核结论
+
+| 分类 | 后续卡与负责人 | 当前交接 |
+| --- | --- | --- |
+| 前置不变 | CA-15 → BG-38；HR-16 → HR-17；CS-18 → CS-14 → CS-15；BG-16/34/36；RP-15～21 | 命中规则、PK 限幅、Tier 规则、弹幕与复读规则仍归原系统。逐发整合经 `AttackChargeInput.shot_hit_resolution_submitted` 进入 `BattleAttemptFlow`，完成事实读 `shot_resolved`。 |
+| 改用三流程公开接口 | CA-15、BG-38、CS-14/22、SD-06、PA-17/18/19 | 普通阶段消费 `shot_resolved`、`tier_changed`、`attempt_failed` 等；Paradox 消费 `ContradictionOracleFlow.outcome_resolved` / `rest_ready`；Ending 消费 `DivineDescentFlow.entered` / `completed`。Sandbox 保持顶层接线 Owner。`battle_state_changed(text)` 只供显示，不能作为稳定剧情事件 ID。 |
+| 独立组件待接入 | SD-02～07、CS-22/27、LD-13～16、PA-03～20、INT-06、BG/RP 后续局部卡 | 对白、弹幕、立绘、转场、布局和直播 UI 继续由各自 Owner 修改。Lane A 负责把已验收组件接回现有公开接口；INT-06 使用 `%BarrageArea`、`%AttackChargeInput`、`%AimReticle`、`%BattleHud` 稳定节点引用。 |
+| 等正式字段与资源 | LC-10/12/13、LD-12、SD-08、CS-28/29、BG-35/41 | 四关数据、表字段、正式资源映射、Importer 及反击池等待策划定稿；当前任务不修改生产表、存档或导表器。 |
+| 等视觉验收 | PA-03～20、INT-05/BG-17 与人审视觉 PR #131/#132/#142 | 本次保留这些独立视觉工作。静态 Sandbox / Ending 截图证明场景可见，不等于动画、物理输入、全屏缩放、Android 或美术终稿通过。 |
+
+各受影响卡已按上述公开接口更新 Owner/调用入口；完整分类和未验收边界见[主开发计划 S3](../开发计划_2026-10-09_任务卡依赖整合.md)及 [INT-10 日志](Sandbox重构_INT-10_2026-10-11_log.md)。
 
 ## INT-09 普通战斗尝试流程（2026-10-10）
 

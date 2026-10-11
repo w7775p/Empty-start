@@ -1,12 +1,23 @@
 ## 普通战斗界面只读取组合方的状态；设计矩形保存于 Scene，运行时只整体缩放。
 extends Control
 
+signal dialogue_sequence_completed(sequence_id: StringName, side: int)
+
 const PortraitMotion = preload("res://systems/presentation/streamer_portrait_motion.gd")
+const DialogueQueueScript = preload("res://ui/streamer_bubble_dialogue/streamer_bubble_dialogue_queue.gd")
+
+@export_range(1, 8, 1) var max_visible_dialogue_bubbles_per_side: int = 3
+# 策划可在 HUD Inspector 中配置 T0 对手匹配等待文案。
+@export_multiline var t0_matching_status_text: String = "等待对手连线……"
 
 var player_portrait_motion: StreamerPortraitMotion
 var opponent_portrait_motion: StreamerPortraitMotion
 var _portrait_attack: AttackChargeInput
 var _opponent_connected: bool = false
+var _paradox_stage_active: bool = false
+var _last_status_tier: int = -1
+var _active_opponent_status_text: String = ""
+var _dialogue_queue: Node
 
 @onready var _aim_reticle: AimReticle = %AimReticle
 @onready var _battle_state: Label = %BattleStateFeedback
@@ -39,6 +50,16 @@ func _ready() -> void:
 	opponent_portrait_motion = PortraitMotion.new()
 	opponent_portrait_motion.configure_character("alien")
 	opponent_portrait_motion.attach_portrait(_opponent_portrait)
+	_dialogue_queue = DialogueQueueScript.new()
+	_dialogue_queue.name = "BubbleDialogueQueue"
+	_dialogue_queue.call(
+		"configure",
+		max_visible_dialogue_bubbles_per_side,
+		Callable(self, "show_dialogue_bubble"),
+		Callable(self, "_clear_bubble_stack")
+	)
+	_dialogue_queue.connect("sequence_completed", Callable(self, "_on_dialogue_sequence_completed"))
+	add_child(_dialogue_queue)
 	var parent_control: Control = get_parent() as Control
 	parent_control.resized.connect(_fit_parent_size)
 	_fit_parent_size()
@@ -100,6 +121,8 @@ func play_player_shot(snapshot: AttackTargetSnapshot) -> void:
 # T0 隐藏立绘，阶段换图仍复用当前待机容器；背景与其他演出由集成方管理。
 func set_opponent_portrait_connected(connected: bool) -> void:
 	_opponent_connected = connected
+	if _dialogue_queue != null:
+		_dialogue_queue.call("set_side_enabled", BubbleDialogueEntry.SpeakerSide.OPPONENT, connected)
 	_opponent_portrait.visible = connected and _opponent_portrait.texture != null
 	_opponent_portrait_placeholder.visible = connected and _opponent_portrait.texture == null
 
@@ -110,14 +133,45 @@ func configure_portrait_character(opponent_character_id: String) -> void:
 
 
 # 组合方提交 SD-01 条目；HUD 只按发言侧转发给对应立绘区，不判断触发规则。
-func show_dialogue_bubble(entry: BubbleDialogueEntry) -> void:
+func show_dialogue_bubble(entry: BubbleDialogueEntry) -> StreamerBubbleView:
 	if entry == null or entry.text.strip_edges().is_empty():
-		return
+		return null
 	match entry.side:
 		BubbleDialogueEntry.SpeakerSide.PLAYER:
-			_player_bubble_stack.show_bubble(entry)
+			return _player_bubble_stack.show_bubble(entry)
 		BubbleDialogueEntry.SpeakerSide.OPPONENT:
-			_opponent_bubble_stack.show_bubble(entry)
+			return _opponent_bubble_stack.show_bubble(entry)
+	return null
+
+
+func enqueue_dialogue_bubble(entry: BubbleDialogueEntry) -> bool:
+	return bool(_dialogue_queue.call("enqueue_entry", entry)) if _dialogue_queue != null else false
+
+
+func enqueue_dialogue_sequence(
+	entries: Array[BubbleDialogueEntry], sequence_id: StringName = &""
+) -> StringName:
+	if _dialogue_queue == null:
+		return &""
+	return StringName(_dialogue_queue.call("enqueue_sequence", entries, sequence_id))
+
+
+func clear_dialogue_bubbles(side: int = -1) -> void:
+	if _dialogue_queue != null:
+		_dialogue_queue.call("clear_side", side)
+	else:
+		_clear_bubble_stack(side)
+
+
+func _clear_bubble_stack(side: int) -> void:
+	if side == -1 or side == BubbleDialogueEntry.SpeakerSide.PLAYER:
+		_player_bubble_stack.clear_bubbles()
+	if side == -1 or side == BubbleDialogueEntry.SpeakerSide.OPPONENT:
+		_opponent_bubble_stack.clear_bubbles()
+
+
+func _on_dialogue_sequence_completed(sequence_id: StringName, side: int) -> void:
+	dialogue_sequence_completed.emit(sequence_id, side)
 
 
 # TextureRect 沿用当前设计框尺寸，背景裁切铺满，立绘和粉丝牌保留完整比例。
@@ -130,12 +184,27 @@ func _set_texture_rect(texture_rect: TextureRect, texture: Texture2D, stretch_mo
 
 # PK 唯一值归 HitResolution，HUD 只将它映射为玩家占比和对手占比。
 func refresh_pk(player_pk: float, current_tier: int) -> void:
+	# Tier 更新只替换 HUD 仍持有的匹配提示，不接管其他来源的即时状态。
+	if current_tier != _last_status_tier:
+		_last_status_tier = current_tier
+		_refresh_opponent_status(current_tier)
 	set_opponent_portrait_connected(current_tier > 0)
 	var player_share: float = clampf(player_pk, 0.0, 1.0)
 	_pk_progress.value = player_share
 	_player_pk_label.text = "玩家 PK %.1f%%" % (player_share * 100.0)
 	_opponent_pk_label.text = "对手 %.1f%%" % ((1.0 - player_share) * 100.0)
-	_tier_label.text = "Tier %d" % current_tier
+	_refresh_stage_label(current_tier)
+
+
+# 仅切换 HUD 阶段文案；普通 CombatStage Tier 与 PK 仍由战斗流程持有。
+func set_paradox_stage_active(active: bool, current_tier: int) -> void:
+	_paradox_stage_active = active
+	_refresh_stage_label(current_tier)
+
+
+func _refresh_stage_label(current_tier: int) -> void:
+	# 文案覆盖只属于视图，普通 Tier 仍从调用方即时读取。
+	_tier_label.text = "T6 / Paradox" if _paradox_stage_active else "Tier %d" % current_tier
 
 
 # 蓄力与阶段归 CombatAttack，HUD 使用公开读取结果提供可释放、飞行和硬直反馈。
@@ -151,10 +220,24 @@ func refresh_attack(progress: float, phase: int) -> void:
 			_charge_label.text = "蓄满 100% · 松开发射" if charge_progress >= 1.0 else "蓄力 %d%%" % roundi(charge_progress * 100.0)
 
 
-# 普通战斗完成及下一阶段等待提示由 Sandbox 生命周期组合方决定。
+# 外部战斗状态统一走此入口，并结束 HUD 对匹配提示的临时所有权。
 func show_battle_state(message: String) -> void:
 	# 顶部状态区只有两行；消息内部换行统一显示为分隔符，保持反馈完整可读。
+	_active_opponent_status_text = ""
 	_battle_state.text = message.replace("\n", " · ")
+
+
+# Tier 连接状态只在旧状态仍可见时切换，保护战斗流程刚发出的实时提示。
+func _refresh_opponent_status(current_tier: int) -> void:
+	if _active_opponent_status_text.is_empty() or _battle_state.text != _active_opponent_status_text:
+		return
+	_show_opponent_status(t0_matching_status_text if current_tier == 0 else "对手已连线")
+
+
+# 将 HUD 自己持有的匹配提示标记为可随 Tier 更新的状态。
+func _show_opponent_status(message: String) -> void:
+	show_battle_state(message)
+	_active_opponent_status_text = _battle_state.text
 
 
 # 失败只切换可见界面；停止输入、回拉和生成继续由各状态拥有者处理。
@@ -163,15 +246,16 @@ func show_failure() -> void:
 	_restart_button.grab_focus()
 
 
-# 重开仅复位界面提示，各系统的本场状态由 Sandbox 分别初始化。
+# 重开复位本场 HUD 提示并读取当前 T0 等待文案，各系统状态仍由所属对象初始化。
 func reset_for_attempt() -> void:
 	player_portrait_motion.reset_shot()
 	opponent_portrait_motion.reset_shot()
-	_player_bubble_stack.clear_bubbles()
-	_opponent_bubble_stack.clear_bubbles()
+	clear_dialogue_bubbles()
 	player_portrait_motion.set_idle_strength(1.0)
 	opponent_portrait_motion.set_idle_strength(1.0)
 	set_opponent_portrait_connected(false)
+	set_paradox_stage_active(false, 0)
+	_last_status_tier = 0
 	_failure_overlay.hide()
-	show_battle_state("瞄准弹幕，蓄满后松开左键")
+	_show_opponent_status(t0_matching_status_text)
 	refresh_attack(0.0, AttackChargeInput.AttackPhase.READY)

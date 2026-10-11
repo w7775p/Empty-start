@@ -127,6 +127,16 @@ PA-02 负责把正式美术资产导入工程并接到对应 Resource；PA-03 �
 
 普通弹幕使用原有 `systems/barrage_generation/barrage_view.tscn` 与独立 `BarrageGlassSurface` 材质节点。**2026-10-10 正式定稿：01 GLASS NOIR**（正统 `#1658A2`、异端 `#B9502D`、荒谬 `#B7865B`、Neutral `#ADA4A3`），S1 轻薄玻璃、S2 明亮柔光、S3 更亮并缓慢呼吸；取消刻痕、左侧竖条及双层硬内框。底板倾向色、三级强度参数全部暴露在 `BarrageGlassSurface` Inspector；S3 文字加重在 `BarrageView` 配置，不增加色板 Resource。`BarrageView.setup()` 按运行记录决定外观，`set_visual_bbcode(bbcode)` 保留富文本接口。独立演示 `scenes/demos/pa04_glass_demo.tscn`，1920×1080 真实 GPU 截图（含同屏重叠）与最小冒烟见 `docs/Shared/PresentationAssets/previews/` 及 `表现资产_PA-04_2026-10-10_log.md`。正式 BG-28 富文本配表、RP 复读规则与 Sandbox 接线按对应系统后续集成，PA-05 可复用已定稿玻璃材质。
 
+## PA-06 弹幕命中短演出（2026-10-10）
+
+**漫画符号新版本（待策划四选一）**：四套独立透明 PNG / 可编辑 SVG 位于 `assets/ui/combat/impact_marks/`；①锐利剪纸、②粗笔触、③手绘 KRAK 拟声、④漫画破裂漫符。通过 `pa06_mark_variants_demo.tscn` 在 Godot 真实碎裂中并排对照，截图见 `previews/pa06_four_marks_impact.jpg` 和 [四方案说明](previews/PA06_four_impact_marks_study.md)。已移除旧的数学符号 Label，运行时只渲染独立 TextureRect；Inspector 可直接切换四个资源。目前暂以 01 作为演示默认，待美术选定。
+
+
+`BarrageImpactPresenter` 和 `BarrageImpactFx` 位于 `systems/presentation/`，复用 PA-04 / PA-05 真实弹幕 Scene 和 4 系统最终 `BarrageTraitResult`。呈现普通曲线双碎片 + 独立 PNG 漫画碎裂符号、铁板硬碰后留场、分裂母体沿左上→右下曲线分开、果冻受压→回弹→恢复、假复读椭圆碎裂、水军整块 Panel 带小字统一破碎。曲线碎片由一次性 SubViewport 镜像取样，`Polygon2D` 以曲线 UV 裁切并各自退场；实例归 3/5/6 系统照旧结束，演出独立存活约 0.28s。漫画符号已经采用独立透明 PNG 资产，使用 `impact_symbol_texture` 切换四个方案，尺寸、偏移可在 Inspector 设置。
+
+**正式接线 API：** 场景集成方将 Presenter 实例加在 BattleArea 同画布层，调用 `presenter.bind_attack(attack_charge_input)`，消费原 `shot_arrival_resolved(snapshot, target_results)` 信号；亦可直接调用 `play_target_result(view, view.runtime_record.trait_set.get_hit_result())`。本次将 CA-15 整发遮挡视为仅铁板硬碰，其余目标保持；正式整发落空事实由 5/6 负责。3/4 系统完成 BT-06 子话语真实生成时，以其实际 `Array[BarrageView]` 调用 `play_spawned_split_children(children)`，弹幕生成系统继续持有文本、倾向、强度和生命周期。重新开局或离开战斗时 `reset_effects()`，解绑旧来源调用 `bind_attack(null)`；切关接线将在 Sandbox 重构后完成。
+
+**独立演示：** `res://scenes/demos/pa06_impact_demo.tscn`，按 `R` 重播、`Space` 暂停；`pa06_capture_1920.tscn -- --capture-pa06` 生成四张 1920×1080 真实 Godot GPU 截图：`pa06_before.jpg`、`pa06_impact.jpg`、`pa06_followthrough.jpg`、`pa06_recovered.jpg`。演示中两条子话语是独立创建的真实 BarrageView，仅核实 Presenter 消费外部子视图的表现；正式 BT-06 子文本和生成接线另有任务。真实证据与未完成交接见 [PA-06 日志](表现资产_PA-06_2026-10-10_log.md)。本卡只负责独立程序美术及公开表现接口，PA-09 继续负责 PK 浮字和主播受击反馈。
 ## PA-05 六种特殊弹幕视觉组件（2026-10-10）
 
 继承 PA-04 的 `BarrageGlassSurface`，由 `BarrageSpecialSurface` 依据 `BarrageView.runtime_record.trait_set.get_trait_ids()` 选择唯一主材质：`reflect → occlusion → fake_card → retaliation_copy → split → glass`，`unselectable` 叠加空心字。正式入口沿用 `systems/barrage_generation/barrage_view.tscn`，`setup()` 自动接线，不新建战斗状态与可命中对象；通过 `get_special_material()` 查询表现类型。铁质、预裂玻璃、有厚度且持续微动的凝胶、放大增强轮廓的镂空字、与真复读同色同透明度的椭圆假复读与单实例多处小字水军板均在 Godot 4.7.2 实际绘制；果冻最多约 24Hz 重绘。普通复读继续使用灰色圆角玻璃与零描边；分裂子句进入普通无特性视图时自动使用小尺寸普通玻璃。可调颜色、裂痕、果冻幅度、刷屏字号集中在 `barrage_special_surface.gd` 的 Inspector。

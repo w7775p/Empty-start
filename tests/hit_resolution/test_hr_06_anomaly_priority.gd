@@ -25,4 +25,10 @@ func _initialize() -> void:
 	else:
 		print("PASS HR-06 miss fallback")
 
+	if hit_resolution.select_shot_anomaly(true, false, false, true) != HitResolutionScript.ShotAnomaly.MISS:
+		push_error("A release snapshot with occlusion must force the whole shot to MISS, including reflect overlap.")
+		failed_count += 1
+	else:
+		print("PASS CA-15 release-snapshot occlusion overrides shot anomaly hierarchy")
+
 	quit(1 if failed_count > 0 else 0)

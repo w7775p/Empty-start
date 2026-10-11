@@ -1,6 +1,6 @@
 # BG-40 普通前景运动速度上限
 
-**状态：待实施**
+**状态：当前直线运动已实现，待合并 main；BG-20～BG-23 实现后补验其运动行为**
 
 ## 开始前先阅读以下文档
 - `docs/Original/任务卡模板.md` 与 `known_traps.md`（通用执行规范与已知风险）
@@ -22,7 +22,15 @@
 将运动速度限制在可调整的阅读友好范围内，覆盖基础速度、Tier 倍率以及四种运动方式。
 
 ### 验收条件
-T1～T5 各种运动的前景实例符合速度上限，短话语在游戏区内可辨读。
+当前已实现的 T1～T5 移动前景实例符合速度上限；GUI smoke 使用合成短句检查实际渲染。正式关卡文本的可读性留待正式词库与玩法组合后人工验收；后续每种运动行为都通过同一速度 API 限制速度，并在其任务中补测。
+
+## 当前实现状态（2026-10-11）
+
+- `BarrageArea.maximum_foreground_move_speed_pixels_per_second` 是 Inspector 可调上限，默认 100 px/s，沿用当前 `LevelProfile.base_move_speed_pixels_per_second` 基础值。
+- `BarrageArea.get_foreground_move_speed_pixels_per_second(level_profile)` 统一执行基础速度 × 当前 CS-07 Tier 倍率的非负裁切，并限制到配置上限；普通移动前景通过该入口取得速度。
+- 当前 `BarrageView` 只实现向左平移。BG-20～BG-23 的运动类型仍待开发；后续实现应复用此速度接口作为速度幅度上限。
+- 显式 BG-42 静止请求保持零速度；Repeat 和 Paradox 保留各自已有速度计算路径。
+- T1～T5 数值、T1/T5 实例位移、Tier 动态变化后的新旧实例速度、Repeat / Paradox 隔离及静止请求已由组件测试覆盖。GUI 截图使用脚本生成的 TEST_ONLY 短句，只证明当前渲染路径可见；正式关卡内容的人工可读性验收仍待正式数据与玩法组合。
 
 ## Godot 开发环境
 - Godot 版本：4.7.2（开工核对 `project.godot`）

@@ -298,6 +298,7 @@ func _submit_arrival_to_hit_resolution(
 	var normal_hit_records: Array[Dictionary] = []
 	var has_bounce: bool = false
 	var has_obstruction: bool = false
+	var has_release_snapshot_occlusion: bool = not snapshot.get_occlusion_target_instance_ids().is_empty()
 
 	for trait_target_result: Dictionary in trait_target_results:
 		var target_instance_id: int = int(trait_target_result.get("target_instance_id", -1))
@@ -347,8 +348,13 @@ func _submit_arrival_to_hit_resolution(
 	var shot_anomaly: HitResolution.ShotAnomaly = _hit_resolution.select_shot_anomaly(
 		has_bounce,
 		has_obstruction,
-		is_miss
+		is_miss,
+		has_release_snapshot_occlusion
 	)
+	if has_release_snapshot_occlusion:
+		# 整发遮挡只提交普通 MISS；清空逐目标结果可保留重叠实例及所有正负命中副作用。
+		hit_resolution_targets.clear()
+		normal_hit_records.clear()
 	# 只传递已选异常，惩罚数值与整发 PK 更新继续由 6 统一处理。
 	var hit_resolution_result: Dictionary = _hit_resolution.resolve_shot_results(hit_resolution_targets, shot_anomaly)
 	# 只记录实际完成普通结算的整发；打满 PK 的这一发仍保留，阶段关闭后的旧提交丢弃。

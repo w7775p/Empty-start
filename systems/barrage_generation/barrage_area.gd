@@ -10,6 +10,13 @@ signal barrage_generated(view: BarrageView)
 @export var base_lifetime_seconds: float = 10.0
 ## 临时复读同屏上限，正式数值表接入前可在 Inspector 调整。
 @export var repeat_barrage_screen_cap: int = 24
+## 普通移动前景的最高速度；默认沿用现有关卡基础速度，避免 Tier 倍率让短句快速掠过。
+@export var maximum_foreground_move_speed_pixels_per_second: float = 100.0
+@export_group("BG-21 普通前景曲线运动")
+## 开启后，仅新生成的普通移动前景使用平滑曲线；静止请求、复读与矛盾保持原行为。
+@export var curved_foreground_motion_enabled: bool = false
+## 普通前景曲线的最大垂直弧高，实际值会按当前战斗区可用空间收窄。
+@export_range(0.0, 180.0, 4.0) var curved_foreground_motion_amplitude_pixels: float = 72.0
 @onready var _spawn_timer: Timer = $SpawnTimer
 
 var _speech_selector: NormalSpeechSelector = NormalSpeechSelector.new()
@@ -109,6 +116,15 @@ func set_generation_multipliers(generation_count_multiplier: float, generation_f
 	_frequency_multiplier = generation_frequency_multiplier
 	_movement_speed_multiplier = movement_speed_multiplier
 	_restart_spawn_timer()
+
+## 唯一普通前景速度入口：读取关卡基础速度与当前 Tier 倍率后应用可调上限。
+func get_foreground_move_speed_pixels_per_second(level_profile: LevelProfile) -> float:
+	if level_profile == null:
+		return 0.0
+	var base_speed: float = maxf(level_profile.base_move_speed_pixels_per_second, 0.0)
+	var tier_multiplier: float = maxf(_movement_speed_multiplier, 0.0)
+	var speed_ceiling: float = maxf(maximum_foreground_move_speed_pixels_per_second, 0.0)
+	return minf(base_speed * tier_multiplier, speed_ceiling)
 
 ## 保存当前寿命倍率；它只参与之后新建弹幕的截止时间计算。
 func set_lifetime_multiplier(lifetime_multiplier: float) -> void:
@@ -288,9 +304,12 @@ func get_available_trait_ids(level_profile: LevelProfile) -> Array[StringName]:
 	)
 
 
-## 显式选择普通话语及特性；默认空选择保留既有生成行为，分配概率交由正式配置决定。
+## 显式选择普通话语特性并可单次请求随机静止落点；新参数默认保留既有行为。
 func spawn_normal_barrage(
-	level_profile: LevelProfile, speech: LevelSpeech, selected_trait_ids: Array[StringName] = []
+	level_profile: LevelProfile,
+	speech: LevelSpeech,
+	selected_trait_ids: Array[StringName] = [],
+	random_static_placement: bool = false
 ) -> BarrageView:
 	if level_profile == null or speech == null:
 		push_error("BarrageArea: 生成普通弹幕需要关卡配置和话语定义。")
@@ -321,15 +340,21 @@ func spawn_normal_barrage(
 	if view == null:
 		push_error("BarrageArea: 弹幕表现 Scene 根节点需要 BarrageView。")
 		return null
-	var effective_move_speed: float = level_profile.base_move_speed_pixels_per_second * _movement_speed_multiplier
-	view.setup(barrage_record, effective_move_speed, self)
+	# BG-42 静止请求直接保持零速度；普通移动实例统一经限速入口，并可显式启用曲线。
+	var effective_move_speed: float = 0.0 if random_static_placement else get_foreground_move_speed_pixels_per_second(level_profile)
+	var curve_amplitude: float = (
+		curved_foreground_motion_amplitude_pixels
+		if curved_foreground_motion_enabled and not random_static_placement
+		else 0.0
+	)
+	view.setup(barrage_record, effective_move_speed, self, random_static_placement, curve_amplitude)
 	if _terminal_presentation_only:
 		view.apply_terminal_trait_presentation(_terminal_trait_ids, _terminal_trait_colors)
 	if not _try_register_normal_capacity_occupant(view, capacity_limit):
 		view.free()
 		return null
 	add_child(view)
-	if not _place_new_barrage(view):
+	if not _place_barrage_for_spawn_request(view, random_static_placement):
 		# 场上没有可见空位时归还刚申请的容量，普通 Timer 后续继续尝试。
 		end_barrage(view.get_instance_id())
 		return null
@@ -362,8 +387,8 @@ func spawn_contradiction_barrage(level_profile: LevelProfile, line: LevelContrad
 		return null
 	return view
 
-## 把 RepeatPlan 的单条请求显示为场上复读；容量满时返回 null 供 Repeat 处理溢出。
-func spawn_repeat_barrage(plan: RepeatPlan) -> BarrageView:
+## 把 RepeatPlan 的单条请求显示为场上复读；调用方可单次要求随机静止落点。
+func spawn_repeat_barrage(plan: RepeatPlan, random_static_placement: bool = false) -> BarrageView:
 	if plan == null or _current_level_profile == null:
 		return null
 	if barrage_view_scene == null:
@@ -392,14 +417,14 @@ func spawn_repeat_barrage(plan: RepeatPlan) -> BarrageView:
 		push_error("BarrageArea: 弹幕表现 Scene 根节点需要 BarrageView。")
 		return null
 	var effective_move_speed: float = _current_level_profile.base_move_speed_pixels_per_second * _movement_speed_multiplier
-	view.setup(repeat_record, effective_move_speed, self)
+	view.setup(repeat_record, effective_move_speed, self, random_static_placement)
 	if _terminal_presentation_only:
 		view.apply_terminal_trait_presentation(_terminal_trait_ids, _terminal_trait_colors)
 	if not _try_register_repeat_capacity_occupant(view):
 		view.free()
 		return null
 	add_child(view)
-	if not _place_new_barrage(view):
+	if not _place_barrage_for_spawn_request(view, random_static_placement):
 		# 到期请求继续留在 Repeat 队列，成功定位前不发送实际生成事实。
 		end_barrage(view.get_instance_id())
 		return null
@@ -415,6 +440,23 @@ func has_visible_contradiction_repeats() -> bool:
 			if view.runtime_record != null and view.runtime_record.is_contradiction_repeat:
 				return true
 	return false
+
+## 只对调用方显式请求的实例使用随机静止定位，其他实例继续沿用轮换行。
+func _place_barrage_for_spawn_request(view: BarrageView, random_static_placement: bool) -> bool:
+	if random_static_placement:
+		return _place_random_static_barrage(view)
+	return _place_new_barrage(view)
+
+
+## 按实际视图尺寸和当前区域尺寸均匀抽取完整位于区域内的静止落点。
+func _place_random_static_barrage(view: BarrageView) -> bool:
+	var max_x: float = size.x - view.size.x
+	var max_y: float = size.y - view.size.y
+	if max_x < 0.0 or max_y < 0.0:
+		return false
+	view.position = Vector2(randf_range(0.0, max_x), randf_range(0.0, max_y))
+	return true
+
 
 ## 从轮换行寻找当前真实空位；上一轮横移目标仍占着入口时跳到其他行。
 func _place_new_barrage(view: BarrageView) -> bool:

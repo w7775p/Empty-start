@@ -1,0 +1,14 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: AMD - AMD Radeon(TM) Graphics
+
+INT10 FLOW OK: 正式 Sandbox 启动首关普通战斗
+INT10 FLOW OK: 正式目录从首关开始
+INT10 FLOW OK: 通过正式 PK Debug 接口触发首关胜利交接
+INT10 FLOW OK: 真实十秒矛盾窗口进入首关 Rest
+INT10 FLOW OK: 首关 Rest 展示完成后接受继续请求
+INT10 FLOW OK: Rest Continue 重建第二关普通尝试
+INT10 FLOW OK: 通过正式 PK Debug 接口触发末关胜利交接
+INT10 FLOW OK: 真实十秒矛盾窗口进入末关 Rest
+INT10 FLOW OK: 末关 Rest 展示完成后接受继续请求
+INT10 FLOW PROBE: awaiting real DivineDescentFlow and SceneRouter ending route
+INT10 FLOW PASS rests=2 continues=2 divine_entered=1 ending_completed=1 scene=res://ui/ending/ending_page.tscn screenshot=res://docs/Integration/evidence/INT-10_2026-10-10/ending_page.png

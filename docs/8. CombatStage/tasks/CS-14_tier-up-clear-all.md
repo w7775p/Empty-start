@@ -6,11 +6,14 @@
 - `docs/Original/任务卡模板.md` 与 `known_traps.md`（通用执行规范与已知风险）
 - `AGENTS.md`、`project.godot`、本系统 README 与最新实际完成日志
 - 当前相关 GDScript、场景和数值配置
-- 前置：CS-18；复用 Sandbox 整发提交与 BG-38 命中结束接口
+- 前置：CS-18；复用 `BattleAttemptFlow.shot_resolved` 整发完成通知与 `clear_barrages_for_stage_transition()` 清屏入口
 - 后续演出：CS-15、CS-21
 
 ## 已经实现的功能
-CombatStage 当前发布 tier_state_changed 时，Sandbox 仍可能处于一发的 resolve_shot_results 内；实际清理时序需要覆盖提交的完整链路。
+`CombatStage.tier_state_changed` 同步发生在一发结算过程中。INT-10 将阶段读取公开为 `BattleAttemptFlow.tier_changed(current_tier, player_pk)`，整发目标、倾向及复读登记完成后再发 `shot_resolved(...)`；清屏必须等后者，不能在早期 Tier 信号里触发。
+
+## INT-10 / S3 接口交接（2026-10-11）
+普通战斗状态由 `BattleAttemptFlow` 持有，CS-18 通过 `clear_pending_normal_repeats()` 清理旧请求，CS-14 在 `shot_resolved` 后按需调用 `clear_barrages_for_stage_transition()`。Sandbox 仍负责场景协调，清屏策略和 Tier 事实归 CombatStage。
 
 ## 本次任务
 T0～T5 每次升档完成本发结算后清空可见弹幕。

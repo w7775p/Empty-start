@@ -791,3 +791,13 @@ flowchart TD
     LEAN -->|"最终倾向"| END
     ID -->|"主播名与开局身份"| END
 ```
+
+## INT-10 Sandbox 流程与展示交接（2026-10-11）
+
+`Sandbox`（Lane A）拥有顶层场景组合、生命周期和 `SceneRouter` 接线；不复制业务状态。普通战斗由 `BattleAttemptFlow` 持有当前尝试对象，并发布 `attempt_started`、`attempt_restarted`、`shot_resolved`、`tier_changed`、`attempt_failed` 与阶段完成事实。`shot_resolved` 在本发目标处理、倾向暂存和复读登记后发出，消费者可从同一事件取得命中快照、结算字典、Tier 和复读统计。
+
+`ContradictionOracleFlow` 持有矛盾、神谕确认和 Rest 结果，发布 `outcome_resolved`、`oracle_opened`、`rest_ready` 等事件；Sandbox 仅把同一个 `RestSession` 交给 `RestResultView`，并处理 Continue 和下一关路由。`DivineDescentFlow` 持有冻结终局会话及 `EndingSession`，发布 `entered` / `completed`；Sandbox 收起前序阶段、按既有存档接口保存结果，并调用 `SceneRouter.goto_ending()`。
+
+各系统 Owner 通过 `Sandbox.get_battle_attempt_flow()`、`get_contradiction_oracle_flow()` 和 `get_divine_descent_flow()` 取得流程公开入口。普通状态读取与阶段动作使用流程 getter / 方法；DebugPanel 继续经 `get_debug_snapshot()`、`debug_*()` 和 `restart_current_attempt()` 转发。`battle_state_changed(text)` 只用于 HUD 状态文案，稳定剧情事件应使用语义事件，不解析显示字符串。
+
+`SandboxBattleHud` 仍拥有战斗显示和立绘动效。Sandbox 在启动时绑定 `AttackChargeInput` 的正式释放快照，在每次 `attempt_started` 时按当前 `LevelProfile.streamer_id` 更新立绘待机预设及素材。正式四关数据、`portrait_set_id` 到资源组映射、Importer、PA 动画完成回调和用户视觉验收仍由对应后续任务补齐；本次运行截图不代表这些内容已经验收。

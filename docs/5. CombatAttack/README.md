@@ -4,13 +4,13 @@
 
 ## 2026-10-09 现行实现核对与任务状态
 
-**现行判断与差异：** `_capture_target_snapshot()` 已收集准心区域内全部可选实例并在释放时去重冻结；缩放后的变换验收按 CA-13。混合遮挡仍会落入普通逐目标结算与移除路径，CA-15 负责整发落空优先：范围含任何 `occlusion` 特性则复用已有 MISS 惩罚，区域实例保持场上。
+**现行判断与差异：** `_capture_target_snapshot()` 已收集准心区域内全部可选实例并在释放时去重冻结；缩放后的变换验收按 CA-13。CA-15 已在提交前按释放快照中的原始 `occlusion` ID 覆盖逐目标结果，以一次现有 MISS 结算处理整发；本发不产生目标命中副作用，区域实例保持场上。
 
 | 卡片 | 按实际代码核对后的唯一功能 | 状态 |
 | --- | --- | --- |
 | [CA-13](tasks/CA-13_scaled-target-range.md) | 已有矩形相交后的缩放回归 | 已有基础 |
 | [CA-14](tasks/CA-14_all-overlapped-targets.md) | 多目标快照重叠验收 | 场景验收通过（2026-10-10） |
-| [CA-15](tasks/CA-15_whole-shot-miss-on-occlusion.md) | 遮挡覆盖整发落空 | 待修复 |
+| [CA-15](tasks/CA-15_whole-shot-miss-on-occlusion.md) | 遮挡覆盖整发落空 | Godot 场景验收通过（2026-10-11） |
 
 本节是当前派工依据；历史章节中的旧默认值与旧任务说明保留用来追溯已有系统演变。开发时以单卡现行版和本节为准。
 
@@ -22,6 +22,17 @@
 GUI 运行使用 `Input.parse_input_event()` 合成鼠标事件；同一发快照冻结十个不重复 ID。飞行期间删除一条目标、令一条在到达前过期，并将一条移出准心但留在 BarrageArea；到达复核保留移位目标，只向 HitResolution 提交八个仍有效的目标。物理鼠标未验收。该卡只增加 TEST_ONLY 场景验收入口，没有修改生产代码或公开接口。
 
 截图证据：[CA-14 十个重叠目标 GUI 运行截图](evidence/CA-14_2026-10-10_overlapped_targets.png)
+
+
+### CA-15 遮挡覆盖整发结算（2026-10-11）
+
+`AttackTargetSnapshot.capture_at_release()` 除原目标 ID 外，还冻结每个带 `occlusion` TraitSet 的目标实例 ID。该事实独立于单目标 `BarrageTraitResult`，因此同一 TraitSet 带有 `reflect` 时仍保留原有单目标反射结果，整发结算按 CA-15 作为一次普通 MISS。
+
+遮挡整发通过 HitResolution 现有 `ShotAnomaly.MISS` 应用一次 `-0.01` 惩罚，并向 `resolve_shot_results()` 提交空逐目标数组。`BattleAttemptFlow` 因此不结束任一正常、特殊或复读实例，也不记录普通命中、倾向或新复读计划。未命中释放快照遮挡 ID 时，继续使用原逐目标结算与 HR-06 优先级。
+
+`tests/combat_attack/ca15_occlusion_miss.tscn` 实例化正式 Sandbox，并覆盖遮挡 + 正常正向 + `fake_card` 负向 + 复读同发、同实例遮挡/反射，以及无遮挡对照。场景中关卡话语来自当前正式词池；特性、倾向和强度仅在运行时作为 TEST_ONLY 输入，不写正式配置或表格。
+
+Godot 4.7.2 headless 场景运行共 56 checks，三次真实攻击飞行提交均通过。输入由 `Input.parse_input_event()` 合成；实体鼠标、Android 与 PA-06 视觉验收未覆盖。现有 PA-06 presenter、信号和视觉效果未修改。
 
 ## 系统目标
 
@@ -146,6 +157,6 @@ CA-12 输入组件已通过 PC 真实场景模拟触屏 smoke；Android JDK/SDK 
 
 | 任务卡 | 唯一功能 | 状态 |
 | --- | --- | --- |
-| [CA-15](tasks/CA-15_whole-shot-miss-on-occlusion.md) | 准心区域含遮挡则整发落空 | 待实施 |
+| [CA-15](tasks/CA-15_whole-shot-miss-on-occlusion.md) | 准心区域含遮挡则整发落空 | 已实现并通过场景验收（2026-10-11） |
 
 本轮任务卡逐项说明触发条件、应发生的行为与验收结果；派工时依赖最新卡片和系统当前代码。

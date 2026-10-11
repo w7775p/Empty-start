@@ -15,9 +15,12 @@
 - `docs/Shared/PresentationAssets/tasks/PA-15_opponent-tier-portrait-flip-and-sweat.md`
 
 ## 已经实现的功能
-- `Sandbox._on_contradiction_outcome_locked()` 接收现有 `ContradictionBreakSystem.outcome_locked`，进入已实现的成功神谕分支或未击破休息分支。
+- `ContradictionOracleFlow` 接收 `ContradictionBreakSystem.outcome_locked` 并公开 `outcome_resolved(outcome)`、`oracle_opened(session)`、`rest_ready(result)`；Sandbox 保持场景路由职责。
 - `scenes/sandbox/sandbox_battle_hud.gd` 已有 `OpponentPortraitArt`、`set_opponent_portrait_connected()`；PA-14 的 `opponent_portrait_motion` 为动效容器。
 - 外星人融化图、狐狸花瓣雨图、Kiwi 击败图及位置在本卡已有资源清单中；PA-12、PA-15 的过场和阶段贴图要求须按其实际开发状态接入。
+
+## INT-10 / S3 接口交接（2026-10-11）
+PA-17 继续由 PresentationAssets 持有角色演出；成功/未击破事实读取 `Sandbox.get_contradiction_oracle_flow().outcome_resolved`。演出完成后由 Sandbox 协调后续 FO 或 `rest_ready` 展示时序；当前尚无 PA 完成回调，需随动画实现定义并接入，不能假设现有 Flow 会等待视觉结束。
 
 ## 本次任务
 
