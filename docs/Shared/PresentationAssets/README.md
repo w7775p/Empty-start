@@ -164,3 +164,5 @@ PA-02 负责把正式美术资产导入工程并接到对应 Resource；PA-03 �
 ### PA-09 PC 正式战斗接线进展（2026-10-11）
 
 已复用 `systems/presentation/combat_hit_feedback.gd` 同时运行独立选型 Demo 与 Sandbox 正式命中反馈。现场信号来源：`shot_arrival_resolved` 提供结果词/目标位置，`shot_hit_resolution_submitted` 提供整发真实 PK 净值和准星冻结位置。正常 `+0.12%`、落空 `-1% / MISS` 已在 Godot 4.7.2 实际发射并 GPU 截图：`previews/pa09_real_battle_hit.jpg`、`previews/pa09_real_battle_miss.jpg`。旧的独立 `pa09_feedback_overlay.gd` 已合入正式组件，避免两份实现。必要异常的真实联动、Android 真机及美术最终选型继续待验收，PR #148 保持 Draft。
+
+**真实异常补充：** 通过 AttackChargeInput 正式结算，遮挡反馈对应 BLOCK 与 PK -1%，反弹对应 REFLECT 与 PK -1%；两张实际 GPU 截图在 previews/pa09_real_occlusion.jpg、previews/pa09_real_reflect.jpg。其余视觉审美与 Android 待人工验收。
