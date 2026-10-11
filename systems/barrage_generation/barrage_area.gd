@@ -309,7 +309,7 @@ func get_available_trait_ids(level_profile: LevelProfile) -> Array[StringName]:
 	)
 
 
-## 显式选择普通话语特性并可单次请求随机静止落点；新参数默认保留既有行为。
+## 遮挡特性自动随机静止定位；其他普通话语仍可单次请求随机静止落点。
 func spawn_normal_barrage(
 	level_profile: LevelProfile,
 	speech: LevelSpeech,
@@ -345,26 +345,32 @@ func spawn_normal_barrage(
 	if view == null:
 		push_error("BarrageArea: 弹幕表现 Scene 根节点需要 BarrageView。")
 		return null
-	# BG-42 静止请求直接保持零速度；普通移动实例统一经限速入口，可选曲线和周期加减速。
-	var effective_move_speed: float = 0.0 if random_static_placement else get_foreground_move_speed_pixels_per_second(level_profile)
+	# 遮挡是实例特性，直接决定静止落点；合并其他兼容特性时继续保持静止。
+	var should_use_random_static_placement: bool = (
+		random_static_placement or barrage_record.trait_set.has_trait(BarrageTraitSet.OCCLUSION)
+	)
+	# BG-42 静止实例保持零速度；移动前景沿用限速、曲线和周期加减速配置。
+	var effective_move_speed: float = (
+		0.0 if should_use_random_static_placement else get_foreground_move_speed_pixels_per_second(level_profile)
+	)
 	var curve_amplitude: float = (
 		curved_foreground_motion_amplitude_pixels
-		if curved_foreground_motion_enabled and not random_static_placement
+		if curved_foreground_motion_enabled and not should_use_random_static_placement
 		else 0.0
 	)
 	var speed_change_cycle: float = (
 		speed_change_foreground_motion_cycle_seconds
-		if speed_change_foreground_motion_enabled and not random_static_placement
+		if speed_change_foreground_motion_enabled and not should_use_random_static_placement
 		else 0.0
 	)
-	view.setup(barrage_record, effective_move_speed, self, random_static_placement, curve_amplitude, speed_change_cycle)
+	view.setup(barrage_record, effective_move_speed, self, should_use_random_static_placement, curve_amplitude, speed_change_cycle)
 	if _terminal_presentation_only:
 		view.apply_terminal_trait_presentation(_terminal_trait_ids, _terminal_trait_colors)
 	if not _try_register_normal_capacity_occupant(view, capacity_limit):
 		view.free()
 		return null
 	add_child(view)
-	if not _place_barrage_for_spawn_request(view, random_static_placement):
+	if not _place_barrage_for_spawn_request(view, should_use_random_static_placement):
 		# 场上没有可见空位时归还刚申请的容量，普通 Timer 后续继续尝试。
 		end_barrage(view.get_instance_id())
 		return null
