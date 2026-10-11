@@ -1,6 +1,6 @@
 # CS-20 T0 展示搜索 PK 对手的状态文案
 
-**状态：已有状态标签 · 待文案接线**
+**状态：已完成（2026-10-11）**
 
 ## 开始前先阅读以下文档
 - `docs/Original/任务卡模板.md` 与 `known_traps.md`（通用执行规范与已知风险）
@@ -22,6 +22,13 @@ T0 展示搜索 PK 对手的状态文案。
 
 ### 验收条件
 新开局和重开时正确显示待连接文字，T1 正式连线后显示对手状态。
+
+## 完成记录（2026-10-11）
+
+- `SandboxBattleHud.t0_matching_status_text` 是可在 Inspector 配置的 T0 等待文案，默认值为「等待对手连线……」。新尝试和重开都通过现有 `show_battle_state()` 显示该文案。
+- Tier 进入 T1 时，若当前仍显示 HUD 管理的等待文案，则切换为「对手已连线」。其他来源刚写入的战斗提示继续保留。
+- 状态刷新沿用已接通的 `BattleAttemptFlow.pk_feedback_changed → SandboxBattleHud.refresh_pk()`，未修改 Sandbox 根脚本或 BattleAttemptFlow。
+- `tests/combat_stage/cs20_matching_status_smoke.tscn` 覆盖新开、T0/T1 切换、可配置文案、重开和实时战斗警告保护；GUI 证据位于 `evidence/cs20_2026-10-11/`。
 
 ## Godot 开发环境
 - Godot 版本：4.7.2（开工核对 `project.godot`）
