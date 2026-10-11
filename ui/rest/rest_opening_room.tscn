@@ -39,6 +39,7 @@ text = "你的房间"
 horizontal_alignment = 1
 
 [node name="Names" type="Label" parent="Center/Panel/Rows"]
+theme_type_variation = &"FanGroupNameLabel"
 unique_name_in_owner = true
 layout_mode = 2
 autowrap_mode = 3

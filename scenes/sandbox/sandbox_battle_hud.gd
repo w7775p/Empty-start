@@ -5,6 +5,8 @@ signal dialogue_sequence_completed(sequence_id: StringName, side: int)
 
 const PortraitMotion = preload("res://systems/presentation/streamer_portrait_motion.gd")
 const DialogueQueueScript = preload("res://ui/streamer_bubble_dialogue/streamer_bubble_dialogue_queue.gd")
+const HAMSTER_LIVE_BACKGROUND: Texture2D = preload("res://assets/environment/live/hamster/background.png")
+const HAMSTER_LIVE_FOREGROUND: Texture2D = preload("res://assets/environment/live/hamster/foreground_desk.png")
 
 @export_range(1, 8, 1) var max_visible_dialogue_bubbles_per_side: int = 3
 # 策划可在 HUD Inspector 中配置 T0 对手匹配等待文案。
@@ -28,6 +30,7 @@ var attack_phase: int = AttackChargeInput.AttackPhase.READY
 @onready var _opponent_name: Label = $OpponentStreamerArea/OpponentInfoArea/OpponentName
 @onready var _player_portrait: TextureRect = $PlayerStreamerArea/PlayerPortraitPlaceholder/PlayerPortraitArt
 @onready var _player_live_background: TextureRect = $PlayerStreamerArea/PlayerPortraitPlaceholder/PlayerLiveBackground
+@onready var _player_live_foreground: TextureRect = $PlayerStreamerArea/PlayerPortraitPlaceholder/PlayerLiveForeground
 @onready var _player_fan_badge: TextureRect = $PlayerStreamerArea/PlayerInfoArea/PlayerFanBadge
 @onready var _player_portrait_placeholder: Label = $PlayerStreamerArea/PlayerPortraitPlaceholder/PlaceholderLabel
 @onready var _player_bubble_stack: StreamerBubbleStack = %PlayerBubbleStack
@@ -93,6 +96,8 @@ func configure_streamer_assets(
 	opponent_fan_badge: Texture2D
 ) -> void:
 	_set_texture_rect(_player_live_background, player_live_background, TextureRect.STRETCH_KEEP_ASPECT_COVERED)
+	# 仓鼠直播背景的透明桌面位于立绘之前景；替换背景时不混入不匹配的桌面。
+	_set_texture_rect(_player_live_foreground, HAMSTER_LIVE_FOREGROUND if player_live_background == HAMSTER_LIVE_BACKGROUND else null, TextureRect.STRETCH_KEEP_ASPECT_COVERED)
 	_set_texture_rect(_player_portrait, player_portrait, TextureRect.STRETCH_KEEP_ASPECT_CENTERED)
 	_set_texture_rect(_player_fan_badge, player_fan_badge, TextureRect.STRETCH_KEEP_ASPECT_CENTERED)
 	_player_portrait_placeholder.visible = player_portrait == null

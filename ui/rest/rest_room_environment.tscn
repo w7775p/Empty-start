@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://ui/rest/rest_room_environment.gd" id="1_environment"]
 [ext_resource type="Texture2D" path="res://assets/environment/player_room/background.png" id="2_room"]
+[ext_resource type="Texture2D" path="res://assets/environment/player_room/foreground_desk.png" id="3_room_desk"]
 
 [node name="RoomEnvironment" type="Control"]
 layout_mode = 3
@@ -36,6 +37,18 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(0.08, 0.1, 0.13, 0.2)
+
+[node name="RoomForegroundDesk" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("3_room_desk")
+expand_mode = 1
+stretch_mode = 6
 
 [node name="LeftVotive" type="ColorRect" parent="."]
 unique_name_in_owner = true
