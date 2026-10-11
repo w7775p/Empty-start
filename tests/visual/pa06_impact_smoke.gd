@@ -19,6 +19,8 @@ func _run() -> void:
 	var presenter: BarrageImpactPresenter = PRESENTER_SCRIPT.new() as BarrageImpactPresenter
 	stage.add_child(presenter)
 	presenter.size = stage.size
+	if not _expect(presenter.impact_symbol_texture == null, "regular PA-06 impacts have no independent comic symbol"):
+		return
 
 	var attack: AttackChargeInput = AttackChargeInput.new()
 	presenter.bind_attack(attack)
@@ -46,8 +48,8 @@ func _run() -> void:
 	var fracture: BarrageImpactFx = presenter.play_target_result(broken, broken.runtime_record.trait_set.get_hit_result())
 	broken.queue_free()
 	await process_frame
-	if not _expect(is_instance_valid(fracture) and fracture.get_effect_mode() == &"normal",
-		"normal fracture owns a temporary independent effect"):
+	if not _expect(is_instance_valid(fracture) and fracture.get_effect_mode() == &"normal" and fracture.accent_texture == null,
+		"normal fracture stays visual but its separate comic badge is disabled"):
 		return
 
 	var child_a: BarrageView = _spawn(barrage_area, "真实前句", [], Vector2(650, 690))

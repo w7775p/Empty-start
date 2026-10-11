@@ -11,7 +11,7 @@ const BARRAGE_SCENE: PackedScene = preload("res://systems/barrage_generation/bar
 @export var fracture_color: Color = Color("#F8F5E9")
 
 @export_group("漫画强调符号")
-@export var accent_texture: Texture2D = preload("res://assets/ui/combat/impact_marks/impact_01_razor.png")
+@export var accent_texture: Texture2D = null # 只有专门的艺术预览显式注入时才弹出旧漫画符号。
 @export_range(22, 156, 1) var accent_size: int = 76
 @export var accent_offset: Vector2 = Vector2(4, -62)
 
