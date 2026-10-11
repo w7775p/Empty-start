@@ -5,13 +5,13 @@ const BARRAGE_SCENE: PackedScene = preload("res://systems/barrage_generation/bar
 
 @export_group("碎裂 / 曲线")
 @export_range(0.08, 0.6, 0.01) var break_seconds: float = 0.28
-@export_range(5.0, 52.0, 1.0) var shard_push: float = 27.0
-@export_range(0.0, 0.25, 0.01) var curve_depth: float = 0.11
-@export_range(0.0, 0.4, 0.01) var shard_rotation: float = 0.09
+@export_range(5.0, 52.0, 1.0) var shard_push: float = 10.0
+@export_range(0.0, 0.25, 0.01) var curve_depth: float = 0.035
+@export_range(0.0, 0.4, 0.01) var shard_rotation: float = 0.025
 @export var fracture_color: Color = Color("#F8F5E9")
 
 @export_group("漫画强调符号")
-@export var accent_texture: Texture2D = preload("res://assets/ui/combat/impact_marks/impact_01_razor.png")
+@export var accent_texture: Texture2D = null # 只有专门的艺术预览显式注入时才弹出旧漫画符号。
 @export_range(22, 156, 1) var accent_size: int = 76
 @export var accent_offset: Vector2 = Vector2(4, -62)
 
@@ -69,6 +69,10 @@ func _capture_then_break(record: BarrageRuntimeRecord) -> void:
 
 # 两块各自用曲线多边形 UV 裁切相同画面，分离后各自消隐。
 func _start_break(texture: Texture2D) -> void:
+	# 水军是整板对象：一次命中整体受压退场，避免裂缝横切内部重复文本。
+	if _effect_mode == &"retaliation_copy":
+		_start_panel_collapse(texture)
+		return
 	var top: Polygon2D = _make_shard(texture, true)
 	var bottom: Polygon2D = _make_shard(texture, false)
 	add_child(top)
@@ -83,14 +87,31 @@ func _start_break(texture: Texture2D) -> void:
 	_show_accent()
 	var tween: Tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_STOP)
 	tween.set_parallel(true)
-	tween.tween_property(top, "position", Vector2(-shard_push, -shard_push * 0.70), break_seconds).set_trans(Tween.TRANS_CUBIC)
-	tween.tween_property(bottom, "position", Vector2(shard_push, shard_push * 0.66), break_seconds).set_trans(Tween.TRANS_CUBIC)
-	tween.tween_property(top, "rotation", -shard_rotation, break_seconds)
-	tween.tween_property(bottom, "rotation", shard_rotation, break_seconds)
-	tween.tween_property(top, "modulate:a", 0.0, break_seconds).set_delay(break_seconds * 0.20)
-	tween.tween_property(bottom, "modulate:a", 0.0, break_seconds).set_delay(break_seconds * 0.20)
-	tween.tween_property(split_curve, "modulate:a", 0.0, break_seconds * 0.60)
+	# 普通玻璃的两片只轻微错开，避免深色背景透出成黑横带；分裂母体保留较大分离。
+	var offset: float = shard_push if _effect_mode == &"split" else shard_push * 0.32
+	tween.tween_property(top, "position", Vector2(-offset * 0.36, -offset * 0.18), break_seconds).set_trans(Tween.TRANS_CUBIC)
+	tween.tween_property(bottom, "position", Vector2(offset * 0.62, offset * 0.48), break_seconds).set_trans(Tween.TRANS_CUBIC)
+	tween.tween_property(top, "rotation", -shard_rotation * 0.22, break_seconds)
+	tween.tween_property(bottom, "rotation", shard_rotation * 0.22, break_seconds)
+	tween.tween_property(top, "modulate:a", 0.0, break_seconds * 0.77)
+	tween.tween_property(bottom, "modulate:a", 0.0, break_seconds * 0.77)
+	tween.tween_property(split_curve, "modulate:a", 0.0, break_seconds * 0.48)
 	tween.chain().tween_callback(queue_free)
+
+
+func _start_panel_collapse(texture: Texture2D) -> void:
+	var whole := TextureRect.new()
+	whole.texture = texture
+	whole.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	whole.stretch_mode = TextureRect.STRETCH_SCALE
+	whole.size = _render_size
+	whole.pivot_offset = _render_size * 0.5
+	add_child(whole)
+	var motion := create_tween().set_pause_mode(Tween.TWEEN_PAUSE_STOP)
+	motion.set_parallel(true)
+	motion.tween_property(whole, "scale", Vector2(0.91, 0.72), break_seconds).set_trans(Tween.TRANS_CUBIC)
+	motion.tween_property(whole, "modulate:a", 0.0, break_seconds * 0.78).set_delay(break_seconds * 0.18)
+	motion.chain().tween_callback(queue_free)
 
 
 func _curve_y(x: float) -> float:
@@ -98,7 +119,8 @@ func _curve_y(x: float) -> float:
 	if _effect_mode == &"split":
 		# 母体已存在左上→右下的预裂玻璃纹；碎裂沿同一走向延伸到全板。
 		return lerpf(9.0, _render_size.y - 8.0, t) + sin(t * PI * 3.0) * 3.3
-	return _render_size.y * (0.50 + sin(t * PI * 2.05 - 0.70) * curve_depth)
+	# 将断裂曲线压到文字下方：保留短弧切割感，避免把字体横向切开。
+	return _render_size.y * (0.79 + sin(t * PI * 2.05 - 0.70) * curve_depth)
 
 
 func _make_shard(texture: Texture2D, upper: bool) -> Polygon2D:

@@ -29,7 +29,7 @@ func _ready() -> void:
 
 func _make_labels() -> void:
 	_label("PA-06   /   BARRAGE IMPACT", Vector2(73, 37), 49, Color.WHITE)
-	_label("CURVED SHATTER  ·  COMIC ACCENT  ·  MATERIAL RESPONSE   /   GODOT 4.7.2", Vector2(78, 109), 22, Color("#B8C8DA"))
+	_label("CURVED SHATTER  ·  MATERIAL RESPONSE   /   GODOT 4.7.2", Vector2(78, 109), 22, Color("#B8C8DA"))
 	var headings: Array[String] = [
 		"01  GLASS / 弧线碎裂", "02  OCCLUSION / 铁质硬碰", "03  SPLIT / 母体碎裂",
 		"04  REFLECT / 果冻回弹", "05  FAKE CARD / 椭圆碎裂", "06  RETALIATION / 整板碎裂"

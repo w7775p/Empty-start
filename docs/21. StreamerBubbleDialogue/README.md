@@ -114,3 +114,21 @@ Google Sheets `02_主播关卡.story_config_id` 指向 `20_主播气泡对白.st
 - CA-15 遮挡整发 MISS 的最终 `target_results` 为空，消费者没有回复请求。HUD 保留既有 T0 对手离线与队列禁用行为；对手连线后可显示答话。
 - Sandbox 根脚本公开 `bubble_dialogue_config` Resource 导出项，默认仍指向 `data/streamer_bubble_dialogue/bubble_dialogue_config.tres`。本卡没有添加正式对白或改动该空配置；GUI 验收只向深复制 Resource 注入 TEST_ONLY 内存条目。
 - Windows GUI 验收入口：`tests/streamer_bubble_dialogue/sd05_specific_sentence_reply_smoke.tscn`。它以真实攻击输入、BarrageView、结算流程和双方 SD-03 气泡栈验证映射、未映射句、低优先级让位及遮挡 MISS。Godot 4.7.2 窗口 `1280×720`，30 项通过、0 失败；实际截图见 [SD-05 证据](evidence/SD-05_2026-10-11/sd05_specific_sentence_reply_1280x720.png)，详细记录见 [SD-05 完成日志](双主播气泡对话系统_SD-05_2026-10-11_log.md)。
+
+## SD-06 战斗状态事件消费（2026-10-11）
+
+`StreamerBubbleCombatStatePresenter` 只订阅 `BattleAttemptFlow`、`ContradictionOracleFlow` 的公开事实，并通过 `BubbleDialogueConfig.find_by_event()` 读取当前配置。匹配条目按配置顺序复制为 `PLOT`，再调用 HUD 现有 `enqueue_dialogue_sequence()`；对白文本不写入代码，源 Resource 保持只读。SD-04 / SD-05 继续各自消费 `shot_resolved`。
+
+| 稳定事件 ID | 事实来源与映射 |
+| --- | --- |
+| `combat_connected` | `tier_changed` 从 T0 到正档；常见 T0→T1 由 CS-22 用作开场事件。跨档直达更高正档时也提交连接，并额外提交 `combat_tier_up`。 |
+| `combat_tier_up` | 最终 Tier 上升；T0→T1 本身作为连接事件，避免同一开场重复触发。 |
+| `combat_tier_down` | 最终 Tier 下降，目标不是 T0 或 T1。 |
+| `combat_tier1_taunt` | 最终 Tier 从 T2+ 降至 T1；供 CS-27 查询嘲讽。 |
+| `combat_win` / `combat_lose` | 普通 PK 胜利 `normal_combat_completed` / 普通尝试失败 `attempt_failed`。 |
+| `paradox_breakthrough` / `paradox_not_broken` | `ContradictionOracleFlow.outcome_resolved` 的 `BREAKTHROUGH` / `NOT_BROKEN`。该结果与普通 PK 胜负使用不同 ID。 |
+
+Sandbox 对外提供 `dialogue_event_sequence_completed(event_id, sequence_id, side)`，信号来自 SD-03 的完整序列到期通知，CS-23 可按 `combat_connected` 等待整段开场结束。没有配置条目时会完成一个零句事件并使用空 `sequence_id`；重开或对手离线取消序列时不会伪报完成。同一事件的多句配置需属于同一发言侧，沿用 SD-03 当前单侧序列契约。正式配置仍为空。
+
+- 重开通过一次 `attempt_started` 重置跟踪，`attempt_restarted` 不另行消费；不解析本地化 `battle_state_changed(text)`。T1→T0 清理对手侧队列但不提交降档对白。暂停沿用 SceneTree 对 Tween 生命周期的冻结；进入 Paradox 后不重复发普通战斗事件，Rest 不映射额外状态对白。
+- GUI / 回归入口：`tests/streamer_bubble_dialogue/sd06_combat_state_events_smoke.tscn`。用真实 Sandbox 和内存 TEST_ONLY 配置覆盖连线、升降档、T1 嘲讽、普通胜负、Paradox 未击破结果、暂停、离线取消与重开；SD-03、SD-04、SD-05 另行复跑。实际窗口与截图结果见 [SD-06 完成日志](双主播气泡对话系统_SD-06_2026-10-11_log.md)，GUI 证据见 [SD-06 截图目录](evidence/SD-06_2026-10-11/)。

@@ -4,13 +4,17 @@ signal final_oracle_opened(session: FinalOracleSession)
 signal rest_opened(session: RestSession)
 signal rest_continue_requested(session: RestSession)
 signal divine_descent_entered(session: DivineDescentSession)
+signal dialogue_event_sequence_completed(event_id: StringName, sequence_id: StringName, side: int)
 
 const SAMPLE_TIER_CATALOG: CombatStageTierCatalog = preload("res://data/combat_stage/tier_catalog.tres")
 const PRESENTATION_ASSETS: PresentationAssetConfig = preload("res://data/shared/presentation_asset_config.tres")
 const CONTRADICTION_WINDOW_CONFIG: ContradictionWindowConfig = preload("res://systems/contradiction_break/contradiction_window_config.tres")
 const HIT_ECHO_PRESENTER_SCRIPT: Script = preload("res://ui/streamer_bubble_dialogue/streamer_bubble_hit_echo_presenter.gd")
 const SPECIFIC_SENTENCE_REPLY_PRESENTER_SCRIPT: Script = preload("res://ui/streamer_bubble_dialogue/streamer_bubble_specific_sentence_reply_presenter.gd")
+const COMBAT_STATE_DIALOGUE_PRESENTER_SCRIPT: Script = preload("res://ui/streamer_bubble_dialogue/streamer_bubble_combat_state_presenter.gd")
 const REST_RESULT_VIEW_SCENE: PackedScene = preload("res://ui/rest/rest_result_view.tscn")
+const BARRAGE_IMPACT_SCRIPT: Script = preload("res://systems/presentation/barrage_impact_presenter.gd")
+const PA09_FEEDBACK_SCRIPT: Script = preload("res://systems/presentation/combat_hit_feedback.gd")
 # 关卡资料统一由目录提供，运行验证可注入独立临时目录。
 @export var level_catalog: LevelCatalog = preload("res://data/level_configuration/level_catalog.tres")
 @export var battle_config: SandboxBattleConfig = preload("res://data/sandbox/playable_battle_config.tres")
@@ -41,6 +45,9 @@ var _rest_result_view: RestResultView
 var _contradiction_oracle_flow: ContradictionOracleFlow
 var _divine_descent_flow: DivineDescentFlow
 var _hit_echo_presenter: Node
+var _barrage_impact_presenter: BarrageImpactPresenter
+var _pa09_feedback: Control
+var _combat_state_dialogue_presenter: Node
 
 
 # 场景只创建生命周期对象并接线；PK、Tier、倾向等状态留在各自所有者。
@@ -63,6 +70,18 @@ func _ready() -> void:
 	add_child(opponent_pk_bar)
 	_barrage_area.barrage_generated.connect(_on_barrage_generated)
 	_attack_charge_input.configure_target_query(_aim_reticle, _barrage_area)
+	# PA-06 与 PA-09 只订阅战斗事实，材质播放与数值浮字均不写回结算。
+	_barrage_impact_presenter = BARRAGE_IMPACT_SCRIPT.new() as BarrageImpactPresenter
+	_barrage_impact_presenter.name = "BarrageImpactPresenter"
+	_barrage_area.add_child(_barrage_impact_presenter)
+	_barrage_impact_presenter.size = _barrage_area.size
+	_barrage_impact_presenter.bind_attack(_attack_charge_input)
+	_pa09_feedback = PA09_FEEDBACK_SCRIPT.new() as Control
+	_pa09_feedback.name = "ShotFeedback"
+	_battle_hud.add_child(_pa09_feedback)
+	_pa09_feedback.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_pa09_feedback.z_index = 20
+	_pa09_feedback.call("bind_attack", _attack_charge_input)
 	# 战斗 HUD 只订阅正式释放快照播放立绘动作，不自行判断命中结果。
 	_battle_hud.bind_portrait_attack(_attack_charge_input)
 	_rest_result_view = REST_RESULT_VIEW_SCENE.instantiate() as RestResultView
@@ -109,6 +128,22 @@ func _ready() -> void:
 			Callable(_battle_hud, "enqueue_dialogue_bubble"))):
 		push_error("Sandbox: 无法接入特定原句对手回复消费者。")
 		return
+	# 状态对白只消费 BattleAttemptFlow / ContradictionOracleFlow 公开事实，并把整句完成通知交回沙盒。
+	_combat_state_dialogue_presenter = COMBAT_STATE_DIALOGUE_PRESENTER_SCRIPT.new()
+	_combat_state_dialogue_presenter.name = "StreamerBubbleCombatStatePresenter"
+	add_child(_combat_state_dialogue_presenter)
+	if not bool(_combat_state_dialogue_presenter.call(
+			"configure",
+			_battle_attempt_flow,
+			_contradiction_oracle_flow,
+			bubble_dialogue_config,
+			Callable(_battle_hud, "enqueue_dialogue_sequence"),
+			_battle_hud)):
+		push_error("Sandbox: 无法接入战斗状态对白消费者。")
+		return
+	_combat_state_dialogue_presenter.connect(
+		"event_sequence_completed", Callable(self, "_on_dialogue_event_sequence_completed")
+	)
 	if not _battle_attempt_flow.start_first_attempt():
 		push_error("Sandbox: 无法启动首场普通战斗。")
 
@@ -129,6 +164,8 @@ func restart_current_attempt() -> void:
 
 # 当前关的角色和素材由一次尝试启动事实提供；HUD 只呈现组合方状态。
 func _on_attempt_started(current_level: LevelProfile, _hit: HitResolution, stage: CombatStage, _queue: RepeatDelayQueue) -> void:
+	_barrage_impact_presenter.reset_effects()
+	_pa09_feedback.call("clear_feedback")
 	_battle_hud.reset_for_attempt()
 	_battle_hud.set_paradox_stage_active(false, stage.get_current_tier())
 	var player_name: String = SaveManager.data.streamer_name
@@ -146,8 +183,15 @@ func _on_attempt_started(current_level: LevelProfile, _hit: HitResolution, stage
 
 # 普通战斗失败后，HUD 恢复当前普通阶段文案并显示失败界面。
 func _on_attempt_failed(_level: LevelProfile, _loss_streak_count: int, _hit: HitResolution, _repeat_stats: RepeatGenerationStats) -> void:
+	_barrage_impact_presenter.reset_effects()
+	_pa09_feedback.call("clear_feedback")
 	_battle_hud.set_paradox_stage_active(false, _battle_attempt_flow.get_current_tier())
 	_battle_hud.show_failure()
+
+
+# 只转发完整配置序列的完成事实，供 CS-23 在后续接入中等待 T1 开场对白结束。
+func _on_dialogue_event_sequence_completed(event_id: StringName, sequence_id: StringName, side: int) -> void:
+	dialogue_event_sequence_completed.emit(event_id, sequence_id, side)
 
 
 # 真实矛盾流程发出进入事实后，HUD 才展示 T6 / Paradox。

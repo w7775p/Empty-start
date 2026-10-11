@@ -7,7 +7,7 @@ const EFFECT_SCRIPT: Script = preload("res://systems/presentation/barrage_impact
 @export_range(1, 40, 1) var max_active_effects: int = 18
 @export var effect_in_front: bool = true
 @export_group("漫画符号")
-@export var impact_symbol_texture: Texture2D = preload("res://assets/ui/combat/impact_marks/impact_01_razor.png")
+@export var impact_symbol_texture: Texture2D = null # 常规战斗默认仅材质碎裂，旧漫画资产仍可在独立画廊预览。
 @export_range(24, 156, 1) var impact_symbol_size: int = 76
 @export var impact_symbol_offset: Vector2 = Vector2(4, -62)
 
