@@ -3,6 +3,7 @@ extends RefCounted
 
 signal opponent_tier_state_changed(pullback_multiplier: float, tier5_desperation_active: bool)
 signal barrage_generation_multipliers_changed(count_multiplier: float, frequency_multiplier: float, movement_speed_multiplier: float)
+signal barrage_foreground_motion_weights_changed(straight_weight: float, curved_weight: float, speed_change_weight: float, wandering_weight: float)
 signal barrage_lifetime_multiplier_changed(lifetime_multiplier: float)
 signal barrage_foreground_slot_count_changed(foreground_slot_count: int)
 signal neutral_weight_multiplier_changed(multiplier: float)
@@ -79,6 +80,9 @@ func bind_barrage_area(barrage_area: BarrageArea) -> void:
 	var generation_callback: Callable = Callable(barrage_area, "set_generation_multipliers")
 	if not barrage_generation_multipliers_changed.is_connected(generation_callback):
 		barrage_generation_multipliers_changed.connect(generation_callback)
+	var motion_weights_callback: Callable = Callable(barrage_area, "set_foreground_motion_weights")
+	if not barrage_foreground_motion_weights_changed.is_connected(motion_weights_callback):
+		barrage_foreground_motion_weights_changed.connect(motion_weights_callback)
 	var lifetime_callback: Callable = Callable(barrage_area, "set_lifetime_multiplier")
 	if not barrage_lifetime_multiplier_changed.is_connected(lifetime_callback):
 		barrage_lifetime_multiplier_changed.connect(lifetime_callback)
@@ -169,6 +173,12 @@ func _publish_barrage_state() -> void:
 		current_config.generation_count_multiplier,
 		current_config.generation_frequency_multiplier,
 		current_config.movement_speed_multiplier
+	)
+	barrage_foreground_motion_weights_changed.emit(
+		current_config.straight_motion_weight,
+		current_config.curved_motion_weight,
+		current_config.speed_change_motion_weight,
+		current_config.wandering_motion_weight
 	)
 	barrage_lifetime_multiplier_changed.emit(current_config.lifetime_multiplier)
 	# Neutral 只按当前档位影响下一次普通话语抽取，不改写关卡基础权重。
