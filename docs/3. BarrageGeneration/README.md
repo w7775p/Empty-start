@@ -5,7 +5,7 @@
 
 ## 2026-10-12 现行实现核对与任务状态
 
-**现行生成规则：** 前景普通话语与挂特性的特殊话语共同占用 T0～T5 各档少量容量，T1=10、T2=13、T3=16、T4=19、T5=22。T0 的 0 表示未填，普通阶段沿用 `LevelProfile.normal_barrage_screen_cap`。BG-16 已接入 CS-24 的 Tier 名额；带特性实例另占 BG-35 特殊名额，同一实例携带多项兼容特性仍只计一个特殊名额，离树时与普通前景名额一并释放。未配置 LC-12 每关值时，当前暂以普通前景容量回退；06 全局特殊基础值和正式导表尚未接入。Paradox 继续采用关卡上限，复读保留独立容量。复读可由生成调用方显式请求中央战斗区随机静止落点；普通话语装配 `occlusion` 后由 BT-15 自动使用该能力。普通移动前景由 BG-18 每次从上、下、左、右均匀选边，在边缘可容纳完整视图的范围内随机出生，并以对应的内向向量交给 `BarrageView`；限速、曲线与周期加减速继续由既有运动配置处理。BG-20 随机方向直线和 BG-23 游荡仍待开发。BG-42 静止请求、遮挡、Repeat 与 Paradox 不使用 BG-18 边缘移动出生；尚未接入 BG-39 Tier 运动权重。Paradox 阶段按 CB-13 读取一真五假六句。
+**现行生成规则：** 前景普通话语与挂特性的特殊话语共同占用 T0～T5 各档少量容量，T1=10、T2=13、T3=16、T4=19、T5=22。T0 的 0 表示未填，普通阶段沿用 `LevelProfile.normal_barrage_screen_cap`。BG-16 已接入 CS-24 的 Tier 名额；带特性实例另占 BG-35 特殊名额，同一实例携带多项兼容特性仍只计一个特殊名额，离树时与普通前景名额一并释放。未配置 LC-12 每关值时，当前暂以普通前景容量回退；06 全局特殊基础值和正式导表尚未接入。Paradox 继续采用关卡上限，复读保留独立容量。复读可由生成调用方显式请求中央战斗区随机静止落点；普通话语装配 `occlusion` 后由 BT-15 自动使用该能力。普通移动前景由 BG-18 每次从上、下、左、右均匀选边，在边缘可容纳完整视图的范围内随机出生，并以对应的内向向量交给 `BarrageView`；BG-20 随机直线、BG-23 低速游荡和 BG-40 速度上限均已接入。BG-29 为无特性的普通前景按可调概率添加低强度局部文字动画，复读、矛盾与状态特性表现沿用原规则。BG-42 静止请求、遮挡、Repeat 与 Paradox 不使用 BG-18 边缘移动出生；尚未接入 BG-39 Tier 运动权重。Paradox 阶段按 CB-13 读取一真五假六句。
 
 | 卡片 | 按实际代码核对后的唯一功能 | 状态 |
 | --- | --- | --- |
@@ -16,25 +16,33 @@
 | [BG-42](tasks/BG-42_static-random-placement.md) | 复读和遮挡共用的中央区域随机静止落点 | 已合并 main |
 | [BG-21](tasks/BG-21_curved-motion.md) | 普通前景可选平滑曲线运动 | 已合并 main；聚焦回归和 GUI 运动证据通过 |
 | [BG-22](tasks/BG-22_speed-change-motion.md) | 普通前景可选周期加减速 | 已实现；BG-40 限速、BG-21 曲线组合及 GUI 运动验证通过 |
-| [BG-23](tasks/BG-23_wandering-motion.md) | 普通前景低速游荡 | 已实现；独立 PR #203 开放，demo 观察到多次转向 |
+| [BG-23](tasks/BG-23_wandering-motion.md) | 普通前景低速游荡 | 已合并 main（#203） |
 | [BG-24](tasks/BG-24_overlap-pass-through.md) | 普通移动前景出生重叠与运动穿透 | 已实现；TEST_ONLY 两实例真实运行 smoke 通过 |
 | [BG-25](tasks/BG-25_random-start-layer.md) | 普通前景随机初始层级 | 已由独立 PR #196 合入 main |
 | [BG-26](tasks/BG-26_moving-layer-order.md) | 普通前景运动中随机改变层级 | 已合并 main（#197） |
 | [BG-27](tasks/BG-27_animated-size.md) | 普通移动前景话语缓和缩放 | Godot 4.7.2 GUI 实测通过（2026-10-12） |
 | [BG-28](tasks/BG-28_mixed-rich-text-style.md) | 前景单句局部富文本 | 已完成 · 2026-10-12 |
-| [BG-29](tasks/BG-29_local-text-animation.md) | 局部随机文字动画 | 待开发 |
+| [BG-29](tasks/BG-29_local-text-animation.md) | 局部随机文字动画 | 已实现，待 PR Review |
 | [BG-30](tasks/BG-30_opinion-tide.md) | 复读潮的疏密起伏 | 已完成 · 2026-10-12 |
 | [BG-31](tasks/BG-31_spatial-clusters.md) | 同句复读成批涌现（复用 RP-18） | 归档重复能力 |
 | [BG-32](tasks/BG-32_linked-faux-depth.md) | 伪纵深观感 | 候选暂缓 |
 | [BG-33](tasks/BG-33_impact-motion-wave.md) | 命中后的短时局部运动扰动 | 可选试玩后实施 |
 | [BG-34](tasks/BG-34_frequency-based-refill.md) | 既有定时批次按 Tier 名额补位 | T2=13 组件级计时回归通过；Sandbox 布局待联调 |
-| [BG-35](tasks/BG-35_special-instance-cap.md) | 特殊实例占用独立容量 | 已实现，待 PR Review |
+| [BG-35](tasks/BG-35_special-instance-cap.md) | 特殊实例占用独立容量 | 已合并 main（#206） |
 | [BG-36](tasks/BG-36_downgrade-count-grace.md) | 降档超额自然回落 | T3→T2 自然回落与计时补位实测通过 |
 | [BG-37](tasks/BG-37_foreground-text-outline.md) | 非复读文字描边 | 已完成（2026-10-12） |
 | [BG-38](tasks/BG-38_effective-area-clear.md) | 现有命中结束目标接线回归 | Godot 4.7.2 场景回归 48 项通过 |
 | [BG-39](tasks/BG-39_tier-motion-proportions.md) | 四种运动类型随 Tier 权重变化 | 待开发 |
-| [BG-40](tasks/BG-40_foreground-speed-ceiling.md) | 前景话语最大速度 | BG-20 直线、BG-21 曲线和 BG-22 加减速均按统一上限验证；BG-23 待实现后补验 |
+| [BG-40](tasks/BG-40_foreground-speed-ceiling.md) | 前景话语最大速度 | BG-20 直线、BG-21 曲线、BG-22 加减速已验证；BG-23 游荡需补验 |
 | [BG-41](tasks/BG-41_random-trait-selection.md) | 按已解锁池随机分配特性 | 技能池待定 |
+
+## BG-29 普通前景局部文字动画
+
+`BarrageArea.normal_foreground_local_text_animation_probability` 可在 Inspector 调整单条普通前景触发局部动画的概率，当前默认 0.08 为保守试玩值。`BarrageView` 从原句随机取 1～4 个字符，并复用 BG-28 的 `RichTextLabel` / `set_visual_bbcode()` 接口，在已有 BBCode 样式内包裹 Godot 原生 shake、pulse、wave 或 tornado 标签。低强度参数优先保持阅读；如果无法安全定位既有富文本中的片段，保留原显示样式。
+
+原始 `BarrageRuntimeRecord.text` 和 `original_sentence_id` 不被改写。复读、矛盾、终局及所有携带状态特性的视图不触发该动画。默认概率和效果强度仍待策划人工评审。
+
+本机 GUI Demo 与截图目录：`D:\tmp\lane-d-bg29\evidence`。可复播入口：在 Godot 打开并运行 `res://tests/barrage_generation/bg29_local_text_animation_demo.tscn`；Demo 单独将概率设为 100%，正式默认值不随之改变。截图和录像仅保留在上述 D 盘目录，不进入仓库。
 
 ## BG-35 带特性普通话语的独立同屏上限
 
