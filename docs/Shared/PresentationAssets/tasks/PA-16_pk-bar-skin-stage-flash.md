@@ -1,8 +1,8 @@
 # PA-16 PK 条阶段贴图：短闪调色后换底板
 
-> 状态：需求已确认，待实施
+> 状态：PK 底板独立实现与 Windows 预览完成；PA-13 共层验收、Android 验收待补
 > 类型：程序美术 / PresentationAssets
-> 依赖：现有 PK HUD / `refresh_pk()`、CombatStage 最终阶段通知；PA-13 仓鼠球指示器
+> 依赖：现有 PK HUD / `refresh_pk()`、CombatStage 最终阶段通知。PA-13 仅为后续共层视觉验收，不构成源码或构建依赖。
 
 ## 开始前先阅读以下文档
 - docs/Original/任务卡模板.md、known_traps.md
