@@ -27,7 +27,7 @@ PA-17 继续由 PresentationAssets 持有角色演出；成功/未击破事实�
 ### 最新策划配置来源（2026-10-10）
 - 对手表现资源从 `02_主播关卡.portrait_set_id` 定位 `23_对手立绘配置`；使用其中 `defeat_asset_path`、可选 `defeat_transition_asset_path` 和 `defeat_effect_id` 选择本场演出。
 - 已登记 `alien_melt`（外星人融化）、`kiwi_wobble`（Kiwi整图乱舞）、`fox_petal_rain`（狐狸花瓣雨）三种对手演出标识；具体美术与时序沿用本卡下述已确认需求。
-- 第四关青蛙 `frog` 的专属素材和演出方案留待后续策划交付，再补到相同配置入口。
+- **2026-10-12 人工视觉结论：第四关青蛙 `frog` 的项链蟑螂跳舞 Shader 尝试不通过，明确暂停。美术将重新提供项链蟑螂切图，收到资产和新的动作需求后再另立任务卡实施；当前本地 `codex/lane-b-pa17-frog-20261012` 中的未提交演出草稿不交付、不开 PR、不合并。已合并的 alien/kiwi/fox 首版及 PA-17 公共接口不受影响。**
 
 
 ### 画面结果对应关系
