@@ -188,3 +188,11 @@ PA-02 负责把正式美术资产导入工程并接到对应 Resource；PA-03 �
 - [PA-20 5.6 秒 Godot 实际渲染视频（AVI）](previews/pa20_fan_group_name_1920x1080.avi)
 
 未修改 PA-11 / PA-15 演出逻辑。演示复用 PA-14 现有立绘待机；完整 Rest/LevelRunState 战斗切关路由、Android 真机与正式导表映射仍待各自接口 / 工具验证。详见 [PA-20 日志](表现资产_PA-20_2026-10-12_log.md)。
+
+## PA-17 对手击败演出独立交付（2026-10-12 · 待策划视觉验收）
+
+`systems/presentation/opponent_breakthrough_presentation.tscn` / `.gd` 消费调用方传入的现有 T5、击败图、外星人融化过渡图和狐狸四张玫瑰贴图；提供 `play_defeat(character_id)`、`play_unbroken_offline()`、`reset_to_tier_three()`，以及 `defeat_animation_finished(character_id)` / `unbroken_offline_finished` 完成通知。外星人用现有融化帧、Tween 和局部顶点形变；狐狸用现有玫瑰图生成飘落花瓣；Kiwi 用整图摇摆、扭曲和速度线。未击破分支保持 T5 纹理不变，先显示“未击破”再局部熄屏并显示离线。
+
+独立演示 `scenes/demos/pa17_opponent_defeat_demo.tscn` F6 可运行；`1/2/3` 播放 Alien/Fox/Kiwi 真击破，`U` 演示 T5 未击破离线，`R` 恢复 T5。截图在 `previews/pa17_*.png`：每个角色都有动作中帧与最终击败图，另有未击破保持 T5 和信号离线两帧。素材由演示显式引用项目已有 PNG；组件本身接收纹理和立绘节点，不持有 `portrait_set_id` / 23 表的映射规则。
+
+**状态：程序演出与独立演示待人工视觉验收；正式流程联调未完成。** 当前 main 仅有 `LevelProfile.streamer_portrait`，代码搜索未发现 `portrait_set_id` 到 23 立绘配置的运行时消费者。`ContradictionOracleFlow.outcome_resolved` 发出后，未击破会继续打开 Rest；成功分支也没有等待 PA 表现结束的接口。后续场景协调方需要在真实结果确认后调用本组件，并在收到完成信号后继续 Oracle / Rest；本卡未改 `sandbox.gd`、`sandbox.tscn` 或 `sandbox_battle_hud.gd`。PA-11、PA-15、PA-13、PA-18 文件与逻辑均未修改。详见 [PA-17 日志](表现资产_PA-17_2026-10-12_log.md)。
