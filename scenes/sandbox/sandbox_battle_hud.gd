@@ -5,6 +5,7 @@ signal dialogue_sequence_completed(sequence_id: StringName, side: int)
 signal tier_breakthrough_finished(previous_tier: int, current_tier: int, completed: bool)
 
 const PortraitMotion = preload("res://systems/presentation/streamer_portrait_motion.gd")
+const PK_HAMSTER_BALL_SCENE: PackedScene = preload("res://systems/presentation/pk_hamster_ball_indicator.tscn")
 const DialogueQueueScript = preload("res://ui/streamer_bubble_dialogue/streamer_bubble_dialogue_queue.gd")
 const HAMSTER_LIVE_BACKGROUND: Texture2D = preload("res://assets/environment/live/hamster/background.png")
 const HAMSTER_LIVE_FOREGROUND: Texture2D = preload("res://assets/environment/live/hamster/foreground_desk.png")
@@ -31,6 +32,8 @@ var _tier_breakthrough_previous_tier: int = -1
 var _tier_breakthrough_current_tier: int = -1
 var _tier_down_shake_tween: Tween
 var _tier_down_shake_origin: Vector2 = Vector2.ZERO
+var _pk_hamster_ball: PkHamsterBallIndicator
+var _last_player_pk: float = 0.5
 # 保留攻击状态供后续获批的正式反馈视图读取；Sandbox 继续通过原公开刷新入口提交。
 var attack_progress: float = 0.0
 var attack_phase: int = AttackChargeInput.AttackPhase.READY
@@ -66,6 +69,9 @@ func _ready() -> void:
 	opponent_portrait_motion = PortraitMotion.new()
 	opponent_portrait_motion.configure_character("alien")
 	opponent_portrait_motion.attach_portrait(_opponent_portrait)
+	_pk_hamster_ball = PK_HAMSTER_BALL_SCENE.instantiate() as PkHamsterBallIndicator
+	_pk_hamster_ball.name = "PkHamsterBallIndicator"
+	_pk_progress.add_child(_pk_hamster_ball)
 	_dialogue_queue = DialogueQueueScript.new()
 	_dialogue_queue.name = "BubbleDialogueQueue"
 	_dialogue_queue.call(
@@ -206,9 +212,9 @@ func _set_texture_rect(texture_rect: TextureRect, texture: Texture2D, stretch_mo
 
 # PK 唯一值归 HitResolution，HUD 只将它映射为玩家占比和对手占比。
 func refresh_pk(player_pk: float, current_tier: int) -> void:
+	var previous_tier: int = _last_status_tier
 	# 匹配提示、对手立绘和对白侧只在真实 Tier 变化时切换；PK 连续刷新不重复清理离线对白。
 	if current_tier != _last_status_tier:
-		var previous_tier: int = _last_status_tier
 		var opponent_was_connected: bool = _opponent_connected
 		_last_status_tier = current_tier
 		if previous_tier >= 0 and current_tier < previous_tier:
@@ -221,7 +227,14 @@ func refresh_pk(player_pk: float, current_tier: int) -> void:
 		# T0 对手离线并隐藏立绘；进入 T1 后显示本关配置的待机图，降档与回升复用同一入口。
 		set_opponent_portrait_connected(current_tier > 0)
 	var player_share: float = clampf(player_pk, 0.0, 1.0)
+	_last_player_pk = player_share
 	_pk_progress.value = player_share
+	if _pk_hamster_ball != null:
+		_pk_hamster_ball.set_player_pk(player_share)
+		if previous_tier >= 0 and current_tier > previous_tier:
+			_pk_hamster_ball.play_tier_up()
+		elif previous_tier >= 0 and current_tier < previous_tier:
+			_pk_hamster_ball.play_tier_down()
 	_player_pk_label.text = "玩家 PK %.1f%%" % (player_share * 100.0)
 	_opponent_pk_label.text = "对手 %.1f%%" % ((1.0 - player_share) * 100.0)
 	_refresh_stage_label(current_tier)
@@ -380,6 +393,8 @@ func reset_for_attempt() -> void:
 	set_opponent_portrait_connected(false)
 	set_paradox_stage_active(false, 0)
 	_last_status_tier = 0
+	if _pk_hamster_ball != null:
+		_pk_hamster_ball.reset_for_attempt(_last_player_pk)
 	_failure_overlay.hide()
 	_show_opponent_status(t0_matching_status_text)
 	refresh_attack(0.0, AttackChargeInput.AttackPhase.READY)
