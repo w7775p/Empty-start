@@ -17,6 +17,9 @@ signal barrage_generated(view: BarrageView)
 @export_group("BG-20 普通前景随机直线方向")
 ## 围绕出生边内向法线随机偏转的最大角度；保留向内主分量，避免初始运动朝区域外。
 @export_range(0.0, 45.0, 1.0) var random_straight_direction_spread_degrees: float = 30.0
+@export_group("BG-19 普通前景内部随机出生")
+## 每条普通话语从战斗区内部出生的比例；剩余比例使用 BG-18 四边出生。
+@export_range(0.0, 1.0, 0.05) var interior_foreground_spawn_ratio: float = 0.0
 @export_group("BG-21 普通前景曲线运动")
 ## 开启后，仅新生成的普通移动前景使用平滑曲线；静止请求、复读与矛盾保持原行为。
 @export var curved_foreground_motion_enabled: bool = false
@@ -399,20 +402,30 @@ func spawn_normal_barrage(
 		normal_foreground_wandering_enabled
 		and not _terminal_presentation_only and not should_use_random_static_placement
 	)
+	# 单次抽取普通移动话语的内部出生模式；静止请求绕过比例选择。
+	var should_use_random_interior_placement: bool = (
+		not should_use_random_static_placement
+		and randf() < clampf(interior_foreground_spawn_ratio, 0.0, 1.0)
+	)
 	var random_spawn_edge: int = -1
 	var inward_move_direction: Vector2 = Vector2.LEFT
+	var uses_existing_motion_variant: bool = (
+		curved_foreground_motion_enabled or speed_change_foreground_motion_enabled
+	)
 	if not should_use_random_static_placement:
-		# 方向仅用于本次边缘出生；运动速度和生命周期仍走现有普通前景路径。
-		random_spawn_edge = randi_range(NormalSpawnEdge.TOP, NormalSpawnEdge.RIGHT)
-		# BG-20 只改变当前直线模式；曲线与加减速继续沿用原出生法线。
-		var uses_existing_motion_variant: bool = (
-			curved_foreground_motion_enabled or speed_change_foreground_motion_enabled
-		)
-		inward_move_direction = (
-			_get_inward_direction_for_edge(random_spawn_edge)
-			if uses_existing_motion_variant
-			else _get_random_inward_direction_for_edge(random_spawn_edge)
-		)
+		if should_use_random_interior_placement:
+			# 内部没有出生边法线时，以现有左向直线为基线复用 BG-20 偏转设置。
+			if not should_use_wandering_motion and not uses_existing_motion_variant:
+				inward_move_direction = _get_random_straight_direction(Vector2.LEFT)
+		else:
+			# 方向仅用于本次边缘出生；运动速度和生命周期仍走现有普通前景路径。
+			random_spawn_edge = randi_range(NormalSpawnEdge.TOP, NormalSpawnEdge.RIGHT)
+			# BG-20 只改变当前直线模式；曲线与加减速继续沿用原出生法线。
+			inward_move_direction = (
+				_get_inward_direction_for_edge(random_spawn_edge)
+				if uses_existing_motion_variant
+				else _get_random_inward_direction_for_edge(random_spawn_edge)
+			)
 	# BG-42 静止实例保持零速度；移动前景沿用限速、曲线和周期加减速配置。
 	var base_move_speed: float = (
 		0.0 if should_use_random_static_placement else get_foreground_move_speed_pixels_per_second(level_profile)
@@ -460,11 +473,13 @@ func spawn_normal_barrage(
 	add_child(view)
 	if not speech.local_style_bbcode.is_empty():
 		view.set_visual_bbcode(speech.local_style_bbcode)
-	var placement_succeeded: bool = (
-		_place_barrage_for_spawn_request(view, true)
-		if should_use_random_static_placement
-		else _place_random_edge_barrage(view, random_spawn_edge)
-	)
+	var placement_succeeded: bool = false
+	if should_use_random_static_placement:
+		placement_succeeded = _place_barrage_for_spawn_request(view, true)
+	elif should_use_random_interior_placement:
+		placement_succeeded = _place_random_interior_barrage(view)
+	else:
+		placement_succeeded = _place_random_edge_barrage(view, random_spawn_edge)
 	if not placement_succeeded:
 		# 场上没有可见空位时归还刚申请的容量，普通 Timer 后续继续尝试。
 		end_barrage(view.get_instance_id())
@@ -576,6 +591,16 @@ func _place_barrage_for_spawn_request(
 
 ## 按实际视图尺寸和当前区域尺寸均匀抽取完整位于区域内的静止落点。
 func _place_random_static_barrage(view: BarrageView) -> bool:
+	return _place_random_position_inside_area(view)
+
+
+## 普通移动话语从当前战斗区域内部均匀抽取出生点。
+func _place_random_interior_barrage(view: BarrageView) -> bool:
+	return _place_random_position_inside_area(view)
+
+
+## 静止与内部移动落点共用完整视图边界。
+func _place_random_position_inside_area(view: BarrageView) -> bool:
 	var max_x: float = size.x - view.size.x
 	var max_y: float = size.y - view.size.y
 	if max_x < 0.0 or max_y < 0.0:
@@ -620,10 +645,14 @@ func _get_inward_direction_for_edge(edge: int) -> Vector2:
 
 # 在出生边的内向法线周围随机偏转；最大偏角限制在 45 度内以维持明确向内运动。
 func _get_random_inward_direction_for_edge(edge: int) -> Vector2:
-	var inward_direction: Vector2 = _get_inward_direction_for_edge(edge)
+	return _get_random_straight_direction(_get_inward_direction_for_edge(edge))
+
+
+## 在给定移动方向周围复用 BG-20 的 Inspector 偏转范围。
+func _get_random_straight_direction(base_direction: Vector2) -> Vector2:
 	var safe_spread_degrees: float = clampf(random_straight_direction_spread_degrees, 0.0, 45.0)
 	var random_offset_radians: float = deg_to_rad(randf_range(-safe_spread_degrees, safe_spread_degrees))
-	return inward_direction.rotated(random_offset_radians).normalized()
+	return base_direction.rotated(random_offset_radians).normalized()
 
 
 ## 普通移动前景保留轮换落点但允许重叠；其余调用维持原空位扫描。
