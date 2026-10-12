@@ -48,6 +48,7 @@ func configure(
 	_hud = hud
 	_battle_attempt_flow.attempt_started.connect(_on_attempt_started)
 	_battle_attempt_flow.tier_changed.connect(_on_tier_changed)
+	_battle_attempt_flow.tier_transition_completed.connect(_on_tier_transition_completed)
 	_battle_attempt_flow.normal_combat_completed.connect(_on_normal_combat_completed)
 	_battle_attempt_flow.attempt_failed.connect(_on_attempt_failed)
 	_contradiction_oracle_flow.outcome_resolved.connect(_on_contradiction_outcome_resolved)
@@ -75,13 +76,10 @@ func _on_tier_changed(current_tier: int, _player_pk: float) -> void:
 		return
 	var previous_tier: int = _last_tier
 	_last_tier = current_tier
-	if previous_tier == CombatStage.INITIAL_TIER and current_tier > CombatStage.INITIAL_TIER:
-		# T0 到正档表示对手完成连线；跨档时同时保留普通升档事实。
-		_submit_event(EVENT_COMBAT_CONNECTED)
-		if current_tier > CombatStage.INITIAL_TIER + 1:
-			_submit_event(EVENT_TIER_UP)
-	elif current_tier > previous_tier:
-		_submit_event(EVENT_TIER_UP)
+	if current_tier > previous_tier:
+		# 正式命中升档等 CS-15 演出结束；debug PK 更新仍沿用即时对白。
+		if not _battle_attempt_flow.is_tier_breakthrough_pending():
+			_submit_tier_up_events(previous_tier, current_tier)
 	elif current_tier == CombatStage.INITIAL_TIER:
 		# T0 表示对手离线；HUD 已清理对手侧队列，这里丢弃对应完成映射。
 		_forget_sequences_for_side(BubbleDialogueEntry.SpeakerSide.OPPONENT)
@@ -90,6 +88,23 @@ func _on_tier_changed(current_tier: int, _player_pk: float) -> void:
 		_submit_event(EVENT_TIER1_TAUNT)
 	else:
 		_submit_event(EVENT_TIER_DOWN)
+
+
+# 清屏突破演出完成后提交连线 / 升档对白，保证 T1 对话晚于立绘回显。
+func _on_tier_transition_completed(previous_tier: int, current_tier: int) -> void:
+	if not _attempt_active or current_tier != _last_tier or current_tier <= previous_tier:
+		return
+	_submit_tier_up_events(previous_tier, current_tier)
+
+
+# 同一最终 Tier 的事件顺序沿用 SD-06 稳定语义 ID。
+func _submit_tier_up_events(previous_tier: int, current_tier: int) -> void:
+	if previous_tier == CombatStage.INITIAL_TIER and current_tier > CombatStage.INITIAL_TIER:
+		_submit_event(EVENT_COMBAT_CONNECTED)
+		if current_tier > CombatStage.INITIAL_TIER + 1:
+			_submit_event(EVENT_TIER_UP)
+	else:
+		_submit_event(EVENT_TIER_UP)
 
 
 # 普通 PK 满是本场胜利事实；后续 Paradox 结果使用独立事件 ID，避免重复胜负对白。
@@ -189,6 +204,8 @@ func _exit_tree() -> void:
 			_battle_attempt_flow.attempt_started.disconnect(_on_attempt_started)
 		if _battle_attempt_flow.tier_changed.is_connected(_on_tier_changed):
 			_battle_attempt_flow.tier_changed.disconnect(_on_tier_changed)
+		if _battle_attempt_flow.tier_transition_completed.is_connected(_on_tier_transition_completed):
+			_battle_attempt_flow.tier_transition_completed.disconnect(_on_tier_transition_completed)
 		if _battle_attempt_flow.normal_combat_completed.is_connected(_on_normal_combat_completed):
 			_battle_attempt_flow.normal_combat_completed.disconnect(_on_normal_combat_completed)
 		if _battle_attempt_flow.attempt_failed.is_connected(_on_attempt_failed):

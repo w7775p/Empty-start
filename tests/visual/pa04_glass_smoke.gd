@@ -33,11 +33,24 @@ func _smoke() -> void:
 
 	# 普通复读继续在前景下层，并保持无描边纯文本。
 	var repeat: BarrageView = _spawn(area, "神说：你必须被看见", true)
+	var terminal_colors: Dictionary = {&"orthodox": Color("#D74848")}
+	normal.apply_terminal_trait_presentation([&"orthodox"], terminal_colors)
+	repeat.apply_terminal_trait_presentation([&"orthodox"], terminal_colors)
+	var normal_rich: RichTextLabel = normal.get_node("RichBody") as RichTextLabel
+	var repeat_rich: RichTextLabel = repeat.get_node("RichBody") as RichTextLabel
 	if not _expect(
-		repeat.z_index < normal.z_index and repeat.get_theme_constant("outline_size") == 0
+		repeat.z_index < normal.z_index
+		and normal.get_theme_constant("outline_size") == normal.foreground_outline_size
+		and normal_rich.get_theme_constant("outline_size") == normal.foreground_outline_size
+		and repeat.get_theme_constant("outline_size") == 0
+		and repeat_rich.get_theme_constant("outline_size") == 0
+		and repeat.get_theme_color("font_color").is_equal_approx(repeat.repeat_font_color)
+		and repeat_rich.get_theme_color("default_color").is_equal_approx(repeat.repeat_font_color)
+		and repeat.get_presentation_trait_ids() == [&"orthodox"]
+		and normal.get_theme_color("font_color").is_equal_approx(terminal_colors[&"orthodox"])
 		and not repeat.set_visual_bbcode("[b]神说[/b]")
 		and repeat.text == repeat.runtime_record.text,
-		"repeat remains a lower plain-text layer"
+		"repeat remains a lower gray plain-text layer under terminal presentation"
 	):
 		return
 

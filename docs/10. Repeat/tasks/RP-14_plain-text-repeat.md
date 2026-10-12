@@ -1,6 +1,6 @@
 # RP-14 复读纯文本展示随富文本升级保持独立
 
-**状态：基础已实现 · 待 BG-28 回归**
+**状态：已完成 · 2026-10-12（现有富文本覆盖与复读链兼容回归通过）**
 
 ## 开始前先阅读以下文档
 - docs/Original/任务卡模板.md、known_traps.md
@@ -10,7 +10,7 @@
 - 后续兼容回归：BG-28
 
 ## 已经实现的功能
-当前 BarrageView 继承 Label，所有弹幕暂时都以普通文本显示。
+`BarrageView` 以 Label 保存命中原文，普通前景可选用子节点 RichTextLabel 做 BBCode 表现覆盖；`RepeatPlan` 与复读实例继续保存和显示纯文本。
 
 ## 本次任务
 复读纯文本展示随富文本升级保持独立。
@@ -23,6 +23,14 @@
 
 ### 验收条件
 含富文本格式的前景话语触发复读后，背景复读保持清晰纯文本且 ID 与生成统计正确。
+
+## 本次实现与兼容回归
+
+- `BattleAttemptFlow` 从已结算命中快照的原句 ID / 原句文本创建普通 `RepeatPlan`；`ContradictionOracleFlow` 从冻结的矛盾事实创建矛盾计划。两条路径均将显示模板结果交给既有延迟队列。
+- `DivineDescentSpread` 从冻结历史候选的原句 ID / 文本创建复读计划。
+- `BarrageArea.spawn_repeat_barrage()` 将 `RepeatPlan.display_text`（为空时退回原句文本）写入弹幕记录，同时保留稳定原句 ID。只有实例成功生成后，`RepeatDelayQueue` 才将一条实际生成数量计入相应统计。
+- `BarrageView.set_visual_bbcode()` 只对普通前景开放；富文本显示不改 `runtime_record.text` / 原句 ID。复读实例拒绝该覆盖，继续用普通 Label 显示记录文本。
+- Godot 4.7.2 兼容回归复用既有 `tests/visual/pa04_glass_smoke.gd` 与 `tests/repeat/test_rp16_static_repeat_placement.gd`；再用临时 TEST_ONLY Sandbox 场景，通过真实攻击输入覆盖富文本前景命中 → BattleAttemptFlow → 队列生成 → ID / 统计读取。临时验证完成后清理，没有增加持久测试或运行时代码。
 
 ## 本卡专项交付说明
 提交本功能对应的变更与 Godot 实际运行验收结果，并更新系统 README 与完成日志。

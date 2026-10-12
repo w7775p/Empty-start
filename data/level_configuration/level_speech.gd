@@ -6,6 +6,9 @@ extends Resource
 @export var original_sentence_id: String = ""
 @export_multiline var text: String = ""
 
+## 普通前景的可选局部 BBCode 表现；解析后的正文必须与 text 相同。
+@export_multiline var local_style_bbcode: String = ""
+
 ## 普通话语内容类别；neutral 不参与开局身份与三项倾向累计。
 @export var tendency_id: String = ""
 

@@ -70,3 +70,12 @@ Windows 使用 `--rendering-method gl_compatibility --resolution 1152x648`，AMD
 - 按用户要求没有 commit、push、建 PR 或合并。发布者只提交本次四个文件，基于发布时最新 main 检查冲突与 smoke；若独立发布 Sandbox 修复，再交 E 在 #92 回归并更新其原日志。合并 README 时保留 E 的原接线证据，将“假命中仍阻塞”叙述更新为本补做已验证的行为。
 - 临时 smoke 脚本/场景归档至忽略目录供本地复现，入口目录 `.tmp_ca10` 已清理；导入生成的旁路 `.uid` / `.import` 已撤销。本次未访问其他 Lane 工作树，未修改 B 的 Rest/身份 UI 或 C 的 DivineDescent。
 - 接手从 Sandbox `_on_contradiction_outcome_locked()`、`_open_rest_after_unbroken()` 与 `_process()` 开始；复现时将忽略目录中保存的 `smoke.gd` / `smoke.tscn` 复制回 `.tmp_ca10/`，使用现有 TEST_ONLY 场景运行。到此停止，不接新卡。
+
+## 2026-10-12 Lane E：INT-09/10 流程入口复核
+
+- 基线为最新 `origin/main` `c749bc3`，独立分支 `codex/lane-e-ca10`。复读了本任务卡、CombatAttack README、前序 CA-09 卡/日志、CA-10 既有日志、`AGENTS.md`、`known_traps.md`、`docs/System_Collaboration.md`、`project.godot` 与原始程序需求。
+- 检查当前调用链：`BattleAttemptFlow` 的 PK 满处理调用 `ContradictionOracleFlow.start()`；Sandbox 继续只组合并公开两个 Flow。矛盾流程连接 AttackChargeInput 的 `shot_snapshot_created`，读取快照里的冻结真假矛盾事实，为命中项创建 10 的复读计划，然后把本发命中 ID 即时交给 12 判定。
+- `AttackChargeInput._handle_attack_release()` 在未满蓄时清理进度并立即返回；`shot_snapshot_created` 和 12 的 `register_launched_shot()` 只会发生在满蓄释放后，因此取消不消耗发射机会。
+- 当前 main 已具备本卡全部业务接线，本次没有新增生产代码、自动化测试或场景改动。同步 README 中已迁移到 `ContradictionOracleFlow` 的职责说明；`known_traps.md` 无新增条目。
+- Godot 4.7.2 没有在本次文档复核中重复运行。原 CA-10 实际运行记录仍在本日志，报告 `CA10 PASS checks=539`，包含未满蓄、真/假矛盾实际攻击、复读展示及 Rest/神谕衔接；本次仅核对 INT-09/10 后的真实源码入口，不把源码检查称为新的运行验证。
+- 本次只更新 README 与本任务既有日志；不修改 Sandbox Owner 的文件。当前 CA-10 无待补接线，后续任务保持独立派发。

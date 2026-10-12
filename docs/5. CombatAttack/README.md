@@ -4,11 +4,11 @@
 
 ## 2026-10-09 现行实现核对与任务状态
 
-**现行判断与差异：** `_capture_target_snapshot()` 已收集准心区域内全部可选实例并在释放时去重冻结；缩放后的变换验收按 CA-13。CA-15 已在提交前按释放快照中的原始 `occlusion` ID 覆盖逐目标结果，以一次现有 MISS 结算处理整发；本发不产生目标命中副作用，区域实例保持场上。
+**现行判断与差异：** `_capture_target_snapshot()` 已收集准心区域内全部可选实例并在释放时去重冻结；CA-13 已验证当前缩放变换下的可见矩形与释放快照一致。CA-15 已在提交前按释放快照中的原始 `occlusion` ID 覆盖逐目标结果，以一次现有 MISS 结算处理整发；本发不产生目标命中副作用，区域实例保持场上。
 
 | 卡片 | 按实际代码核对后的唯一功能 | 状态 |
 | --- | --- | --- |
-| [CA-13](tasks/CA-13_scaled-target-range.md) | 已有矩形相交后的缩放回归 | 已有基础 |
+| [CA-13](tasks/CA-13_scaled-target-range.md) | 按当前缩放矩形相交并冻结目标 | GUI 验收通过（2026-10-12） |
 | [CA-14](tasks/CA-14_all-overlapped-targets.md) | 多目标快照重叠验收 | 场景验收通过（2026-10-10） |
 | [CA-15](tasks/CA-15_whole-shot-miss-on-occlusion.md) | 遮挡覆盖整发落空 | Godot 场景验收通过（2026-10-11） |
 
@@ -33,6 +33,15 @@ GUI 运行使用 `Input.parse_input_event()` 合成鼠标事件；同一发快�
 `tests/combat_attack/ca15_occlusion_miss.tscn` 实例化正式 Sandbox，并覆盖遮挡 + 正常正向 + `fake_card` 负向 + 复读同发、同实例遮挡/反射，以及无遮挡对照。场景中关卡话语来自当前正式词池；特性、倾向和强度仅在运行时作为 TEST_ONLY 输入，不写正式配置或表格。
 
 Godot 4.7.2 headless 场景运行共 56 checks，三次真实攻击飞行提交均通过。输入由 `Input.parse_input_event()` 合成；实体鼠标、Android 与 PA-06 视觉验收未覆盖。现有 PA-06 presenter、信号和视觉效果未修改。
+
+
+### CA-13 缩放目标矩形实测（2026-10-12）
+
+`tests/combat_attack/ca13_scaled_target_gui.tscn` 使用真实 Sandbox 和 `BarrageArea.spawn_normal_barrage()` 创建单条普通话语目标，临时把 BG-27 范围设为 0.5×～1.5×，等待同一视图的实际动画经过缩小、1.0×和放大状态。`AttackChargeInput` 仍通过 `BarrageView.get_global_rect()` 与 `AimReticle.intersects_target_area()` 生成释放快照；运行时核对目标四角变换框、可见 `BarrageSpecialSurface` 区域与返回矩形相同。
+
+三档各检查准心圆边缘进入目标矩形 1px 时快照只包含该目标，移出矩形 4px 时快照为空。Godot 4.7.2 GUI 运行共 30 项检查、0 失败；完整运行记录见 CA-13 日志。测试使用合成鼠标事件；物理鼠标、Android 与触屏未验收。CA-13 没有新增生产逻辑；PR #179 堆叠依赖 [BG-27 PR #181](https://github.com/w7775p/Empty-start/pull/181)，合并时先处理 BG-27。
+
+验收时保存并人工检查了三张缩放截图；仓库 `.gitignore` 将 `docs/**/evidence/**/*.png` 作为本地证据忽略，因此截图保留在执行工作树供复查，没有加入 PR。
 
 ## 系统目标
 
@@ -67,7 +76,7 @@ Godot 4.7.2 headless 场景运行共 56 checks，三次真实攻击飞行提交�
 - CA-09 通过注入的 `HitResolution` 调用正常收益、整发落空 / 异常优先级、单次 `resolve_shot_results()` 和普通命中历史接口；HitResolution 持有唯一 PK。INT-01 Sandbox 从独立运行配置读取初始 PK（当前0.5），并把最终 PK 信号接给 CombatStage。
 - `shot_hit_resolution_submitted` 同发包含目标有效性、`ShotAnomaly`、逐目标 `BarrageTraitResult` / 奖励字典及 HitResolution 返回值。异常惩罚映射等待 HR-03；INT-01 由 Sandbox 据逐目标结果连接普通复读与本场倾向暂存。
 - FO-13 增加临时选择目标接口 `set_selection_targets(targets: Array[Control])` / `clear_selection_targets()`。目标模式仍复用同一准心、蓄力、发射和飞行流程；到达时按释放快照的准心中心裁决最近 Control，并发出 `selection_target_hit(target)`，绕过 HitResolution。
-- CA-10 Sandbox 补做（2026-10-09，#92 blocker）：最后一发假矛盾立即锁定未击破结果并禁止后续发射，Sandbox 保持矛盾队列调度，等本发有限复读全部生成且可见实例自然结束，再单次进入 Rest。空命中与超时没有复读时即时进入 Rest；真命中的复读、静音、神谕路径继续沿用原实现。复读数量、延迟、寿命与容量使用现有配置，未增加奖励或第二套管理器。
+- CA-10 矛盾阶段接线：`BattleAttemptFlow` 在 PK 满后调用 `ContradictionOracleFlow.start()`；流程订阅 `AttackChargeInput.shot_snapshot_created`，仅在满蓄释放后消耗 12 的发射机会。`ContradictionOracleFlow` 从冻结快照提取真假矛盾命中 ID、即时交给 `ContradictionBreakSystem.resolve_shot_hit_ids()`，并为实际命中的真/假矛盾创建现有 10 复读计划。未满蓄释放在快照发出前返回，保持发射机会。#94 修复的未击破复读展示继续由该流程推进；队列清空且可见矛盾复读结束后进入 Rest，空命中与超时即时进入 Rest。
 
 ### INT-01 战斗生命周期与结算事实
 

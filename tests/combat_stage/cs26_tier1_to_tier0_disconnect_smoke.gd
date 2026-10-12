@@ -29,10 +29,11 @@ func _run_smoke() -> void:
 		_finish()
 		return
 	var barrage_area: BarrageArea = attempt_flow.get_barrage_area()
+	var battle_area: Control = hud.get_node("BattleArea") as Control
 	var opponent_portrait: TextureRect = hud.find_child("OpponentPortraitArt", true, false) as TextureRect
 	var state_label: Label = hud.find_child("BattleStateFeedback", true, false) as Label
 	var opponent_stack: Node = hud.find_child("OpponentBubbleStack", true, false)
-	if barrage_area == null or opponent_portrait == null or state_label == null or opponent_stack == null:
+	if barrage_area == null or battle_area == null or opponent_portrait == null or state_label == null or opponent_stack == null:
 		_check(false, "正式 Sandbox 提供弹幕区、对手立绘、状态文案和对白栈")
 		_finish()
 		return
@@ -83,6 +84,7 @@ func _run_smoke() -> void:
 	await _capture("cs26_t1_connected_with_dialogue")
 
 	var barrage_position_before: Vector2 = retained_barrage.position
+	var battle_area_position_before: Vector2 = battle_area.position
 	hud.call("show_battle_state", "关键战斗警告：PK 正在下滑")
 	sandbox.call("debug_set_player_pk", 0.50)
 	_check(attempt_flow.get_current_tier() == 0, "正式 CombatStage 从 T1 降至 T0")
@@ -91,12 +93,17 @@ func _run_smoke() -> void:
 	_check(not bool(hud.call("enqueue_dialogue_bubble", _make_plot_entry("T0 对手不应接收新对白", 1.0))), "T0 拒绝新的对手对白事件")
 	await get_tree().process_frame
 	await get_tree().process_frame
+	_check(not battle_area.position.is_equal_approx(battle_area_position_before), "T1→T0 开始一次短时战斗区震动")
 	_check(_count_bubbles(opponent_stack) == 0, "对手离线清空当前活动气泡和待播序列")
 	await _wait(0.35)
+	_check(battle_area.position.is_equal_approx(battle_area_position_before), "降档震动结束后战斗区回到原位")
 	_check(_completed_sequence_count == 0, "离线中断序列不会错误发出完成通知")
 	_check(is_instance_valid(retained_barrage) and retained_barrage.is_visible_in_tree(), "降档保留原有场上话语")
 	if is_instance_valid(retained_barrage):
 		_check(not retained_barrage.position.is_equal_approx(barrage_position_before), "既有话语继续沿原运动自然回落")
+	sandbox.call("debug_set_player_pk", 0.45)
+	await get_tree().process_frame
+	_check(battle_area.position.is_equal_approx(battle_area_position_before), "同档 PK 更新不会重复触发震动")
 	await _capture("cs26_t0_opponent_disconnected")
 
 	sandbox.call("debug_set_player_pk", 0.60)
@@ -109,6 +116,9 @@ func _run_smoke() -> void:
 	await get_tree().process_frame
 	_check(_count_bubbles(opponent_stack) == 1, "重新连线后可以继续显示新对白")
 	await _capture("cs26_t1_reconnected")
+	await _verify_tier_down(sandbox, attempt_flow, battle_area, 0.65, 0.60, 2, 1, "T2→T1")
+	await _verify_tier_down(sandbox, attempt_flow, battle_area, 0.72, 0.65, 3, 2, "T3→T2")
+	await _verify_tier_down(sandbox, attempt_flow, battle_area, 0.80, 0.50, 4, 0, "跨档 T4→T0")
 	_finish()
 
 
@@ -135,6 +145,29 @@ func _count_bubbles(stack: Node) -> int:
 		if child is StreamerBubbleView:
 			count += 1
 	return count
+
+
+# 复用真实 Sandbox PK 入口检查不同降档只移动战斗区并在短时演出后复位。
+func _verify_tier_down(
+		sandbox: Control,
+		attempt_flow: BattleAttemptFlow,
+		battle_area: Control,
+		starting_pk: float,
+		downgrade_pk: float,
+		starting_tier: int,
+		expected_tier: int,
+		transition_name: String
+) -> void:
+	sandbox.call("debug_set_player_pk", starting_pk)
+	await get_tree().process_frame
+	_check(attempt_flow.get_current_tier() == starting_tier, transition_name + " 测试起始档位正确")
+	var origin_position: Vector2 = battle_area.position
+	sandbox.call("debug_set_player_pk", downgrade_pk)
+	_check(attempt_flow.get_current_tier() == expected_tier, transition_name + " 更新为目标档位")
+	await get_tree().process_frame
+	_check(not battle_area.position.is_equal_approx(origin_position), transition_name + " 触发一次战斗区震动")
+	await _wait(0.25)
+	_check(battle_area.position.is_equal_approx(origin_position), transition_name + " 震动结束后恢复原位")
 
 
 func _on_dialogue_sequence_completed(_sequence_id: StringName, _side: int) -> void:

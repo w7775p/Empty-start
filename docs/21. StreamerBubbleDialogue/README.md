@@ -121,8 +121,8 @@ Google Sheets `02_主播关卡.story_config_id` 指向 `20_主播气泡对白.st
 
 | 稳定事件 ID | 事实来源与映射 |
 | --- | --- |
-| `combat_connected` | `tier_changed` 从 T0 到正档；常见 T0→T1 由 CS-22 用作开场事件。跨档直达更高正档时也提交连接，并额外提交 `combat_tier_up`。 |
-| `combat_tier_up` | 最终 Tier 上升；T0→T1 本身作为连接事件，避免同一开场重复触发。 |
+| `combat_connected` | debug PK 变档仍由 `tier_changed` 即时触发；实际攻击升档由 CS-15 的 `tier_transition_completed` 在清屏提示后提交。常见 T0→T1 由 CS-22 用作开场事件；跨档直达更高正档时也提交连接，并额外提交 `combat_tier_up`。 |
+| `combat_tier_up` | 最终 Tier 上升；实际攻击升档在 CS-15 提示完成后提交。T0→T1 本身作为连接事件，避免同一开场重复触发。 |
 | `combat_tier_down` | 最终 Tier 下降，目标不是 T0 或 T1。 |
 | `combat_tier1_taunt` | 最终 Tier 从 T2+ 降至 T1；供 CS-27 查询嘲讽。 |
 | `combat_win` / `combat_lose` | 普通 PK 胜利 `normal_combat_completed` / 普通尝试失败 `attempt_failed`。 |
@@ -130,8 +130,14 @@ Google Sheets `02_主播关卡.story_config_id` 指向 `20_主播气泡对白.st
 
 Sandbox 对外提供 `dialogue_event_sequence_completed(event_id, sequence_id, side)`，信号来自 SD-03 的完整序列到期通知，CS-23 可按 `combat_connected` 等待整段开场结束。没有配置条目时会完成一个零句事件并使用空 `sequence_id`；重开或对手离线取消序列时不会伪报完成。同一事件的多句配置需属于同一发言侧，沿用 SD-03 当前单侧序列契约。正式配置仍为空。
 
+普通命中升档的对白事件在弹幕清理和 CS-15 Tier 提示结束后提交，通过正式 Flow 的 Tier 完成通知驱动；调试 PK 更新仍可直接验证对白配置。T0→T1 的对白完播后由 Sandbox 通知 BattleAttemptFlow 恢复生成与回拉。
+
 - 重开通过一次 `attempt_started` 重置跟踪，`attempt_restarted` 不另行消费；不解析本地化 `battle_state_changed(text)`。T1→T0 清理对手侧队列但不提交降档对白。暂停沿用 SceneTree 对 Tween 生命周期的冻结；进入 Paradox 后不重复发普通战斗事件，Rest 不映射额外状态对白。
 - GUI / 回归入口：`tests/streamer_bubble_dialogue/sd06_combat_state_events_smoke.tscn`。用真实 Sandbox 和内存 TEST_ONLY 配置覆盖连线、升降档、T1 嘲讽、普通胜负、Paradox 未击破结果、暂停、离线取消与重开；SD-03、SD-04、SD-05 另行复跑。实际窗口与截图结果见 [SD-06 完成日志](双主播气泡对话系统_SD-06_2026-10-11_log.md)，GUI 证据见 [SD-06 截图目录](evidence/SD-06_2026-10-11/)。
+
+### CS-15 升档对白时序（2026-10-12）
+
+实际攻击产生的升档对白事件等待清屏和突破提示结束后，再由 BattleAttemptFlow.tier_transition_completed(previous_tier, current_tier) 提交。T0→T1 的 combat_connected 序列结束后，Sandbox 调用 resume_after_tier1_dialogue() 恢复生成和回拉。仅用于界面验收的 debug PK 更新仍沿用即时 tier_changed 路径。
 
 ## SD-07 战斗定时对手对白（2026-10-11）
 

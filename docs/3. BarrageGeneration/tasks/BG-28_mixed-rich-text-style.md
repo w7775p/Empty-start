@@ -1,6 +1,6 @@
 # BG-28 普通前景话语支持单句局部富文本样式
 
-**状态：待实施**
+**状态：已完成 · 2026-10-12**
 
 ## 开始前先阅读以下文档
 - `docs/Original/任务卡模板.md` 与 `known_traps.md`（通用执行规范与已知风险）
@@ -10,7 +10,7 @@
 - 后续消费者：BG-29、BG-37、PA-04
 
 ## 已经实现的功能
-BarrageView 当前继承 Label，仅有整条文字设置；富文本展示要与复读的纯文本区分。
+现有 BarrageView 已有 RichTextLabel 覆盖层；本卡把可选逐句样式配置接入普通生成入口，并校验其解析正文与命中原文一致。
 
 ## 本次任务
 普通前景话语支持单句局部富文本样式。
@@ -23,6 +23,14 @@ BarrageView 当前继承 Label，仅有整条文字设置；富文本展示要�
 
 ### 验收条件
 同一句话可以同时展示多个局部文字格式，内容 ID 与实际显示正文正确。
+
+## 实现说明
+
+- LevelSpeech.local_style_bbcode 可选提供普通前景局部 BBCode；空字符串沿用原纯文本 Label。
+- BarrageArea.spawn_normal_barrage() 在视图入树后应用 BBCode，再按最终排版尺寸定位。
+- BarrageView 用 RichTextLabel.get_parsed_text() 校验显示正文与 BarrageRuntimeRecord.text 完全一致。错配时清除富文本覆盖并显示原文；稳定原句 ID 不变。
+- 富文本内容高度纳入 BarrageView 尺寸，避免局部大字号文本裁切。重复弹幕继续显示纯文本。
+- 当前正式数据表与导表器没有 BBCode 字段，本卡未添加该列或修改导表流程；正式话语需由独立数据交付补入此可选字段。
 
 ## Godot 开发环境
 - Godot 版本：4.7.2（开工核对 `project.godot`）

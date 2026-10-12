@@ -108,6 +108,8 @@ func _ready() -> void:
 			CONTRADICTION_WINDOW_CONFIG, AudioManager):
 		push_error("Sandbox: 无法组合 BattleAttemptFlow。")
 		return
+	_battle_attempt_flow.tier_transition_cleared.connect(_on_tier_transition_cleared)
+	_battle_hud.tier_breakthrough_finished.connect(_on_tier_breakthrough_finished)
 	# 由新消费者读取正式逐目标结算，再通过 HUD 公开队列入口提交玩家复述。
 	_hit_echo_presenter = HIT_ECHO_PRESENTER_SCRIPT.new()
 	_hit_echo_presenter.name = "StreamerBubbleHitEchoPresenter"
@@ -202,9 +204,34 @@ func _on_attempt_failed(_level: LevelProfile, _loss_streak_count: int, _hit: Hit
 	_battle_hud.show_failure()
 
 
-# 只转发完整配置序列的完成事实，供 CS-23 在后续接入中等待 T1 开场对白结束。
+# T1 连线对白完整结束后恢复本档战斗，再向外转发已完成事实。
 func _on_dialogue_event_sequence_completed(event_id: StringName, sequence_id: StringName, side: int) -> void:
+	if event_id == &"combat_connected":
+		_battle_attempt_flow.resume_after_tier1_dialogue()
 	dialogue_event_sequence_completed.emit(event_id, sequence_id, side)
+
+
+# 升档清屏完成后暂停普通战斗，再播放 HUD 现有 Tier 标签的一次突破提示。
+func _on_tier_transition_cleared(previous_tier: int, current_tier: int, _cleared_count: int) -> void:
+	if not _battle_attempt_flow.begin_tier_breakthrough_transition(previous_tier, current_tier):
+		return
+	if previous_tier == CombatStage.INITIAL_TIER and current_tier > CombatStage.INITIAL_TIER:
+		# T1 立绘先由 PK 反馈显示；转场期间收起，动画结束后再接入对白。
+		_battle_hud.set_opponent_portrait_connected(false)
+	if not _battle_hud.play_tier_breakthrough(previous_tier, current_tier):
+		_on_tier_breakthrough_finished(previous_tier, current_tier, true)
+
+
+# 转场结束后先恢复 T1 立绘，再让公开 Tier 完成事件触发对白 / 战斗恢复。
+func _on_tier_breakthrough_finished(
+		previous_tier: int, current_tier: int, completed: bool
+) -> void:
+	if not completed or _battle_attempt_flow.get_current_tier() != current_tier:
+		return
+	if previous_tier == CombatStage.INITIAL_TIER and current_tier > CombatStage.INITIAL_TIER:
+		_battle_hud.set_opponent_portrait_connected(true)
+	if not _battle_attempt_flow.finish_tier_breakthrough_transition():
+		push_error("Sandbox: 升档突破过渡结束后无法恢复当前流程。")
 
 
 # 真实矛盾流程发出进入事实后，HUD 才展示 T6 / Paradox。

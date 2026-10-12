@@ -25,6 +25,13 @@ signal barrage_generated(view: BarrageView)
 @export var speed_change_foreground_motion_enabled: bool = false
 ## 一次从低速加速到上限再减速回低速的总时长，周期只影响新生成的普通前景。
 @export_range(2.0, 16.0, 0.5) var speed_change_foreground_motion_cycle_seconds: float = 6.0
+@export_group("BG-27 普通前景缓和缩放")
+## 普通移动前景缩小到的最小倍率，视图默认中心锚定。
+@export_range(0.90, 0.99, 0.01) var normal_foreground_min_scale: float = 0.96
+## 普通移动前景放大到的最大倍率。
+@export_range(1.01, 1.10, 0.01) var normal_foreground_max_scale: float = 1.04
+## 完成一次放大与缩小往返的时长。
+@export_range(3.0, 12.0, 0.5) var normal_foreground_scale_cycle_seconds: float = 6.0
 @onready var _spawn_timer: Timer = $SpawnTimer
 
 var _speech_selector: NormalSpeechSelector = NormalSpeechSelector.new()
@@ -372,12 +379,21 @@ func spawn_normal_barrage(
 		else 0.0
 	)
 	view.setup(barrage_record, effective_move_speed, self, should_use_random_static_placement, curve_amplitude, speed_change_cycle)
+	if not _terminal_presentation_only and not should_use_random_static_placement:
+		# 只让普通移动前景缓和缩放；静止、复读、矛盾和终局实例沿用各自外观。
+		view.configure_animated_size(
+			normal_foreground_min_scale,
+			normal_foreground_max_scale,
+			normal_foreground_scale_cycle_seconds
+		)
 	if _terminal_presentation_only:
 		view.apply_terminal_trait_presentation(_terminal_trait_ids, _terminal_trait_colors)
 	if not _try_register_normal_capacity_occupant(view, capacity_limit):
 		view.free()
 		return null
 	add_child(view)
+	if not speech.local_style_bbcode.is_empty():
+		view.set_visual_bbcode(speech.local_style_bbcode)
 	var placement_succeeded: bool = false
 	if should_use_random_static_placement:
 		placement_succeeded = _place_barrage_for_spawn_request(view, true)

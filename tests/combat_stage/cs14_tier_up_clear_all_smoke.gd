@@ -17,6 +17,8 @@ var _resolved_valid_normal_hits: int = 0
 var _resolved_barrage_counts: Dictionary = {}
 var _resolved_comment_count: int = -1
 var _transition_results: Array[Dictionary] = []
+var _completed_transitions: Array[Dictionary] = []
+var _completed_dialogue_events: Array[StringName] = []
 var _inject_cross_tier_on_arrival: bool = false
 var _cross_tier_injected: bool = false
 var _capture_path: String = ""
@@ -72,7 +74,9 @@ func _run_smoke() -> void:
 
 	_flow.shot_resolved.connect(_on_shot_resolved)
 	_flow.tier_transition_cleared.connect(_on_tier_transition_cleared)
+	_flow.tier_transition_completed.connect(_on_tier_transition_completed)
 	_attack_input.shot_arrival_resolved.connect(_on_shot_arrival_resolved)
+	_sandbox.dialogue_event_sequence_completed.connect(_on_dialogue_sequence_completed)
 
 	await _run_transition_case(level, speech, 0.559, 0, 1, false, true)
 	await _run_transition_case(level, speech, 0.6395, 1, 2, false, false)
@@ -127,6 +131,7 @@ func _run_transition_case(
 		"射击前场上保留普通、特性和复读弹幕")
 	var pre_shot_comment_count: int = int(_sandbox.call("get_debug_snapshot").get("comment_count", -1))
 	var previous_transition_count: int = _transition_results.size()
+	var previous_completed_count: int = _completed_transitions.size()
 	_resolved_shots = 0
 	_inject_cross_tier_on_arrival = inject_cross_tier
 	_cross_tier_injected = false
@@ -156,9 +161,11 @@ func _run_transition_case(
 	_check(int(transition.get("normal_count", -1)) == 0
 		and int(transition.get("repeat_count", -1)) == 0,
 		"清屏完成事件发出时区域内无可见弹幕")
-	_check(bool(transition.get("generation_enabled", false))
+	_check(not bool(transition.get("generation_enabled", true))
 		and bool(transition.get("normal_combat_active", false)),
-		"升档清屏后普通生成与战斗流程继续运行")
+		"突破演出期间暂停普通生成且保留本场尝试")
+	_check(float(transition.get("tier_scale", 1.0)) > 1.0,
+		"清屏后立即弹出当前最终 Tier 的短暂突破提示")
 	_check(int(transition.get("resolved_shots", -1)) == 1,
 		"清屏完成事件发生在所有 shot_resolved 消费者之后")
 	_check(int(transition.get("comment_count", -1)) == _resolved_comment_count,
@@ -168,10 +175,21 @@ func _run_transition_case(
 		_check(expected_current_tier - expected_previous_tier > 1, "跨档事件只清屏一次并抵达最终 Tier")
 	if capture_evidence and not _capture_path.is_empty():
 		# 截图只用于交接证据；读取清屏后首帧前暂停生成计时器。
-		_barrage_area.stop_normal_generation()
 		await RenderingServer.frame_post_draw
 		var screenshot: Image = get_viewport().get_texture().get_image()
 		_check(screenshot.save_png(_capture_path) == OK, "保存 T0→T1 清屏后的 Sandbox 画面")
+	await _wait_for_tier_transition(previous_completed_count)
+	_check(_completed_transitions.size() == previous_completed_count + 1,
+		"突破提示完成后只交付一次最终 Tier")
+	var completed_transition: Dictionary = _completed_transitions[previous_completed_count]
+	_check(int(completed_transition.get("current_tier", -1)) == expected_current_tier
+		and completed_transition.get("tier_scale", Vector2.ZERO) == Vector2.ONE,
+		"突破提示回落到同一最终 Tier 后结束")
+	_check(_barrage_area.is_normal_generation_enabled() and _attack_input.get_attack_phase() == AttackChargeInput.AttackPhase.READY,
+		"过渡完成后恢复新档弹幕与正式攻击")
+	if expected_previous_tier == CombatStage.INITIAL_TIER and expected_current_tier == CombatStage.INITIAL_TIER + 1:
+		_check(_completed_dialogue_events.has(&"combat_connected"),
+			"T0→T1 过渡后才提交 CS-22 连线开场事件")
 	await _wait_for_attack_ready()
 
 
@@ -215,11 +233,31 @@ func _on_tier_transition_cleared(previous_tier: int, current_tier: int, cleared_
 		"repeat_count": int(_barrage_area.get_current_barrage_counts().get("repeat", -1)),
 		"generation_enabled": _barrage_area.is_normal_generation_enabled(),
 		"normal_combat_active": _flow.is_normal_combat_active(),
+		"tier_scale": _sandbox.get_node("%BattleHud").get_node("%Tier").scale.x,
 		"resolved_shots": _resolved_shots,
 		"comment_count": int(_sandbox.call("get_debug_snapshot").get("comment_count", -1)),
 	})
 
 
+# 记录突破提示结束事实，后续发射仅在新档战斗恢复后继续。
+func _on_tier_transition_completed(previous_tier: int, current_tier: int) -> void:
+	_completed_transitions.append({
+		"previous_tier": previous_tier,
+		"current_tier": current_tier,
+		"tier_scale": _sandbox.get_node("%BattleHud").get_node("%Tier").scale,
+	})
+
+
+# 记录真实 SD-06 / SD-03 连线序列完成事实。
+func _on_dialogue_sequence_completed(event_id: StringName, _sequence_id: StringName, _side: int) -> void:
+	_completed_dialogue_events.append(event_id)
+
+
+# 等待正式 Tier 过渡信号，同时限制验收时长。
+func _wait_for_tier_transition(previous_count: int) -> void:
+	var deadline_msec: int = Time.get_ticks_msec() + 3000
+	while _completed_transitions.size() <= previous_count and Time.get_ticks_msec() < deadline_msec:
+		await get_tree().process_frame
 # 第三组用例在 BattleAttemptFlow 记录到达 Tier 后注入终档，覆盖同一整发跨多档分支。
 func _on_shot_arrival_resolved(_snapshot: AttackTargetSnapshot, _target_results: Array[Dictionary]) -> void:
 	if not _inject_cross_tier_on_arrival:

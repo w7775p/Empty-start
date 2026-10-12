@@ -1,6 +1,6 @@
 # CS-27 降至 T1 时对手嘲讽表现
 
-**状态：待开发 · 单功能任务卡**
+**状态：已完成 · Godot 4.7.2 Sandbox Headless：37 checks，0 failures**
 
 ## 开始前先阅读以下文档
 - `docs/Original/任务卡模板.md` 与 `known_traps.md`（通用执行规范与已知风险）

@@ -6,6 +6,8 @@ signal attempt_restarted(level: LevelProfile, hit_resolution: HitResolution, com
 signal shot_resolved(snapshot: AttackTargetSnapshot, submission: Dictionary, current_tier: int, repeat_stats: RepeatGenerationStats)
 # 整发通知与升档清理完成后广播，供 Sandbox 和后续阶段演出接入。
 signal tier_transition_cleared(previous_tier: int, current_tier: int, cleared_barrage_count: int)
+# 突破提示完成后交给状态对白消费者，再按阶段恢复战斗。
+signal tier_transition_completed(previous_tier: int, current_tier: int)
 signal tier_changed(current_tier: int, player_pk: float)
 signal pk_feedback_changed(player_pk: float, current_tier: int)
 signal battle_state_changed(text: String)
@@ -36,6 +38,11 @@ var _opening_fan_count: int = 0
 var _is_configured: bool = false
 var _normal_combat_active: bool = false
 var _normal_completion_pending: bool = false
+var _tier_transition_active: bool = false
+var _tier1_dialogue_pending: bool = false
+var _tier_transition_hit_resolution: HitResolution
+var _tier_transition_previous_tier: int = CombatStage.INITIAL_TIER
+var _tier_transition_current_tier: int = CombatStage.INITIAL_TIER
 var _shot_tier_at_arrival: int = CombatStage.INITIAL_TIER
 var _has_shot_tier_at_arrival: bool = false
 
@@ -117,6 +124,9 @@ func _start_attempt(is_restart: bool) -> bool:
 	_run_data.tendency_state.rollback_attempt_tendency()
 	_run_data.live_session.initialize_session(_opening_fan_count)
 	_normal_completion_pending = false
+	_tier_transition_active = false
+	_tier1_dialogue_pending = false
+	_tier_transition_hit_resolution = null
 	_has_shot_tier_at_arrival = false
 
 	_hit_resolution = HitResolution.new(
@@ -165,7 +175,8 @@ func _start_attempt(is_restart: bool) -> bool:
 
 # 暂停沿用 SceneTree；此入口只在普通战斗活动时推进普通复读。
 func advance(delta: float) -> void:
-	if _normal_combat_active and _hit_resolution != null and _hit_resolution.allows_normal_pk_resolution():
+	if (_normal_combat_active and not _tier_transition_active and not _tier1_dialogue_pending
+			and _hit_resolution != null and _hit_resolution.allows_normal_pk_resolution()):
 		_repeat_queue.advance_and_dispatch(delta, _barrage_area)
 
 
@@ -181,6 +192,80 @@ func clear_barrages_for_stage_transition() -> int:
 	return 0
 
 
+# 查询本发升档沿，避免仅用于调试的 PK 设置延迟对白事件。
+func is_tier_breakthrough_pending() -> bool:
+	return (
+		_has_shot_tier_at_arrival
+		and _combat_stage != null
+		and _combat_stage.get_current_tier() > _shot_tier_at_arrival
+	)
+
+
+# 清屏后冻结输入、生成和回拉，等短暂突破提示结束再恢复。
+func begin_tier_breakthrough_transition(previous_tier: int, current_tier: int) -> bool:
+	if not _normal_combat_active or _tier_transition_active or _tier1_dialogue_pending:
+		return false
+	if previous_tier < CombatStage.INITIAL_TIER or current_tier <= previous_tier:
+		return false
+	if _combat_stage == null or _combat_stage.get_current_tier() != current_tier or _hit_resolution == null:
+		return false
+	_tier_transition_active = true
+	_tier_transition_hit_resolution = _hit_resolution
+	_tier_transition_previous_tier = previous_tier
+	_tier_transition_current_tier = current_tier
+	_attack_input.set_combat_active(false)
+	_barrage_area.stop_normal_generation()
+	_opponent_pk_bar.stop_pullback()
+	return true
+
+
+# 演出结束后发布阶段事实；T0→T1 等待连线对白完整播放后再恢复战斗。
+func finish_tier_breakthrough_transition() -> bool:
+	if not _tier_transition_active or _tier_transition_hit_resolution != _hit_resolution:
+		return false
+	var previous_tier: int = _tier_transition_previous_tier
+	var current_tier: int = _tier_transition_current_tier
+	var waits_for_tier1_dialogue: bool = (
+		previous_tier == CombatStage.INITIAL_TIER and current_tier == CombatStage.INITIAL_TIER + 1
+	)
+	_tier_transition_active = false
+	_tier1_dialogue_pending = waits_for_tier1_dialogue
+	tier_transition_completed.emit(previous_tier, current_tier)
+	# 无配置对白会在信号内同步结束；用本地事实避免重复恢复。
+	if waits_for_tier1_dialogue:
+		return true
+	return _resume_after_tier_transition()
+
+
+# 连线对白结束事实只恢复仍处于 T1 的本次尝试。
+func resume_after_tier1_dialogue() -> bool:
+	if not _tier1_dialogue_pending or get_current_tier() != CombatStage.INITIAL_TIER + 1:
+		return false
+	_tier1_dialogue_pending = false
+	return _resume_after_tier_transition()
+
+
+# 恢复本档普通生成和回拉；若升档本发已打满 PK，则继续胜利入口。
+func _resume_after_tier_transition() -> bool:
+	var transition_hit: HitResolution = _tier_transition_hit_resolution
+	if not _normal_combat_active or transition_hit == null or transition_hit != _hit_resolution:
+		_tier_transition_hit_resolution = null
+		return false
+	_tier_transition_hit_resolution = null
+	if transition_hit.get_player_pk() >= _battle_config.maximum_player_pk:
+		_complete_normal_combat(transition_hit)
+		return true
+	if not transition_hit.allows_normal_pk_resolution():
+		return false
+	var current_level: LevelProfile = get_current_level_profile()
+	if current_level == null or not _barrage_area.start_normal_generation(current_level):
+		push_error("BattleAttemptFlow: 突破提示结束后无法恢复本档普通弹幕。")
+		return false
+	_attack_input.set_combat_active(true)
+	_opponent_pk_bar.resume_pullback()
+	return true
+
+
 func complete_current_level() -> void:
 	if is_instance_valid(_opponent_pk_bar):
 		_opponent_pk_bar.complete_current_level()
@@ -193,6 +278,9 @@ func stop() -> void:
 
 func _stop_normal_combat() -> void:
 	_normal_combat_active = false
+	_tier_transition_active = false
+	_tier1_dialogue_pending = false
+	_tier_transition_hit_resolution = null
 	if is_instance_valid(_attack_input):
 		_attack_input.set_combat_active(false)
 	if is_instance_valid(_barrage_area):
@@ -314,6 +402,7 @@ func _refresh_pk_feedback() -> void:
 # 普通 PK 胜利先停掉尝试、保存粉丝与复读历史，再注入同一组状态进入矛盾阶段。
 func _complete_normal_combat(source_hit_resolution: HitResolution) -> void:
 	if (source_hit_resolution != _hit_resolution or not _normal_combat_active
+			or _tier_transition_active or _tier1_dialogue_pending
 			or _hit_resolution.get_player_pk() < _battle_config.maximum_player_pk):
 		return
 	var current_level: LevelProfile = get_current_level_profile()

@@ -1,6 +1,6 @@
 # RP-21 复读始终位于全部话语底层
 
-**状态：待实施**
+**状态：已完成 · 2026-10-12（复用现有 BarrageView 层级规则并完成 Sandbox smoke）**
 
 ## 开始前先阅读以下文档
 - docs/Original/任务卡模板.md、known_traps.md

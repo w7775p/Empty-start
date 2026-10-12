@@ -1,6 +1,6 @@
 # CS-23 T1 对话完成后恢复生成和 PK 回拉
 
-**状态：待生命周期接线**
+**状态：已完成 · T1 开场对白完播后恢复生成与 PK 回拉**
 
 ## 开始前先阅读以下文档
 - `docs/Original/任务卡模板.md` 与 `known_traps.md`（通用执行规范与已知风险）
@@ -10,10 +10,10 @@
 - 复用接口：现有 OpponentPKBar 回拉停止和恢复方法
 
 ## 已经实现的功能
-当前回拉在 restart_current_attempt 里 start_pullback 后即运行；进入 T1 仅更新倍率，缺少对白期间的生命周期衔接。
+Sandbox 在 T0→T1 清屏与突破提示阶段暂停普通输入、弹幕生成和 OpponentPKBar 回拉。`combat_connected` 对话序列完播后，Sandbox 通知 BattleAttemptFlow；Flow 只在本次尝试仍处于 T1 时恢复普通生成、攻击和当前档回拉。
 
 ## SD-06 接口交接（2026-10-11）
-CS-23 可订阅 Sandbox 的 `dialogue_event_sequence_completed(event_id, sequence_id, side)`，只在 `event_id == &"combat_connected"` 且当前尝试仍为 T1 时恢复生成与回拉。该通知只在 SD-03 最后一句气泡实际到期后发出；无匹配配置时以空 `sequence_id` 表示零句序列已完成。被重开或离线清理取消的序列不会发完成通知。CS-23 具体暂停/恢复实现仍属于本卡。
+CS-23 可订阅 Sandbox 的 `dialogue_event_sequence_completed(event_id, sequence_id, side)`，只在 `event_id == &"combat_connected"` 且当前尝试仍为 T1 时恢复生成与回拉。该通知只在 SD-03 最后一句气泡实际到期后发出；无匹配配置时以空 `sequence_id` 表示零句序列已完成。被重开或离线清理取消的序列不会发完成通知。本卡于 2026-10-12 使用真实 T0→T1 命中和非空 TEST_ONLY 对白完成暂停 / 恢复联调。
 
 ## 本次任务
 T1 对话完成后恢复生成和 PK 回拉。

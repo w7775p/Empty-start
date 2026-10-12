@@ -19,7 +19,10 @@ func _run() -> void:
 	var split: BarrageView = _spawn(area, "预裂话语", [&"split"])
 	if not _check(combo.get_special_material() == &"reflect"
 		and metal.get_special_material() == &"occlusion"
-		and split.get_special_material() == &"split", "material precedence"):
+		and split.get_special_material() == &"split"
+		and combo.get_theme_constant("outline_size") == combo.foreground_outline_size
+		and metal.get_theme_constant("outline_size") == metal.foreground_outline_size
+		and split.get_theme_constant("outline_size") == split.foreground_outline_size, "special foreground keeps text outline"):
 		return
 
 	# 空心文字应当是现有不可选话语；单独叠加不会改变玻璃底板。
@@ -40,21 +43,24 @@ func _run() -> void:
 		and copy.runtime_record.trait_set.get_hit_result().kind == BarrageTraitResult.Kind.RETALIATION_COPY, "retaliation is one hit target"):
 		return
 
-	# 假复读是有描边前景；分裂后的子句及真正复读保持 PA-04 外观。
+	# 假牌保持复读调色但属于前景话语；只有真正复读保持零描边。
 	var fake: BarrageView = _spawn(area, "神说：大家好", [&"fake_card"], false, 3)
 	var child: BarrageView = _spawn(area, "子话语", [])
 	var repeat: BarrageView = _spawn(area, "神说：大家好", [], true, 1)
 	var fake_surface: BarrageSpecialSurface = fake.get_glass_surface() as BarrageSpecialSurface
 	var repeat_surface: BarrageSpecialSurface = repeat.get_glass_surface() as BarrageSpecialSurface
+	var copy_surface: BarrageSpecialSurface = copy.get_glass_surface() as BarrageSpecialSurface
 	if not _check(fake.get_special_material() == &"fake_card"
 		and fake.z_index > repeat.z_index
-		and fake.get_theme_constant("outline_size") == repeat.get_theme_constant("outline_size")
+		and fake.get_theme_constant("outline_size") == fake.foreground_outline_size
+		and repeat.get_theme_constant("outline_size") == 0
 		and fake.get_theme_font_size("font_size") == repeat.get_theme_font_size("font_size")
 		and fake.get_theme_color("font_color").is_equal_approx(repeat.get_theme_color("font_color"))
 		and fake_surface._glass_style.bg_color.is_equal_approx(repeat_surface._glass_style.bg_color)
 		and fake_surface._glass_style.border_color.is_equal_approx(repeat_surface._glass_style.border_color)
+		and copy_surface._text_outline_size == copy.foreground_outline_size
 		and child.get_special_material() == &"glass"
-		and repeat.get_special_material() == &"glass", "fake uses genuine repeat palette and text, only frame changes"):
+		and repeat.get_special_material() == &"glass", "all non-repeats are outlined; true repeats remain zero-outline"):
 		return
 
 	print("PA05_SMOKE_PASS: 4 external behavior scenarios")

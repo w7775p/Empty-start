@@ -26,11 +26,16 @@ var _main_material: StringName = &"glass"
 var _phase: float = 0.0
 var _source_line: String = ""
 var _text_font: Font
+var _text_outline_size: int = 0
+var _text_outline_color: Color = Color.TRANSPARENT
 var _metal_style: StyleBoxFlat = StyleBoxFlat.new()
 
 
 # 只消费已有稳定特性 ID；材质优先级与战斗结果顺序保持一致。
-func configure_traits(traits: Array[StringName], source_line: String = "", drawing_font: Font = null) -> void:
+func configure_traits(
+		traits: Array[StringName], source_line: String = "", drawing_font: Font = null,
+		text_outline_size: int = 0, text_outline_color: Color = Color.TRANSPARENT
+	) -> void:
 	_main_material = &"glass"
 	for id: StringName in [&"reflect", &"occlusion", &"fake_card", &"retaliation_copy", &"split"]:
 		if traits.has(id):
@@ -39,6 +44,8 @@ func configure_traits(traits: Array[StringName], source_line: String = "", drawi
 	_phase = 0.0
 	_source_line = source_line
 	_text_font = drawing_font
+	_text_outline_size = maxi(text_outline_size, 0)
+	_text_outline_color = text_outline_color
 	set_process((_main_material == &"reflect") or (_strength == 3 and not _is_repeat))
 	queue_redraw()
 
@@ -232,5 +239,9 @@ func _draw_retaliation_panel() -> void:
 	for index in range(offsets.size()):
 		var pos: Vector2 = offsets[index]
 		var max_width: float = w * 0.47 - 20.0
+		if _text_outline_size > 0:
+			# 多处反击小字与普通前景共用同一可调描边配置。
+			draw_string_outline(_text_font, pos, _source_line, HORIZONTAL_ALIGNMENT_LEFT,
+				max_width, retaliation_font_size, _text_outline_size, _text_outline_color)
 		draw_string(_text_font, pos, _source_line, HORIZONTAL_ALIGNMENT_LEFT,
 			max_width, retaliation_font_size, colors[index])

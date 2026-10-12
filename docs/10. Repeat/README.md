@@ -9,17 +9,50 @@
 
 | 卡片 | 按实际代码核对后的唯一功能 | 状态 |
 | --- | --- | --- |
-| [RP-14](tasks/RP-14_plain-text-repeat.md) | 现有纯文本兼容回归 | 已有基础 |
-| [RP-15](tasks/RP-15_repeat-cap-calibration.md) | 现有复读独立容量实测 | 已有容量 |
+| [RP-14](tasks/RP-14_plain-text-repeat.md) | 复读与前景富文本覆盖保持纯文本 / 原句身份分离 | 已完成 · 2026-10-12 |
+| [RP-15](tasks/RP-15_repeat-cap-calibration.md) | 现有复读独立容量实测 | 已完成 · 2026-10-12 |
 | [RP-16](tasks/RP-16_repeat-shrink-per-tier.md) | 复读随机位置静止生成 | 已完成 · 2026-10-11 |
-| [RP-17](tasks/RP-17_repeat-speed-per-tier.md) | 复读随寿命渐隐 | 待开发 |
-| [RP-18](tasks/RP-18_repeat-infection-spread.md) | 已有原句计划的复读潮表现 | 已有基础 |
-| [RP-19](tasks/RP-19_repeat-grey-text.md) | 灰色复读文字 | 待开发 |
-| [RP-20](tasks/RP-20_repeat-zero-outline.md) | 零描边复读 | 待开发 |
-| [RP-21](tasks/RP-21_repeat-bottom-layer.md) | 复读最低层 | 待开发 |
+| [RP-17](tasks/RP-17_repeat-speed-per-tier.md) | 复读随寿命渐隐 | 已完成 · 2026-10-12 |
+| [RP-18](tasks/RP-18_repeat-infection-spread.md) | 同句普通复读延迟接续并静止散布 | 已完成 · 2026-10-12 |
+| [RP-19](tasks/RP-19_repeat-grey-text.md) | 灰色复读文字 | 已完成（2026-10-12） |
+| [RP-20](tasks/RP-20_repeat-zero-outline.md) | 零描边复读 | 已完成（2026-10-12） |
+| [RP-21](tasks/RP-21_repeat-bottom-layer.md) | 复读始终位于全部话语底层 | 已完成 · 2026-10-12 |
 
 本节是当前派工依据；历史章节中的旧默认值与旧任务说明保留用来追溯已有系统演变。开发时以单卡现行版和本节为准。
 
+## RP-21 复读层级验收（2026-10-12）
+
+- 复用 `BarrageView.setup()` 的现有层级规则：复读 `z_index = 0`、普通及矛盾话语 `z_index = 1`、带 `occlusion` 特性的普通话语使用 `RenderingServer.CANVAS_ITEM_Z_MAX`。
+- 层级在实例 setup 时确定；之后移动 / 静止定位只更新位置，不改层级。BarrageArea 普通、矛盾与 RP-16 复读入口继续使用同一个 BarrageView 场景。
+- RP-21 smoke 验证真实 Sandbox BattleAttemptFlow 队列生成复读、普通移动前景、已定义的遮挡实例与真实矛盾阶段视图：读取层级为 repeat 0、normal/contradiction 1、occlusion 4096；复读在完整配置寿命内维持底层且静止，普通前景仍移动。
+- 现有实现已符合要求，本卡没有改动运行代码或正式关卡 Resource。
+
+
+## RP-15 独立容量实测（2026-10-12）
+
+- 继续使用 `SandboxBattleConfig.repeat_screen_cap = 24` 与 `maximum_pending_repeat_count = 96`；屏幕占用由 `BarrageArea` 的独立 `BarrageCapacityLedger` 按实际在树实例计数，待生成普通请求由 `BattleAttemptFlow` 创建的 `RepeatDelayQueue` 独立限制。
+- `CombatStageTierConfig` 中 T0～T5 每击数量仍为 3 / 6 / 8 / 12 / 15 / 20；实际普通攻击流程经 `BattleAttemptFlow` 使用当前 Tier 的 `get_current_repeat_count_per_hit()` 创建计划，独立容量不改每击计划数量。
+- Godot 4.7.2 真实 Sandbox 流程 smoke 使用当前 T0 的 `get_current_repeat_count_per_hit()` 读取每个普通命中复读数，通过 BattleAttemptFlow 当前队列累计填入正式待生成上限；请求等待沿用 `RepeatDelayConfig` 的实际范围。
+- 24 条实例同时可见后，到期但无法生成的请求留在队列，`RepeatGenerationStats` 只记录成功生成的实例。结束一条真实复读实例后，等待请求补入空位，同屏回到 24，实际统计增加 1。
+- 本次容量验收通过，现有 24 / 96 配置保持不变；没有猜测新的策划数值，也没有修改 Sandbox、配置 Resource 或统计实现。Android / BG-17 跨平台合并验收不属于本卡范围。
+
+### RP-18 同句静止复读接续涌现（2026-10-12）
+
+- `BattleAttemptFlow` 在有效普通话语命中后创建 `RepeatPlan`；`RepeatDelayQueue` 为每条同句请求抽取独立延迟并在战斗帧推进到期项。
+- 到期计划通过 `BarrageArea.spawn_repeat_barrage(plan, true)` 进入中央区域随机静止落点。运行记录保留原句 ID 与原文，生成统计只累加实际成功实例，实例到期后由弹幕区域释放容量。
+- Godot 4.7.2 headless Sandbox smoke 使用真实攻击输入触发普通命中，并验证同句三条复读、原句 ID、静止位置、寿命清理及容量补位。GUI 组件 smoke 展示同句复读群，画面在本地临时目录检查。
+- 当前 main 已有上述运行链路；本卡完成联调验收，未修改运行脚本、Scene 或 Resource。
+
+**RP-19（2026-10-12）** `BarrageView.repeat_font_color` 是可调灰色来源，默认 `#b8bfcb`，同时设置普通 Label 与 RichTextLabel。终局特性着色只覆盖普通前景，复读继续保持低干扰灰色。
+
+**RP-20（2026-10-12）** `BarrageView` 依据运行时 `is_repeat` 将 Label 与 RichTextLabel 的 `outline_size` 设为 0。BG-37 已将真复读识别与假牌复读配色分开：真复读保持零描边，假牌作为前景话语继续保留前景描边。
+
+### RP-17 复读生命周期淡出（2026-10-12）
+
+- `BarrageRuntimeRecord.capture_lifetime_at_spawn()` 固定生成时总寿命与绝对到期时间。
+- `BarrageView` 对 `is_repeat` 实例按 `剩余寿命 / 捕获总寿命` 连续设置 `modulate.a`；普通前景透明度保持不变。该入口覆盖普通、矛盾和神降临历史复读。
+- 暂停时沿用 `BarrageView` 既有到期补偿，复读保持暂停前透明度；恢复后按剩余寿命继续淡出。
+- Godot 4.7.2 GUI smoke 验收出生、中段、暂停/恢复和寿命末端状态。运行截图依仓库 `.gitignore` 保存在本地 `.godot` 临时目录。
 
 ## 系统目标
 
@@ -124,10 +157,10 @@ RP-12 已复用 13 的本场读取链，并提供 19 已有候选入口可消费
 
 | 卡号 | 本卡唯一功能 | 状态 |
 | --- | --- | --- |
-| [RP-14](tasks/RP-14_plain-text-repeat.md) | 复读使用普通纯文本 | 待实施 |
+| [RP-14](tasks/RP-14_plain-text-repeat.md) | 复读使用普通纯文本 | 已完成 · 2026-10-12 |
 | [RP-15](tasks/RP-15_repeat-cap-calibration.md) | 复读独立同屏上限与容量验收 | 待实施 |
 | [RP-16](tasks/RP-16_repeat-shrink-per-tier.md) | 复读随机位置静止生成 | 已完成 · 2026-10-11 |
-| [RP-17](tasks/RP-17_repeat-speed-per-tier.md) | 复读按生命周期渐隐 | 待实施 |
+| [RP-17](tasks/RP-17_repeat-speed-per-tier.md) | 复读按生命周期渐隐 | 已完成 · 2026-10-12 |
 | [RP-18](tasks/RP-18_repeat-infection-spread.md) | 有效命中形成同向复读潮 | 待实施 |
 
 关联依赖及实施顺序以各卡的上游功能卡为准；共享场景与组件按实际 Owner 的任务流程依次集成。
@@ -138,8 +171,8 @@ RP-12 已复用 13 的本场读取链，并提供 19 已有候选入口可消费
 
 | 任务卡 | 唯一功能 | 状态 |
 | --- | --- | --- |
-| [RP-19](tasks/RP-19_repeat-grey-text.md) | 复读文字使用灰色 | 待实施 |
-| [RP-20](tasks/RP-20_repeat-zero-outline.md) | 复读文本描边宽度为零 | 待实施 |
+| [RP-19](tasks/RP-19_repeat-grey-text.md) | 复读文字使用灰色 | 已完成（2026-10-12） |
+| [RP-20](tasks/RP-20_repeat-zero-outline.md) | 复读文本描边宽度为零 | 已完成（2026-10-12） |
 | [RP-21](tasks/RP-21_repeat-bottom-layer.md) | 复读固定最低层级 | 待实施 |
 
 本轮任务卡逐项说明触发条件、应发生的行为与验收结果；派工时依赖最新卡片和系统当前代码。

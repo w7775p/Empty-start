@@ -99,6 +99,8 @@ LevelProfile 保存静态关卡资料、普通话语池、倾向比例、特殊�
 
 前三项稳定 ID 沿用身份选项系统 ID-01 的字符串值：`orthodox`、`heretical`、`absurd`。普通话语额外允许 `neutral`，只表示内容类别，不作为开局身份或玩家三项倾向。`LevelSpeech.tendency_id` 保持字符串字段，不在关卡配置系统另建枚举。
 
+LevelSpeech.local_style_bbcode 是 BG-28 消费的可选普通前景表现 BBCode，空值不改变现有话语显示。当前正式源表和导表器不提供该字段；由 Resource / 调用方显式配置，导表映射留数据交付任务处理。
+
 ### LC-03 特殊玩法与矛盾内容
 
 `LevelProfile.special_trait_ids` 保存本关使用的特性稳定 ID 字符串，具体 ID 由现有 `BarrageTraitSet` 定义；本关启用列表和继承白名单分别配置。
