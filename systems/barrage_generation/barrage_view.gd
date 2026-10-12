@@ -5,6 +5,7 @@ extends Label
 const REPEAT_Z_INDEX: int = 0
 const FOREGROUND_Z_INDEX: int = 1
 const OCCLUSION_Z_INDEX: int = RenderingServer.CANVAS_ITEM_Z_MAX
+const LOCAL_TEXT_ANIMATION_KINDS: Array[StringName] = [&"shake", &"pulse", &"wave", &"tornado"]
 
 @export_group("文字玻璃统一样式")
 @export_range(14, 42, 1) var visual_font_size: int = 24
@@ -247,6 +248,108 @@ func set_visual_bbcode(bbcode: String) -> bool:
 	_fit_visual_to_sentence(runtime_record.text)
 	_fit_visual_to_rich_text(rich)
 	return true
+
+
+## 在普通原句的短片段上随机应用一种低强度 RichTextLabel 原生动画。
+func apply_random_local_text_animation(probability: float) -> bool:
+	if (not is_inside_tree() or runtime_record == null or runtime_record.is_repeat
+			or runtime_record.is_contradiction or not is_finite(probability)):
+		return false
+	if runtime_record.trait_set != null and not runtime_record.trait_set.get_trait_ids().is_empty():
+		# 特性有独立表现语义，局部文字动画不覆盖它们。
+		return false
+	if randf() >= clampf(probability, 0.0, 1.0):
+		return false
+	var source_bbcode: String = _visual_bbcode if not _visual_bbcode.is_empty() else runtime_record.text
+	var selected_text: String = ""
+	var source_index: int = -1
+	for _attempt: int in range(8):
+		var selected_range: Vector2i = _choose_local_text_animation_range(runtime_record.text)
+		if selected_range.x < 0:
+			return false
+		selected_text = runtime_record.text.substr(selected_range.x, selected_range.y)
+		source_index = _find_plain_segment_in_bbcode(source_bbcode, selected_text)
+		if source_index >= 0:
+			break
+	if source_index < 0:
+		# 无法安全定位既有富文本正文时保留原样式，不猜测要插入的位置。
+		return false
+
+	var animation_kind: StringName = LOCAL_TEXT_ANIMATION_KINDS[randi_range(0, LOCAL_TEXT_ANIMATION_KINDS.size() - 1)]
+	var open_tag: String
+	match animation_kind:
+		&"shake":
+			open_tag = "[shake rate=8.0 level=1 connected=1]"
+		&"pulse":
+			open_tag = "[pulse freq=0.5 color=#fffdf2e6 ease=-2.0]"
+		&"wave":
+			open_tag = "[wave amp=2.0 freq=1.6 connected=1]"
+		&"tornado":
+			open_tag = "[tornado radius=1.0 freq=0.8 connected=1]"
+		_:
+			return false
+	var end_tag: String = "[/%s]" % String(animation_kind)
+	var animated_bbcode: String = (
+		source_bbcode.substr(0, source_index) + open_tag + selected_text + end_tag
+		+ source_bbcode.substr(source_index + selected_text.length())
+	)
+	if not set_visual_bbcode(animated_bbcode):
+		return false
+	var rich: RichTextLabel = get_node_or_null("RichBody") as RichTextLabel
+	if rich != null:
+		# 弹幕节点为补偿寿命设为 ALWAYS；文字动画本身仍随游戏暂停。
+		rich.process_mode = Node.PROCESS_MODE_PAUSABLE
+	return true
+
+
+## 读取已生效的局部动画 ID，供本机演示显示，不参与命中或结算。
+func get_local_text_animation_kind() -> StringName:
+	for animation_kind: StringName in LOCAL_TEXT_ANIMATION_KINDS:
+		if _visual_bbcode.contains("[" + String(animation_kind) + " "):
+			return animation_kind
+	return &""
+
+
+## 从当前原文抽取一个至四个可见字符，避开 BBCode 界符和空白。
+func _choose_local_text_animation_range(sentence: String) -> Vector2i:
+	if sentence.is_empty():
+		return Vector2i(-1, 0)
+	var candidates: Array[Vector2i] = []
+	for start_index: int in range(sentence.length()):
+		var max_length: int = mini(4, sentence.length() - start_index)
+		for segment_length: int in range(1, max_length + 1):
+			var fragment: String = sentence.substr(start_index, segment_length)
+			if (fragment.strip_edges().is_empty() or fragment.contains("[") or fragment.contains("]")
+					or fragment.contains("\n") or fragment.contains("\r") or fragment.contains("\t")):
+				continue
+			candidates.append(Vector2i(start_index, segment_length))
+	if candidates.is_empty():
+		return Vector2i(-1, 0)
+	return candidates[randi_range(0, candidates.size() - 1)]
+
+
+## 在 BBCode 标签外定位可见片段，避免把动画标记插入标签参数。
+func _find_plain_segment_in_bbcode(source_bbcode: String, selected_text: String) -> int:
+	var inside_tag: bool = false
+	var index: int = 0
+	while index < source_bbcode.length():
+		if source_bbcode.substr(index, 2) == "[[":
+			index += 2
+			continue
+		var character: String = source_bbcode.substr(index, 1)
+		if character == "[":
+			inside_tag = true
+			index += 1
+			continue
+		if character == "]":
+			inside_tag = false
+			index += 1
+			continue
+		if (not inside_tag and index + selected_text.length() <= source_bbcode.length()
+				and source_bbcode.substr(index, selected_text.length()) == selected_text):
+			return index
+		index += 1
+	return -1
 
 
 # 外部可读取原句显示事实，不受富文本标签切换影响。
