@@ -64,8 +64,7 @@ func _start_demo() -> void:
 	_area.size = Vector2(1280.0, 760.0)
 	_area.maximum_foreground_move_speed_pixels_per_second = 120.0
 	_area.random_straight_direction_spread_degrees = 30.0
-	_area.curved_foreground_motion_enabled = false
-	_area.speed_change_foreground_motion_enabled = false
+	_area.set_foreground_motion_weights(1.0, 0.0, 0.0, 0.0)
 	_area.normal_foreground_layer_change_interval_seconds = 0.0
 	var background: ColorRect = _area.get_node_or_null("AreaBackground") as ColorRect
 	if background != null:

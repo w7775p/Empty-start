@@ -5,18 +5,18 @@
 
 ## 2026-10-12 现行实现核对与任务状态
 
-**现行生成规则：** 前景普通话语与挂特性的特殊话语共同占用 T0～T5 各档少量容量，T1=10、T2=13、T3=16、T4=19、T5=22。T0 的 0 表示未填，普通阶段沿用 `LevelProfile.normal_barrage_screen_cap`。BG-16 已接入 CS-24 的 Tier 名额；带特性实例另占 BG-35 特殊名额，同一实例携带多项兼容特性仍只计一个特殊名额，离树时与普通前景名额一并释放。未配置 LC-12 每关值时，当前暂以普通前景容量回退；06 全局特殊基础值和正式导表尚未接入。Paradox 继续采用关卡上限，复读保留独立容量。复读可由生成调用方显式请求中央战斗区随机静止落点；普通话语装配 `occlusion` 后由 BT-15 自动使用该能力。普通移动前景由 BG-18 每次从上、下、左、右均匀选边，在边缘可容纳完整视图的范围内随机出生，并以对应的内向向量交给 `BarrageView`；限速、曲线与周期加减速继续由既有运动配置处理。BG-20 随机方向直线和 BG-23 游荡仍待开发。BG-42 静止请求、遮挡、Repeat 与 Paradox 不使用 BG-18 边缘移动出生；尚未接入 BG-39 Tier 运动权重。Paradox 阶段按 CB-13 读取一真五假六句。
+**现行生成规则：** 前景普通话语与挂特性的特殊话语共同占用 T0～T5 各档少量容量，T1=10、T2=13、T3=16、T4=19、T5=22。T0 的 0 表示未填，普通阶段沿用 `LevelProfile.normal_barrage_screen_cap`。BG-16 已接入 CS-24 的 Tier 名额；带特性实例另占 BG-35 特殊名额，同一实例携带多项兼容特性仍只计一个特殊名额，离树时与普通前景名额一并释放。未配置 LC-12 每关值时，当前暂以普通前景容量回退；06 全局特殊基础值和正式导表尚未接入。Paradox 继续采用关卡上限，复读保留独立容量。复读可由生成调用方显式请求中央战斗区随机静止落点；普通话语装配 `occlusion` 后由 BT-15 自动使用该能力。普通移动前景由 BG-18 从四边随机出生；BG-20 直线方向、BG-21 曲线、BG-22 加减速和 BG-23 游荡由 BG-39 按当前 `CombatStage` Tier 权重抽选。正式 Tier 权重尚未由策划填写，`CombatStageTierConfig` 保持安全直线默认；权重缺失或全零时也回退直线。静止遮挡、复读与 Paradox 不参与普通运动抽选。BG-42 静止请求及 BG-35 特性容量继续走各自边界；Paradox 阶段按 CB-13 读取一真五假六句。
 
 | 卡片 | 按实际代码核对后的唯一功能 | 状态 |
 | --- | --- | --- |
 | [BG-16](tasks/BG-16_high-density-cap.md) | 按 Tier 读取前景容量 | 已合并 main；Tier 容量回归通过 |
 | [BG-17](tasks/BG-17_pc-android-performance.md) | 分层性能与可读性验收 | 待组合实测 |
 | [BG-18](tasks/BG-18_four-edge-spawn.md) | 普通前景从四周边缘随机出生并朝内移动 | 已合并 main（#199） |
-| [BG-20](tasks/BG-20_random-straight-motion.md) | 普通前景直线模式围绕内向法线随机偏转 | 已完成（2026-10-12） |
+| [BG-20](tasks/BG-20_random-straight-motion.md) | 普通前景直线模式围绕内向法线随机偏转 | 已合并 main（#204） |
 | [BG-42](tasks/BG-42_static-random-placement.md) | 复读和遮挡共用的中央区域随机静止落点 | 已合并 main |
 | [BG-21](tasks/BG-21_curved-motion.md) | 普通前景可选平滑曲线运动 | 已合并 main；聚焦回归和 GUI 运动证据通过 |
 | [BG-22](tasks/BG-22_speed-change-motion.md) | 普通前景可选周期加减速 | 已实现；BG-40 限速、BG-21 曲线组合及 GUI 运动验证通过 |
-| [BG-23](tasks/BG-23_wandering-motion.md) | 普通前景低速游荡 | 已实现；独立 PR #203 开放，demo 观察到多次转向 |
+| [BG-23](tasks/BG-23_wandering-motion.md) | 普通前景低速游荡 | 已合并 main（#203） |
 | [BG-24](tasks/BG-24_overlap-pass-through.md) | 普通移动前景出生重叠与运动穿透 | 已实现；TEST_ONLY 两实例真实运行 smoke 通过 |
 | [BG-25](tasks/BG-25_random-start-layer.md) | 普通前景随机初始层级 | 已由独立 PR #196 合入 main |
 | [BG-26](tasks/BG-26_moving-layer-order.md) | 普通前景运动中随机改变层级 | 已合并 main（#197） |
@@ -32,8 +32,8 @@
 | [BG-36](tasks/BG-36_downgrade-count-grace.md) | 降档超额自然回落 | T3→T2 自然回落与计时补位实测通过 |
 | [BG-37](tasks/BG-37_foreground-text-outline.md) | 非复读文字描边 | 已完成（2026-10-12） |
 | [BG-38](tasks/BG-38_effective-area-clear.md) | 现有命中结束目标接线回归 | Godot 4.7.2 场景回归 48 项通过 |
-| [BG-39](tasks/BG-39_tier-motion-proportions.md) | 四种运动类型随 Tier 权重变化 | 待开发 |
-| [BG-40](tasks/BG-40_foreground-speed-ceiling.md) | 前景话语最大速度 | BG-20 直线、BG-21 曲线和 BG-22 加减速均按统一上限验证；BG-23 待实现后补验 |
+| [BG-39](tasks/BG-39_tier-motion-proportions.md) | 四种运动类型随 Tier 权重变化 | 已完成（2026-10-12）；正式权重待策划填表 |
+| [BG-40](tasks/BG-40_foreground-speed-ceiling.md) | 前景话语最大速度 | BG-20～BG-23 四种模式均经过现有普通速度入口；本卡 Tier 分布和速度回归通过 |
 | [BG-41](tasks/BG-41_random-trait-selection.md) | 按已解锁池随机分配特性 | 技能池待定 |
 
 ## BG-35 带特性普通话语的独立同屏上限
@@ -72,15 +72,15 @@ LevelSpeech.local_style_bbcode 可选保存普通前景话语的局部 BBCode �
 
 `test_bg42_static_random_placement.gd` 用实际 `BarrageArea` / `BarrageView` 覆盖默认移动、短长文本边界、随机位置分布、1024×760 当前尺寸、1024×1008 扩高、缩小区域时视图夹回 / 移除与容量恢复、过小区域拒绝、暂停和寿命。图形运行保存当前战斗区视觉截图到 `evidence/BG42_static_random_placement.png`；真实 Sandbox 场景文件未修改。
 
-**BG-40（2026-10-11）** `BarrageArea.maximum_foreground_move_speed_pixels_per_second` 是 Inspector 可调的普通移动前景速度上限，默认值为 100 px/s，与当前 `LevelProfile.base_move_speed_pixels_per_second` 基础值一致。`get_foreground_move_speed_pixels_per_second(level_profile)` 是普通前景唯一限速入口，按 `max(基础速度, 0) × max(当前 CS-07 Tier 倍率, 0)` 计算后裁切到上限；倍率更新继续只影响之后新建的普通前景实例。当前 `BarrageView._process()` 保留默认向左移动，支持 BG-21 曲线路径和 BG-22 周期加减速；曲线沿弧长按当帧加减速值推进，路径速度受同一上限约束。BG-22 默认关闭，Inspector 可将单次完整加速和减速周期设为 2～16 秒，默认 6 秒。BG-23 低速倍率施加在该限速之后；BG-20 随机方向直线仍待对应任务接入。
+**BG-40（2026-10-11）** `BarrageArea.maximum_foreground_move_speed_pixels_per_second` 是 Inspector 可调的普通移动前景速度上限，默认值为 100 px/s，与当前 `LevelProfile.base_move_speed_pixels_per_second` 基础值一致。`get_foreground_move_speed_pixels_per_second(level_profile)` 是普通前景唯一限速入口，按 `max(基础速度, 0) × max(当前 CS-07 Tier 倍率, 0)` 计算后裁切到上限；倍率更新继续只影响之后新建的普通前景实例。BG-20～BG-23 四种普通运动都复用该速度入口；BG-23 在限速后再乘游荡低速倍率。曲线按弧长推进，加减速周期继续约束每帧路径速度。每种运动由当前 Tier 的 BG-39 权重决定，现有移动与寿命上限不变。
 
 该限速只接在普通移动前景生成路径。显式 BG-42 静止请求传入零速度；Repeat 沿用原基础速度与当前倍率计算；Paradox 六候选继续读取自身 `ContradictionWindowConfig`。`test_bg40_foreground_speed_ceiling.gd` 使用实际 Tier Catalog 与 `CombatStage` 检查 T1～T5、T1/T5 真实位移、降档后的新实例、Repeat / Paradox 隔离和静止请求。测试句为脚本内 TEST_ONLY 合成数据，不作为正式关卡或正式玩法可读性验收。GUI smoke 保存 TEST_ONLY 短句的 Godot 渲染截图到 `evidence/BG40_foreground_speed_ceiling_test.png`。
 
-**BG-20（2026-10-12）** `BarrageArea.random_straight_direction_spread_degrees` 可在 Inspector 设为 0～45°，默认 30°。普通前景直线模式围绕 BG-18 出生边的内向法线随机偏转；范围上限保留正向内分量，实际移动速度继续经过 BG-40 唯一限速入口。打开 BG-21 曲线或 BG-22 周期加减速时仍使用原边内向法线；静止请求、Repeat 与 Paradox 沿用各自原逻辑。Godot 4.7.2 的 TEST_ONLY 方向演示使用 8 个真实 `BarrageView`，覆盖四边出生、偏转轨迹、可见性和 120 px/s 上限；GUI 截图保存在本地 `evidence/BG20_random_straight_motion.png`，遵循仓库规则不提交 evidence PNG。
+**BG-20（2026-10-12）** `BarrageArea.random_straight_direction_spread_degrees` 可在 Inspector 设为 0～45°，默认 30°。BG-39 抽中直线模式时，方向围绕 BG-18 出生边的内向法线随机偏转；范围上限保留正向内分量，实际移动速度继续经过 BG-40 唯一限速入口。曲线、加减速与游荡通过当前 Tier 权重单独抽选；静止请求、Repeat 与 Paradox 沿用各自原逻辑。BG-20 的 Godot 4.7.2 TEST_ONLY 方向演示使用真实 `BarrageView`，覆盖四边出生、偏转轨迹、可见性和速度上限。
 
-**BG-21（2026-10-11）** `BarrageArea.curved_foreground_motion_enabled` 默认关闭；开启后仅后续普通移动前景实例使用平滑单弧，`curved_foreground_motion_amplitude_pixels` 调整最大弧高，实际幅度按落点可用上下空间收窄。`BarrageView` 使用 2 px 烘焙步长的 `Curve2D` 弧长，以线性采样推进并满足 BG-40 限速入口；视图高度保持在区域内。曲线沿用 BG-18 出生边的内向法线，BG-20 随机偏转只用于未开启曲线和加减速的直线模式；BG-42 静止请求优先保持静止，Repeat 与 Paradox 仍使用独立既有路径。没有接入 BG-39 Tier 权重。`test_bg21_curved_motion.gd` 覆盖开关、弧高调整、BG-40 逐帧速度上限、完整视图边界，以及静止、Repeat 和 Paradox 隔离。图形测试保存 TEST_ONLY 轨迹图到 `evidence/BG21_curved_motion_gui.png`；图中尾迹记录实际视图位置，正式词库可读性仍需完整游戏人工验收。
+**BG-21（2026-10-11）** `BarrageArea.curved_foreground_motion_amplitude_pixels` 调整曲线模式最大弧高，实际幅度按落点可用空间收窄。`BarrageView` 使用 2 px 烘焙步长的 `Curve2D` 弧长，以线性采样推进并满足 BG-40 限速入口；视图高度保持在区域内。曲线模式由当前 `CombatStageTierConfig.curved_motion_weight` 抽选，不再由全局 Inspector 开关强制所有新实例走曲线；BG-20 的直线偏转只在抽中直线时使用。BG-42 静止请求、Repeat 与 Paradox 不进入普通模式抽选。`test_bg21_curved_motion.gd` 覆盖曲线类型、弧高调整、BG-40 限速、完整视图边界及隔离规则。
 
-**BG-22（2026-10-11）** `BarrageArea.speed_change_foreground_motion_enabled` 默认关闭；开启后仅后续普通移动前景实例加减速。`speed_change_foreground_motion_cycle_seconds` 可在 Inspector 设为 2～16 秒，默认 6 秒；每周期从零速平滑加速到 BG-40 返回的速度上限，再平滑减速到零，运动方向沿 BG-18 出生边内向法线。`BarrageView` 用 smoothstep 平滑周期接缝，并将当帧速度用于直线路径或 BG-21 曲线路径弧长，因此组合运行时的路径速度仍不超过 BG-40 上限。BG-20 随机偏转只用于直线模式；BG-42 静止请求优先保持静止，Repeat 和 Paradox 不读取该选项；没有接入 BG-39 Tier 权重。`test_bg22_speed_change_motion.gd` 使用实际 `BarrageArea` / `BarrageView`，覆盖默认匀速、4 秒可调周期、加速与减速速度样本、逐帧速度上限、曲线叠加及隔离规则。图形运行保存 TEST_ONLY 轨迹和样本速度到 `evidence/BG22_speed_change_motion_gui.png`；该组件级验证不代表正式词库或完整局内体验验收。
+**BG-22（2026-10-11）** `BarrageArea.speed_change_foreground_motion_cycle_seconds` 可设为 2～16 秒，默认 6 秒；抽中加减速模式时每周期从低速平滑加速到 BG-40 返回的速度上限，再平滑减速回低速。`BarrageView` 用 smoothstep 平滑周期接缝。运动模式由当前 Tier 的 `speed_change_motion_weight` 抽选，配置值只影响新实例；静止请求、Repeat 与 Paradox 不读取该权重。`test_bg22_speed_change_motion.gd` 覆盖默认直线、加减速周期、逐帧速度上限及隔离规则。
 
 **BG-27（2026-10-12）** `BarrageArea` 为普通移动前景提供 Inspector 可调缩放范围，默认 `0.96～1.04`、一次往返 6 秒。`BarrageView.configure_animated_size()` 只由普通生成路径启用，使用每实例独立初相位的余弦曲线平滑放大和缩小，并围绕视图中心缩放。静止请求、复读、矛盾与终局实例维持各自尺寸规则。现有 `pulse_presentation()` 与缓和缩放合成同一 `Control.scale`，短时命中和终局脉冲不会覆盖持续缩放。攻击查询继续读取 `BarrageView.get_global_rect()`，该矩形随当前缩放同步变化；当前 GUI smoke 的 28 项检查全部通过。默认值是可调起始值，不代表正式策划平衡数据；程序美术、正式导表及 Android 实机验收不在本卡范围。
 
@@ -90,7 +90,9 @@ LevelSpeech.local_style_bbcode 可选保存普通前景话语的局部 BBCode �
 
 **BG-26（2026-10-12）** `BarrageArea.normal_foreground_layer_change_interval_seconds` 控制后续普通移动前景的换层间隔，默认 2 秒，设为 0 可关闭。每条视图拥有自己的间隔计时，到期后从 1～4095 中选一个不同于当前值的新 Z 层；暂停时计时冻结。静止请求、遮挡实例和 Repeat 保持原层级。该默认值为可调试玩起点，正式平衡仍可从 BarrageArea Inspector 调整。
 
-**BG-23（2026-10-12）** `BarrageArea.normal_foreground_wandering_enabled` 选择 BG-23 模式；`normal_foreground_wandering_speed_multiplier` 默认 0.35，`normal_foreground_wandering_direction_change_interval_seconds` 默认 2 秒，均可从 Inspector 调整。速度沿用当前关卡 / Tier 速度和 BG-40 上限，再乘低速倍率。`BarrageView.configure_wandering_motion()` 管理独立方向状态，按随机左右转角定时换向，并在完整视图触及区域边缘时反射；它保留 BG-20 使用的 `_move_direction`。终局、静止、复读、矛盾和遮挡实例不启用该路径。可复播的真实 BarrageArea 示例位于 [`bg23_wandering_motion_demo.tscn`](../../tests/barrage_generation/bg23_wandering_motion_demo.tscn)，R 键可重播。
+**BG-23（2026-10-12）** `BarrageArea.normal_foreground_wandering_speed_multiplier` 默认 0.35，`normal_foreground_wandering_direction_change_interval_seconds` 默认 2 秒，均可从 Inspector 调整。游荡模式由当前 Tier 的 `wandering_motion_weight` 抽选；速度沿用当前关卡 / Tier 速度和 BG-40 上限，再乘低速倍率。`BarrageView.configure_wandering_motion()` 管理独立方向状态，按随机左右转角定时换向，并在完整视图触及区域边缘时反射。静止、遮挡、复读和矛盾实例不启用该路径。可复播入口：[`bg23_wandering_motion_demo.tscn`](../../tests/barrage_generation/bg23_wandering_motion_demo.tscn)。
+
+**BG-39（2026-10-12）** `CombatStageTierConfig` 提供 `straight_motion_weight`、`curved_motion_weight`、`speed_change_motion_weight`、`wandering_motion_weight` 四项相对权重；当前 `CombatStage` 每次发布最终 Tier 配置时同步到 `BarrageArea.set_foreground_motion_weights()`。每条新普通移动前景根据该档权重独立抽选一种模式，按四项总和归一；各项输入限制在 0～100，处理后总权重为零时回退直线。正式 `data/combat_stage/tier_catalog.tres` 未填写新权重，Resource 脚本默认仍只选择直线，正式 05/06 导表器没有修改。差异化配置只存在于 `data/test_only/combat_stage/bg39_tier_motion_catalog.tres`。独立回归使用真实 `CombatStage` 验证 T1/T4 分布差异、T2 加减速、T3 四模式混合及静止遮挡、Repeat、Paradox 排除。GUI 入口：[`bg39_tier_motion_demo.tscn`](../../tests/barrage_generation/bg39_tier_motion_demo.tscn)；截图本地目录：`D:\Godot\lane-worktrees\lane-a-bg39\.godot\bg39-local-evidence\BG39_tier_motion_distribution.png`，未加入 Git。
 
 本节是当前派工依据；历史章节中的旧默认值与旧任务说明保留用来追溯已有系统演变。开发时以单卡现行版和本节为准。
 

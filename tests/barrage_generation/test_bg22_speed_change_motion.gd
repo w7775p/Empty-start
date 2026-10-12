@@ -82,8 +82,7 @@ func _run_test() -> void:
 	area.repeat_barrage_screen_cap = 8
 	area.maximum_foreground_move_speed_pixels_per_second = SPEED_CEILING
 	area.random_straight_direction_spread_degrees = 0.0
-	if area.speed_change_foreground_motion_enabled:
-		failures.append("speed-change mode is disabled by default")
+	area.set_foreground_motion_weights(1.0, 0.0, 0.0, 0.0)
 	var profile := LevelProfile.new()
 	profile.streamer_id = "bg22_test_streamer"
 	profile.base_batch_count = 0
@@ -94,13 +93,13 @@ func _run_test() -> void:
 		failures.append("test profile starts normal generation")
 	var speech := _make_speech("bg22_normal", "前景话语保持平缓的加速与减速。")
 
-	# 默认开关保持关闭时，普通前景继续按 BG-40 上限匀速直线移动。
-	area.curved_foreground_motion_enabled = false
-	area.speed_change_foreground_motion_enabled = false
+	# 直线权重配置继续按 BG-40 上限匀速移动。
 	var default_view: BarrageView = area.spawn_normal_barrage(profile, speech)
 	if default_view == null:
 		failures.append("default ordinary foreground still spawns")
 	else:
+		if default_view.get_foreground_motion_mode() != BarrageView.ForegroundMotionMode.STRAIGHT:
+			failures.append("straight tier weights select straight movement")
 		var default_start: Vector2 = default_view.position
 		var default_direction: Vector2 = _get_spawn_inward_direction(area, default_view)
 		var default_motion: Dictionary = await _measure_motion(default_view, 0.35)
@@ -114,11 +113,8 @@ func _run_test() -> void:
 		area.end_barrage(default_view.get_instance_id())
 		await process_frame
 
-	# 同时启用曲线和周期变速，确认路径沿弧长读取当帧速度并保留速度上限。
-	area.curved_foreground_motion_enabled = true
-	area.curved_foreground_motion_amplitude_pixels = 128.0
-	area.speed_change_foreground_motion_enabled = true
-	# 使用不同于默认值的 4 秒周期，确认 Inspector 配置真实影响后续实例。
+	# 速度权重单独选择 BG-22，并验证可配置周期和 BG-40 限速。
+	area.set_foreground_motion_weights(0.0, 0.0, 1.0, 0.0)
 	area.speed_change_foreground_motion_cycle_seconds = 4.0
 	var changing_view: BarrageView = area.spawn_normal_barrage(profile, speech)
 	var monitor: MotionMonitor
@@ -126,6 +122,8 @@ func _run_test() -> void:
 	if changing_view == null:
 		failures.append("enabled speed-change ordinary foreground spawns")
 	else:
+		if changing_view.get_foreground_motion_mode() != BarrageView.ForegroundMotionMode.SPEED_CHANGE:
+			failures.append("speed-change tier weights select speed-change movement")
 		var start_position: Vector2 = changing_view.position
 		var changing_direction: Vector2 = _get_spawn_inward_direction(area, changing_view)
 		var cycle_started_seconds: float = _frame_delta_recorder.elapsed_seconds
@@ -158,13 +156,13 @@ func _run_test() -> void:
 		if decelerating_speed >= peak_speed:
 			failures.append("ordinary foreground speed decelerates after the cycle peak")
 		var changing_delta: Vector2 = changing_view.position - start_position
-		var curve_offset: float = absf(
+		var changing_cross_track: float = absf(
 			changing_direction.x * changing_delta.y - changing_direction.y * changing_delta.x
 		)
-		if changing_delta.dot(changing_direction) <= 0.0 or curve_offset < 5.0:
-			failures.append("accelerating ordinary view follows the enabled curved path from its spawn edge")
+		if changing_delta.dot(changing_direction) <= 0.0 or changing_cross_track > 0.1:
+			failures.append("speed-change mode keeps the selected inward straight path")
 		if monitor.max_step_speed > SPEED_CEILING + 0.1:
-			failures.append("combined curve and acceleration stay within the BG-40 speed ceiling")
+			failures.append("speed-change mode stays within the BG-40 speed ceiling")
 		if monitor.max_speed_change_per_second > 80.0:
 			failures.append("ordinary foreground acceleration has no abrupt per-frame speed jump")
 		if DisplayServer.get_name() != "headless":
@@ -187,7 +185,7 @@ func _run_test() -> void:
 		var static_position: Vector2 = static_view.position
 		await create_timer(0.25).timeout
 		if static_view.position != static_position:
-			failures.append("BG-42 static request bypasses acceleration and curved movement")
+			failures.append("BG-42 static request bypasses the selected speed-change movement")
 		area.end_barrage(static_view.get_instance_id())
 		await process_frame
 
@@ -236,7 +234,7 @@ func _run_test() -> void:
 	area.queue_free()
 	await process_frame
 	if failures.is_empty():
-		print("PASS BG-22: adjustable smooth speed cycle, BG-40 ceiling, BG-21 curve, BG-42 static, Repeat and Paradox isolation")
+		print("PASS BG-22: adjustable smooth speed cycle, BG-40 ceiling, separate BG-21 mode, BG-42 static, Repeat and Paradox isolation")
 	else:
 		push_error("FAIL BG-22: %s" % "; ".join(failures))
 	quit(0 if failures.is_empty() else 1)

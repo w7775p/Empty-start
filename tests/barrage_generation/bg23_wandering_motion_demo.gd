@@ -87,11 +87,9 @@ func _build_demo_surface() -> void:
 		maxf(viewport_size.y - top_margin - 48.0, 360.0)
 	)
 	_barrage_area.base_lifetime_seconds = 40.0
-	_barrage_area.normal_foreground_wandering_enabled = true
+	_barrage_area.set_foreground_motion_weights(0.0, 0.0, 0.0, 1.0)
 	_barrage_area.normal_foreground_wandering_speed_multiplier = 0.4
 	_barrage_area.normal_foreground_wandering_direction_change_interval_seconds = 1.0
-	_barrage_area.curved_foreground_motion_enabled = false
-	_barrage_area.speed_change_foreground_motion_enabled = false
 	_barrage_area.normal_foreground_layer_change_interval_seconds = 0.0
 	add_child(_barrage_area)
 	_barrage_area.set_foreground_slot_count(1)

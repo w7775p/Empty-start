@@ -18,18 +18,12 @@ signal barrage_generated(view: BarrageView)
 ## 围绕出生边内向法线随机偏转的最大角度；保留向内主分量，避免初始运动朝区域外。
 @export_range(0.0, 45.0, 1.0) var random_straight_direction_spread_degrees: float = 30.0
 @export_group("BG-21 普通前景曲线运动")
-## 开启后，仅新生成的普通移动前景使用平滑曲线；静止请求、复读与矛盾保持原行为。
-@export var curved_foreground_motion_enabled: bool = false
 ## 普通前景曲线的最大垂直弧高，实际值会按当前战斗区可用空间收窄。
 @export_range(0.0, 180.0, 4.0) var curved_foreground_motion_amplitude_pixels: float = 72.0
 @export_group("BG-22 普通前景平缓加减速")
-## 开启后，仅新生成的普通移动前景按周期加速和减速；默认关闭以保留匀速行为。
-@export var speed_change_foreground_motion_enabled: bool = false
 ## 一次从低速加速到上限再减速回低速的总时长，周期只影响新生成的普通前景。
 @export_range(2.0, 16.0, 0.5) var speed_change_foreground_motion_cycle_seconds: float = 6.0
 @export_group("BG-23 普通前景低速游荡")
-## 开启后，新生成的普通移动前景单独进入游荡状态，不改写 BG-20 的直线方向状态。
-@export var normal_foreground_wandering_enabled: bool = false
 ## 游荡速度仍基于关卡速度与 Tier，再乘以该低速倍率并受 BG-40 上限约束。
 @export_range(0.10, 1.0, 0.05) var normal_foreground_wandering_speed_multiplier: float = 0.35
 ## 游荡视图随机转向的间隔；该值为可调试玩起点。
@@ -56,6 +50,7 @@ var _contradiction_config: ContradictionWindowConfig
 var _count_multiplier: float = 1.0
 var _frequency_multiplier: float = 1.0
 var _movement_speed_multiplier: float = 1.0
+var _foreground_motion_weights: Vector4 = Vector4(1.0, 0.0, 0.0, 0.0)
 var _lifetime_multiplier: float = 1.0
 var _neutral_weight_multiplier: float = 1.0
 var _foreground_slot_count: int = 0
@@ -153,6 +148,42 @@ func set_generation_multipliers(generation_count_multiplier: float, generation_f
 	_frequency_multiplier = generation_frequency_multiplier
 	_movement_speed_multiplier = movement_speed_multiplier
 	_restart_spawn_timer()
+
+## 接收 CombatStage 当前 Tier 的四种相对权重；无有效权重时安全回退到直线。
+func set_foreground_motion_weights(
+	straight_weight: float, curved_weight: float, speed_change_weight: float, wandering_weight: float
+) -> void:
+	_foreground_motion_weights = Vector4(
+		_sanitize_foreground_motion_weight(straight_weight),
+		_sanitize_foreground_motion_weight(curved_weight),
+		_sanitize_foreground_motion_weight(speed_change_weight),
+		_sanitize_foreground_motion_weight(wandering_weight)
+	)
+
+
+## 将负数或非有限权重按零处理，避免配置错误破坏抽选范围。
+func _sanitize_foreground_motion_weight(weight: float) -> float:
+	return clampf(weight, 0.0, 100.0) if is_finite(weight) else 0.0
+
+
+## 按当前 Tier 的相对权重抽取一个普通前景运动类型。
+func _select_foreground_motion_mode() -> BarrageView.ForegroundMotionMode:
+	var total_weight: float = (
+		_foreground_motion_weights.x + _foreground_motion_weights.y
+		+ _foreground_motion_weights.z + _foreground_motion_weights.w
+	)
+	if total_weight <= 0.0:
+		return BarrageView.ForegroundMotionMode.STRAIGHT
+	var roll: float = randf_range(0.0, total_weight)
+	if roll < _foreground_motion_weights.x:
+		return BarrageView.ForegroundMotionMode.STRAIGHT
+	roll -= _foreground_motion_weights.x
+	if roll < _foreground_motion_weights.y:
+		return BarrageView.ForegroundMotionMode.CURVED
+	roll -= _foreground_motion_weights.y
+	if roll < _foreground_motion_weights.z:
+		return BarrageView.ForegroundMotionMode.SPEED_CHANGE
+	return BarrageView.ForegroundMotionMode.WANDERING
 
 ## 唯一普通前景速度入口：读取关卡基础速度与当前 Tier 倍率后应用可调上限。
 func get_foreground_move_speed_pixels_per_second(level_profile: LevelProfile) -> float:
@@ -395,22 +426,17 @@ func spawn_normal_barrage(
 	var should_use_random_static_placement: bool = (
 		random_static_placement or barrage_record.trait_set.has_trait(BarrageTraitSet.OCCLUSION)
 	)
-	var should_use_wandering_motion: bool = (
-		normal_foreground_wandering_enabled
-		and not _terminal_presentation_only and not should_use_random_static_placement
-	)
+	var motion_mode: BarrageView.ForegroundMotionMode = BarrageView.ForegroundMotionMode.STRAIGHT
 	var random_spawn_edge: int = -1
 	var inward_move_direction: Vector2 = Vector2.LEFT
 	if not should_use_random_static_placement:
 		# 方向仅用于本次边缘出生；运动速度和生命周期仍走现有普通前景路径。
 		random_spawn_edge = randi_range(NormalSpawnEdge.TOP, NormalSpawnEdge.RIGHT)
-		# BG-20 只改变当前直线模式；曲线与加减速继续沿用原出生法线。
-		var uses_existing_motion_variant: bool = (
-			curved_foreground_motion_enabled or speed_change_foreground_motion_enabled
-		)
+		motion_mode = _select_foreground_motion_mode()
+		# 只有直线类型使用 BG-20 偏转；其他模式从 BG-18 出生法线开始。
 		inward_move_direction = (
 			_get_inward_direction_for_edge(random_spawn_edge)
-			if uses_existing_motion_variant
+			if motion_mode != BarrageView.ForegroundMotionMode.STRAIGHT
 			else _get_random_inward_direction_for_edge(random_spawn_edge)
 		)
 	# BG-42 静止实例保持零速度；移动前景沿用限速、曲线和周期加减速配置。
@@ -419,16 +445,16 @@ func spawn_normal_barrage(
 	)
 	var effective_move_speed: float = (
 		base_move_speed * clampf(normal_foreground_wandering_speed_multiplier, 0.10, 1.0)
-		if should_use_wandering_motion else base_move_speed
+		if motion_mode == BarrageView.ForegroundMotionMode.WANDERING else base_move_speed
 	)
 	var curve_amplitude: float = (
 		curved_foreground_motion_amplitude_pixels
-		if curved_foreground_motion_enabled and not should_use_random_static_placement and not should_use_wandering_motion
+		if motion_mode == BarrageView.ForegroundMotionMode.CURVED
 		else 0.0
 	)
 	var speed_change_cycle: float = (
 		speed_change_foreground_motion_cycle_seconds
-		if speed_change_foreground_motion_enabled and not should_use_random_static_placement
+		if motion_mode == BarrageView.ForegroundMotionMode.SPEED_CHANGE
 		else 0.0
 	)
 	var layer_change_interval: float = (
@@ -438,7 +464,7 @@ func spawn_normal_barrage(
 	)
 	view.setup(
 		barrage_record, effective_move_speed, self, should_use_random_static_placement,
-		curve_amplitude, speed_change_cycle, inward_move_direction, layer_change_interval
+		curve_amplitude, speed_change_cycle, inward_move_direction, layer_change_interval, motion_mode
 	)
 	if not _terminal_presentation_only and not should_use_random_static_placement:
 		# 只让普通移动前景缓和缩放；静止、复读、矛盾和终局实例沿用各自外观。
@@ -469,7 +495,7 @@ func spawn_normal_barrage(
 		# 场上没有可见空位时归还刚申请的容量，普通 Timer 后续继续尝试。
 		end_barrage(view.get_instance_id())
 		return null
-	if should_use_wandering_motion:
+	if motion_mode == BarrageView.ForegroundMotionMode.WANDERING:
 		view.configure_wandering_motion(normal_foreground_wandering_direction_change_interval_seconds)
 	barrage_generated.emit(view)
 	return view
