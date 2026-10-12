@@ -5,6 +5,7 @@ signal dialogue_sequence_completed(sequence_id: StringName, side: int)
 signal tier_breakthrough_finished(previous_tier: int, current_tier: int, completed: bool)
 
 const PortraitMotion = preload("res://systems/presentation/streamer_portrait_motion.gd")
+const TierPortrait = preload("res://systems/presentation/opponent_tier_portrait.gd")
 const DialogueQueueScript = preload("res://ui/streamer_bubble_dialogue/streamer_bubble_dialogue_queue.gd")
 const HAMSTER_LIVE_BACKGROUND: Texture2D = preload("res://assets/environment/live/hamster/background.png")
 const HAMSTER_LIVE_FOREGROUND: Texture2D = preload("res://assets/environment/live/hamster/foreground_desk.png")
@@ -25,6 +26,7 @@ const FAN_GROUP_NAME_PLACEHOLDER: String = "粉丝团"
 
 var player_portrait_motion: StreamerPortraitMotion
 var opponent_portrait_motion: StreamerPortraitMotion
+var opponent_tier_portrait: OpponentTierPortrait
 var _portrait_attack: AttackChargeInput
 var _opponent_connected: bool = false
 var _paradox_stage_active: bool = false
@@ -71,6 +73,8 @@ func _ready() -> void:
 	opponent_portrait_motion = PortraitMotion.new()
 	opponent_portrait_motion.configure_character("alien")
 	opponent_portrait_motion.attach_portrait(_opponent_portrait)
+	opponent_tier_portrait = TierPortrait.new()
+	opponent_tier_portrait.attach_portrait(_opponent_portrait)
 	_dialogue_queue = DialogueQueueScript.new()
 	_dialogue_queue.name = "BubbleDialogueQueue"
 	_dialogue_queue.call(
@@ -160,7 +164,14 @@ func configure_streamer_assets(
 
 	_set_texture_rect(_opponent_live_background, opponent_live_background, TextureRect.STRETCH_KEEP_ASPECT_COVERED)
 	_set_texture_rect(_opponent_portrait, opponent_portrait, TextureRect.STRETCH_KEEP_ASPECT_CENTERED)
+	opponent_tier_portrait.configure_textures(opponent_portrait, null, null, null)
 	_opponent_portrait_placeholder.visible = opponent_portrait == null
+	set_opponent_portrait_connected(_opponent_connected)
+
+
+# LC-10 接入正式 23 表后，可将当前关的四张阶段图一次性交给本入口。
+func configure_opponent_tier_textures(idle: Texture2D, tier_01: Texture2D, tier_02: Texture2D, tier_03: Texture2D) -> void:
+	opponent_tier_portrait.configure_textures(idle, tier_01, tier_02, tier_03)
 	set_opponent_portrait_connected(_opponent_connected)
 
 
@@ -189,6 +200,7 @@ func set_opponent_portrait_connected(connected: bool) -> void:
 	if _dialogue_queue != null:
 		_dialogue_queue.call("set_side_enabled", BubbleDialogueEntry.SpeakerSide.OPPONENT, connected)
 	_opponent_portrait.visible = connected and _opponent_portrait.texture != null
+	opponent_tier_portrait.visible = connected and _opponent_portrait.texture != null
 	_opponent_portrait_placeholder.visible = connected and _opponent_portrait.texture == null
 
 
@@ -254,6 +266,7 @@ func refresh_pk(player_pk: float, current_tier: int) -> void:
 		var previous_tier: int = _last_status_tier
 		var opponent_was_connected: bool = _opponent_connected
 		_last_status_tier = current_tier
+		opponent_tier_portrait.show_tier(current_tier)
 		if previous_tier >= 0 and current_tier < previous_tier:
 			_play_tier_down_shake()
 		if opponent_was_connected and current_tier == 0:
@@ -420,6 +433,7 @@ func reset_for_attempt() -> void:
 	clear_dialogue_bubbles()
 	player_portrait_motion.set_idle_strength(1.0)
 	opponent_portrait_motion.set_idle_strength(1.0)
+	opponent_tier_portrait.reset_for_tier()
 	set_opponent_portrait_connected(false)
 	set_paradox_stage_active(false, 0)
 	_last_status_tier = 0
