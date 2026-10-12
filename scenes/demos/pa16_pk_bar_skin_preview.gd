@@ -16,10 +16,12 @@ func _ready() -> void:
 	var arguments: PackedStringArray = OS.get_cmdline_user_args()
 	if arguments.has("--pa16-capture"):
 		_set_capture_window(Vector2i(1920, 1080))
+		_prepare_capture_view()
 		_help_panel.hide()
 		call_deferred("_capture_1920")
 	elif arguments.has("--pa16-capture-1280"):
 		_set_capture_window(Vector2i(1280, 720))
+		_prepare_capture_view()
 		_help_panel.hide()
 		call_deferred("_capture_1280")
 
@@ -165,6 +167,13 @@ func _capture_current_state(label: String, expected_texture: String, file_name: 
 		(_get_ball() as Control).position.x,
 	])
 
+
+# 固定帧采集隐藏弹幕和对白绘制层，只聚焦实际 Sandbox PK / Tier HUD。
+func _prepare_capture_view() -> void:
+	var battle_hud: Node = _sandbox.get_node("BattleHud")
+	battle_hud.get_node("PlayerStreamerArea/PlayerPortraitPlaceholder/PlayerBubbleStack").hide()
+	battle_hud.get_node("OpponentStreamerArea/OpponentPortraitPlaceholder/OpponentBubbleStack").hide()
+	battle_hud.get_node("BattleArea/BarrageArea").hide()
 
 # 对比实际 TextureRect 当前贴图，避免仅凭 PK 数字推断显示结果。
 func _check_skin(expected_texture: String, label: String) -> void:
