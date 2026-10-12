@@ -69,7 +69,7 @@ Godot 4.7.2 Windows OpenGL Compatibility 的 1920×1080 / 1280×720 真实画面
 - 贴图层位于 ProgressBar 实际填充层背后，原进度值和青色填充保持可见；PA-13 球作为同一轨道上的独立高层继续滚动。
 - 贴图 key 变化时才触发短闪、偏色、换图、复位；同图连续 PK 刷新不重播。`PkBarSkin` Inspector 可调 10/20/30/40% 边界、换图点（默认 34%）、时长（默认 0.28s）、闪烁次数（2）、亮度（1.7）、色相偏移和闪烁透明度（0.45）。`reset_for_attempt()` 会中断旧 Tween 并按当前尝试状态即时复位。
 
-**可复播入口**：`res://scenes/demos/pa16_pk_bar_skin_preview.tscn`。`1–4` 切换四档负向区间，`5` 显示 T0 原底板，`6–Q` 按真实 HitResolution / CombatStage 切换普通档位，`E` 请求当前 Sandbox 矛盾流程，`R` 重开，`P` 暂停 / 继续。截图参数 `--pa16-capture` 与 `--pa16-capture-1280` 从真实 Godot Viewport 保存 PNG。
+**可复播入口**：`res://scenes/demos/pa16_pk_bar_skin_preview.tscn`。`1–4` 切换四档负向区间，`5` 显示 T0 原底板，`6–Q` 按真实 HitResolution / CombatStage 切换普通档位，`E` 请求当前 Sandbox 矛盾流程，`R` 重开，`P` 暂停 / 继续。截图参数 `--pa16-capture` 与 `--pa16-capture-1280` 从真实 Godot Viewport 保存 PNG。固定帧模式为聚焦 PK 条只隐藏 `BattleArea/BarrageArea` 和两侧 `StreamerBubbleStack` 显示；HitResolution、CombatStage 与矛盾流程仍通过真实 Sandbox 运行，不代表自然攻击整局验收。
 
 **真实验收**：Godot 4.7.2 Windows D3D12，1920×1080 与 1280×720。通过全部正向图 / 四档负向 / 10%、20%、30% 精确区间边界 / 40% 退出覆盖 / Tier 1 恢复贴图断言；Paradox 图由真实矛盾流程激活，实际 PA-13 球在每帧随当前 PK 移动。运行还检查了暂停冻结、重开取消动画、PK 归零失败与重开复位。转场三帧与各状态截图、运行细节见 [PA-16 日志](表现资产_PA-16_2026-10-12_log.md)。
 
