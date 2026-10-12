@@ -66,11 +66,13 @@ func _run_test() -> void:
 		failures.append("ordinary curve speed uses the current BG-40 ceiling")
 
 	var short_speech := _make_speech("bg21_short", "曲线移动保持句子完整可读。")
-	area.curved_foreground_motion_enabled = false
+	area.set_foreground_motion_weights(1.0, 0.0, 0.0, 0.0)
 	var straight_view: BarrageView = area.spawn_normal_barrage(profile, short_speech)
 	if straight_view == null:
 		failures.append("disabled curve option preserves ordinary foreground spawning")
 	else:
+		if straight_view.get_foreground_motion_mode() != BarrageView.ForegroundMotionMode.STRAIGHT:
+			failures.append("straight tier weights select the straight mode")
 		var straight_start: Vector2 = straight_view.position
 		var straight_direction: Vector2 = _get_spawn_inward_direction(area, straight_view)
 		var straight_speed: Dictionary = await _measure_motion(straight_view, SAMPLE_SECONDS)
@@ -84,13 +86,15 @@ func _run_test() -> void:
 		area.end_barrage(straight_view.get_instance_id())
 		await process_frame
 
-	area.curved_foreground_motion_enabled = true
+	area.set_foreground_motion_weights(0.0, 1.0, 0.0, 0.0)
 	seed(21022)
 	var curved_view: BarrageView = area.spawn_normal_barrage(profile, short_speech)
 	var curve_height: float = 0.0
 	if curved_view == null:
 		failures.append("enabled curve option spawns an ordinary foreground view")
 	else:
+		if curved_view.get_foreground_motion_mode() != BarrageView.ForegroundMotionMode.CURVED:
+			failures.append("curve tier weights select the curved mode")
 		var curve_start: Vector2 = curved_view.position
 		var curve_direction: Vector2 = _get_spawn_inward_direction(area, curved_view)
 		var gui_trail: Dictionary = _begin_gui_motion_trail(area, curved_view) if DisplayServer.get_name() != "headless" else {}
