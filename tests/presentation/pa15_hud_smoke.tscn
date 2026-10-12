@@ -1,0 +1,7 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://tests/presentation/pa15_hud_smoke.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/sandbox/sandbox.tscn" id="2"]
+
+[node name="PA15HudSmoke" instance=ExtResource("2")]
+script = ExtResource("1")
