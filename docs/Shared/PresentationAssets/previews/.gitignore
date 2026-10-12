@@ -1,0 +1,12 @@
+# Review-only screenshots and recordings stay outside Git.
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.apng
+*.avi
+*.mp4
+*.mov
+*.webm
+*.mkv
