@@ -45,6 +45,20 @@ Windows 验证入口为 `tests/presentation/pa14_portrait_motion_smoke.tscn`：�
 
 **2026-10-11 策划决策：PA-07 已取消。** 保留现有攻击流程及反馈；实体言弹外观、飞行特效与专用快照坐标接口从开发范围移除。历史试样留在未合并的 #142。
 
+## PA-13 PK 条仓鼠球指示器（2026-10-12）
+
+`systems/presentation/pk_hamster_ball_indicator.tscn` 由 `SandboxBattleHud` 动态叠加到现有 `%PlayerShare` ProgressBar。`refresh_pk(player_pk, current_tier)` 仍从 `BattleAttemptFlow.pk_feedback_changed` 接收 HitResolution 唯一 PK 与当前 Tier：球心沿 PlayerShare 实际宽度将 0～1 映射到轨道两端，尺寸变化后重算；平滑跟随时按实际显示位移旋转，静止后停止。只有真实 Tier 上升播放笑脸弹跳，真实下降播放惊慌抖动并恢复笑脸；单纯 PK 下降不会换表情。`reset_for_attempt()` 取消局部 Tween、恢复笑脸并贴合新尝试 PK。Tween 绑定节点，SceneTree 暂停时一并冻结。
+
+`pk_hamster_ball_indicator.gd` 默认指示器直径 32px，Inspector 可调直径、轨道垂直偏移、移动平滑时长、滚动倍率、升档跳高/时间/旋转、降档抖动幅度/周期/跳高及惊慌表情停留。惊慌原 PNG 的方形角落为不透明白色，组件用 `pk_hamster_ball_circle_mask.gdshader` 做圆形 alpha 裁切；原始 `pk_indicator_01.png` / `pk_indicator_02.png` 未改动。PA-11 / PA-15 功能未改。
+
+**真实预览入口**：`res://scenes/demos/pa13_pk_hamster_ball_preview.tscn`，直接组合当前 Sandbox；`1/2/3` 通过现有调试入口更新 HitResolution 到 0% / 50% / 100%，`U/D` 使用当前 Tier 配置阈值触发真实升降档，`R` 重开，`P` 暂停 / 继续。采集用同一真实 Sandbox、`--pa13-capture` 和 `--pa13-capture-1280` 参数。1920×1080 0% 取景帧在 PK 归零失败后仅隐藏 FailureOverlay，以便看清球体；实战失败界面没有改变。
+
+Godot 4.7.2 Windows OpenGL Compatibility 的 1920×1080 / 1280×720 真实画面、暂停/恢复/笑脸复位检查与未验收项见 [PA-13 日志](表现资产_PA-13_2026-10-12_log.md)。
+
+- [1920×1080 · PK 0%](previews/pa13_pk_0_1920.png) · [50%](previews/pa13_pk_50_1920.png) · [100%](previews/pa13_pk_100_1920.png)
+- [1920×1080 · 升档空中帧](previews/pa13_tier_up_mid_1920.png) · [降档惊慌帧](previews/pa13_tier_down_mid_1920.png) · [1280×720 · PK 50%](previews/pa13_pk_50_1280.png)
+- **未验收**：Android 真机、项目默认 D3D12、PA-11 / PA-15 完整同屏联调，以及真实鼠标命中/自然回拉的整局 E2E。预览用真实 PK / Tier 状态入口演示组件行为，不代表以上流程均已交付。
+
 ## 目标
 
 让程序可以稳定接入美术正式资源，同时保持占位素材和正式素材可以直接替换。
@@ -113,7 +127,7 @@ assets/
 | PA-10 | PA-04～PA-06、PA-08～PA-19 等正式程序美术集成后的全局 Style 统一验收 | 整屏视觉验收 |
 | PA-11 | 战斗阶段切换：T0→T1 先上箭头再右侧直播画面 CRT、降档下箭头与震屏 | 运行画面验证 |
 | PA-12 | Paradox 程序美术：噤声、漫画双斜切、闪白冲击字、画面撕开及矛盾阶段表现 | 运行画面验证 |
-| PA-13 | PK 条仓鼠球指示器：随进度滚动、升降档蹦跳、降档惊慌表情 | 真实战斗画面验收 |
+| PA-13 | PK 条仓鼠球指示器：随进度滚动、升降档蹦跳、降档惊慌表情 | Windows 4.7.2 真实 HUD 与双分辨率预览已交；Android / PA-11、PA-15 联调待验 |
 | PA-15 | 对手 T2 idle+漫画汗滴；T3～T5 卡牌翻图与受击漫画冲击 | 实际升降档画面 |
 | PA-16 | PK 条阶段 / 负向贴图短闪调色切换，配合 PA-13 滚动球 | 运行画面验证 |
 | PA-17 | 真击破对手专属败北：外星人融化、狐狸花瓣雨、Kiwi 方案 A；未击破 T5 离线 | 成败分支实际演示 |
