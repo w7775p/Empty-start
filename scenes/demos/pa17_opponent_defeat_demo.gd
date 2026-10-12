@@ -28,14 +28,17 @@ var _portrait_motion: StreamerPortraitMotion
 var _presentation: OpponentBreakthroughPresentation
 var _current_role: StringName = &"alien"
 var _capture_mode: bool = false
+var _record_mode: bool = false
+var _record_start_frame: int = 0
 
 
 # 通过额外命令行参数启动精确尺寸的 GUI 关键帧采集。
 func _ready() -> void:
 	_capture_mode = OS.get_cmdline_user_args().has("--capture-pa17")
-	if _capture_mode:
+	_record_mode = OS.get_cmdline_user_args().has("--record-pa17")
+	if _capture_mode or _record_mode:
 		DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
-		DisplayServer.window_set_size(Vector2i(1920, 1080))
+		DisplayServer.window_set_size(Vector2i(1920, 1080) if _capture_mode else Vector2i(1280, 720))
 	call_deferred("_setup_demo")
 
 
@@ -70,6 +73,8 @@ func _setup_demo() -> void:
 	_set_role(&"alien")
 	if _capture_mode:
 		call_deferred("_capture_sequence")
+	elif _record_mode:
+		call_deferred("_record_sequence")
 
 
 # 选择角色只替换本次预览的 T5、败北图和现有背景 / 花瓣素材。
@@ -126,7 +131,7 @@ func _set_role(character_id: StringName) -> void:
 
 # 键盘操作展示三种真击破演出及单独的未击破离线演出。
 func _unhandled_key_input(event: InputEvent) -> void:
-	if _capture_mode or not event is InputEventKey:
+	if _capture_mode or _record_mode or not event is InputEventKey:
 		return
 	var key: InputEventKey = event as InputEventKey
 	if not key.pressed or key.echo:
@@ -148,6 +153,67 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		_:
 			return
 	get_viewport().set_input_as_handled()
+
+
+# 按固定顺序播放四段原有演出，供 Godot MovieWriter 连续录制。
+func _record_sequence() -> void:
+	_record_start_frame = Engine.get_process_frames()
+	await get_tree().create_timer(0.4).timeout
+	_record_mark("外星人融化开始")
+	if not _presentation.play_defeat(&"alien"):
+		push_error("PA17_RECORD_ALIEN_START_FAILED")
+		get_tree().quit(5)
+		return
+	await _presentation.defeat_animation_finished
+	_record_mark("外星人击败图停留")
+	await get_tree().create_timer(3.75).timeout
+	_record_mark("外星人片段结束")
+
+	_set_role(&"fox")
+	await get_tree().create_timer(0.35).timeout
+	_record_mark("狐狸花瓣雨开始")
+	if not _presentation.play_defeat(&"fox"):
+		push_error("PA17_RECORD_FOX_START_FAILED")
+		get_tree().quit(6)
+		return
+	await _presentation.defeat_animation_finished
+	_record_mark("狐狸击败图停留")
+	await get_tree().create_timer(3.75).timeout
+	_record_mark("狐狸片段结束")
+
+	_set_role(&"kiwi")
+	await get_tree().create_timer(0.35).timeout
+	_record_mark("Kiwi 整图乱舞开始")
+	if not _presentation.play_defeat(&"kiwi"):
+		push_error("PA17_RECORD_KIWI_START_FAILED")
+		get_tree().quit(7)
+		return
+	await _presentation.defeat_animation_finished
+	_record_mark("Kiwi 击败图停留")
+	await get_tree().create_timer(3.75).timeout
+	_record_mark("Kiwi 片段结束")
+
+	_set_role(&"fox")
+	await get_tree().create_timer(0.35).timeout
+	_record_mark("未击破 T5 展示")
+	await get_tree().create_timer(0.45).timeout
+	_record_mark("未击破 T5 离线开始")
+	if not _presentation.play_unbroken_offline():
+		push_error("PA17_RECORD_OFFLINE_START_FAILED")
+		get_tree().quit(8)
+		return
+	await _presentation.unbroken_offline_finished
+	_record_mark("未击破离线画面停留")
+	await get_tree().create_timer(3.75).timeout
+	_record_mark("未击破片段结束")
+	_record_mark("连续演出录制完成")
+	get_tree().quit(0)
+
+
+# 以固定录制帧率打印片段时间点，供 PR 中标注视频章节。
+func _record_mark(label: String) -> void:
+	var seconds: float = float(Engine.get_process_frames() - _record_start_frame) / 30.0
+	print("PA17_VIDEO_MARK t=%.2f %s" % [seconds, label])
 
 
 # HUD 状态区仅显示本次演示收到的完成通知。
