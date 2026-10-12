@@ -5,6 +5,7 @@ extends Label
 const REPEAT_Z_INDEX: int = 0
 const FOREGROUND_Z_INDEX: int = 1
 const OCCLUSION_Z_INDEX: int = RenderingServer.CANVAS_ITEM_Z_MAX
+enum ForegroundMotionMode { STRAIGHT, CURVED, SPEED_CHANGE, WANDERING }
 const LOCAL_TEXT_ANIMATION_KINDS: Array[StringName] = [&"shake", &"pulse", &"wave", &"tornado"]
 
 @export_group("文字玻璃统一样式")
@@ -20,6 +21,7 @@ const LOCAL_TEXT_ANIMATION_KINDS: Array[StringName] = [&"shake", &"pulse", &"wav
 @export_range(0, 5, 1) var text_shadow_offset: int = 2
 
 var runtime_record: BarrageRuntimeRecord
+var _foreground_motion_mode: ForegroundMotionMode = ForegroundMotionMode.STRAIGHT
 var _move_speed_pixels_per_second: float = 0.0
 var _move_direction: Vector2 = Vector2.LEFT
 var _wandering_motion_active: bool = false
@@ -139,9 +141,11 @@ func setup(
 	curve_amplitude_pixels: float = 0.0,
 	speed_change_cycle_seconds: float = 0.0,
 	move_direction: Vector2 = Vector2.LEFT,
-	foreground_layer_change_interval_seconds: float = 0.0
+	foreground_layer_change_interval_seconds: float = 0.0,
+	foreground_motion_mode: ForegroundMotionMode = ForegroundMotionMode.STRAIGHT
 ) -> void:
 	runtime_record = barrage_record
+	_foreground_motion_mode = foreground_motion_mode
 	text = barrage_record.text
 	_stationary_position = stationary_position
 	_move_speed_pixels_per_second = 0.0 if stationary_position else move_speed_pixels_per_second
@@ -193,6 +197,11 @@ func setup(
 	_apply_special_text_layout()
 
 
+## 供验收与演示读取该视图实际选中的普通前景运动类型。
+func get_foreground_motion_mode() -> ForegroundMotionMode:
+	return _foreground_motion_mode
+
+
 # 进入独立 BG-23 游荡状态，不改写 BG-20 使用的直线方向。
 func configure_wandering_motion(direction_change_interval_seconds: float) -> bool:
 	if (runtime_record == null or runtime_record.is_repeat or runtime_record.is_contradiction
@@ -212,6 +221,7 @@ func configure_wandering_motion(direction_change_interval_seconds: float) -> boo
 		center_offset = Vector2.RIGHT.rotated(randf_range(0.0, TAU))
 
 	_wandering_motion_active = true
+	_foreground_motion_mode = ForegroundMotionMode.WANDERING
 	_wandering_direction = center_offset.normalized()
 	_wandering_direction_change_interval_seconds = direction_change_interval_seconds
 	_wandering_direction_change_elapsed_seconds = 0.0
