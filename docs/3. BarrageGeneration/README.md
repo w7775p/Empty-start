@@ -23,7 +23,7 @@
 | [BG-26](tasks/BG-26_moving-layer-order.md) | 普通前景运动中随机改变层级 | 已合并 main（#197） |
 | [BG-27](tasks/BG-27_animated-size.md) | 普通移动前景话语缓和缩放 | Godot 4.7.2 GUI 实测通过（2026-10-12） |
 | [BG-28](tasks/BG-28_mixed-rich-text-style.md) | 前景单句局部富文本 | 已完成 · 2026-10-12 |
-| [BG-29](tasks/BG-29_local-text-animation.md) | 局部随机文字动画 | 待开发 |
+| [BG-29](tasks/BG-29_local-text-animation.md) | 局部随机文字动画 | 已实现，人工视觉验收待结合正式试玩 |
 | [BG-30](tasks/BG-30_opinion-tide.md) | 复读潮的疏密起伏 | 已完成 · 2026-10-12 |
 | [BG-31](tasks/BG-31_spatial-clusters.md) | 同句复读成批涌现（复用 RP-18） | 归档重复能力 |
 | [BG-32](tasks/BG-32_linked-faux-depth.md) | 伪纵深观感 | 候选暂缓 |
@@ -36,6 +36,14 @@
 | [BG-39](tasks/BG-39_tier-motion-proportions.md) | 四种运动类型随 Tier 权重变化 | 待开发 |
 | [BG-40](tasks/BG-40_foreground-speed-ceiling.md) | 前景话语最大速度 | BG-20 直线、BG-21 曲线和 BG-22 加减速均按统一上限验证；BG-23 待实现后补验 |
 | [BG-41](tasks/BG-41_random-trait-selection.md) | 按已解锁池随机分配特性 | 技能池待定 |
+
+## BG-29 普通前景局部文字动画
+
+`BarrageArea.normal_foreground_local_text_animation_probability` 可在 Inspector 调整单条普通前景触发局部动画的概率，当前默认 0.08 为保守试玩值。`BarrageView` 从原句随机取 1～4 个字符，并复用 BG-28 的 `RichTextLabel` / `set_visual_bbcode()` 接口，在已有 BBCode 样式内包裹 Godot 原生 shake、pulse、wave 或 tornado 标签。低强度参数优先保持阅读；如果无法安全定位既有富文本中的片段，保留原显示样式。
+
+原始 `BarrageRuntimeRecord.text` 和 `original_sentence_id` 不被改写。复读、矛盾、终局及所有携带状态特性的视图不触发该动画。默认概率和效果强度仍待策划人工评审。
+
+本机 GUI Demo 与截图目录：`D:\tmp\lane-d-bg29\evidence`。可复播入口：在 Godot 打开并运行 `res://tests/barrage_generation/bg29_local_text_animation_demo.tscn`；Demo 单独将概率设为 100%，正式默认值不随之改变。截图和录像仅保留在上述 D 盘目录，不进入仓库。
 
 ## BG-35 带特性普通话语的独立同屏上限
 
