@@ -47,6 +47,9 @@ signal barrage_generated(view: BarrageView)
 @export_range(1.01, 1.10, 0.01) var normal_foreground_max_scale: float = 1.04
 ## 完成一次放大与缩小往返的时长。
 @export_range(3.0, 12.0, 0.5) var normal_foreground_scale_cycle_seconds: float = 6.0
+@export_group("BG-29 普通前景局部文字动画")
+## 单条普通前景启用一段低强度字符动画的概率；0 可关闭，默认采用保守试玩值。
+@export_range(0.0, 1.0, 0.01) var normal_foreground_local_text_animation_probability: float = 0.08
 @onready var _spawn_timer: Timer = $SpawnTimer
 
 var _speech_selector: NormalSpeechSelector = NormalSpeechSelector.new()
@@ -473,6 +476,9 @@ func spawn_normal_barrage(
 	add_child(view)
 	if not speech.local_style_bbcode.is_empty():
 		view.set_visual_bbcode(speech.local_style_bbcode)
+	if not _terminal_presentation_only:
+		# BG-29 只在普通前景的 RichTextLabel 上叠加效果，保留原文记录与命中内容。
+		view.apply_random_local_text_animation(normal_foreground_local_text_animation_probability)
 	var placement_succeeded: bool = false
 	if should_use_random_static_placement:
 		placement_succeeded = _place_barrage_for_spawn_request(view, true)
