@@ -1,6 +1,6 @@
 # PA-15 对手阶段立绘：T2 漫画汗滴与卡牌翻转切图
 
-> 状态：需求已确认，待实施
+> 状态：程序美术组件与 HUD 接口已实现；正式 23 表接线和 Android 实景验收待完成
 > 类型：程序美术 / PresentationAssets
 > 依赖：CombatStage `tier_state_changed`、现有对手立绘入口、PA-11 升降档演出
 
