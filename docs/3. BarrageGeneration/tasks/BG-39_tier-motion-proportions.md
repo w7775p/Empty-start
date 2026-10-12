@@ -1,6 +1,6 @@
 # BG-39 每档前景运动类型权重可配置
 
-**状态：待实施**
+**状态：已完成（2026-10-12）**
 
 ## 开始前先阅读以下文档
 - `docs/Original/任务卡模板.md` 与 `known_traps.md`（通用执行规范与已知风险）
@@ -9,7 +9,7 @@
 - 关联：BG-20～BG-23 / CombatStage Tier 配置
 
 ## 已经实现的功能
-现有 Tier 只广播生成数量、频率、速度、寿命倍率，缺少四种运动分布配置。
+`CombatStageTierConfig` 现提供直线、曲线、加减速和游荡四项相对权重；CombatStage 在绑定 BarrageArea、开局和档位切换时发布当前 Tier 权重。正式 Tier Resource 保留直线安全默认，待策划填写正式分布；差异化示例使用独立 TEST_ONLY 配置。
 
 ## 本次任务
 每档前景运动类型权重可配置。
