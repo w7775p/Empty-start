@@ -59,6 +59,26 @@ Godot 4.7.2 Windows OpenGL Compatibility 的 1920×1080 / 1280×720 真实画面
 - [1920×1080 · 升档空中帧](previews/pa13_tier_up_mid_1920.png) · [降档惊慌帧](previews/pa13_tier_down_mid_1920.png) · [1280×720 · PK 50%](previews/pa13_pk_50_1280.png)
 - **未验收**：Android 真机、项目默认 D3D12、PA-11 / PA-15 完整同屏联调，以及真实鼠标命中/自然回拉的整局 E2E。预览用真实 PK / Tier 状态入口演示组件行为，不代表以上流程均已交付。
 
+## PA-16 PK 条阶段与负向底板（2026-10-12）
+
+`systems/presentation/pk_bar_skin.tscn` 作为现有 `%PlayerShare` `ProgressBar` 的底层贴图，由 `SandboxBattleHud` 动态组合。`refresh_pk(player_pk, current_tier)` 继续只消费 `BattleAttemptFlow.pk_feedback_changed` 提供的 HitResolution PK 与 CombatStage Tier；正向 PK 填充值、双方百分比和 PA-13 仓鼠球位置均沿原路径更新。
+
+- 玩家 PK `[0%, 10%) / [10%, 20%) / [20%, 30%) / [30%, 40%)` 分别显示 `pk_bar_neg_04 / neg_03 / neg_02 / neg_01`。
+- 玩家 PK `>=40%` 时恢复当前普通 Tier 图；Tier 1–5 映射 `pk_bar_pos_01–05`，Sandbox 真实 `ContradictionOracleFlow.entered` 接线激活时映射 Paradox `pk_bar_pos_06`。
+- `pk_bar_pos_00.png` 尚未收到；Tier 0 且 PK `>=40%` 继续显示现有 `ProgressBar` 底板。负向贴图仍按 PK 区间覆盖 Tier 底板。
+- 贴图层位于 ProgressBar 实际填充层背后，原进度值和青色填充保持可见；PA-13 球作为同一轨道上的独立高层继续滚动。
+- 贴图 key 变化时才触发短闪、偏色、换图、复位；同图连续 PK 刷新不重播。`PkBarSkin` Inspector 可调 10/20/30/40% 边界、换图点（默认 34%）、时长（默认 0.28s）、闪烁次数（2）、亮度（1.7）、色相偏移和闪烁透明度（0.45）。`reset_for_attempt()` 会中断旧 Tween 并按当前尝试状态即时复位。
+
+**可复播入口**：`res://scenes/demos/pa16_pk_bar_skin_preview.tscn`。`1–4` 切换四档负向区间，`5` 显示 T0 原底板，`6–Q` 按真实 HitResolution / CombatStage 切换普通档位，`E` 请求当前 Sandbox 矛盾流程，`R` 重开，`P` 暂停 / 继续。截图参数 `--pa16-capture` 与 `--pa16-capture-1280` 从真实 Godot Viewport 保存 PNG。
+
+**真实验收**：Godot 4.7.2 Windows D3D12，1920×1080 与 1280×720。通过全部正向图 / 四档负向 / 10%、20%、30% 精确区间边界 / 40% 退出覆盖 / Tier 1 恢复贴图断言；Paradox 图由真实矛盾流程激活，实际 PA-13 球在每帧随当前 PK 移动。运行还检查了暂停冻结、重开取消动画、PK 归零失败与重开复位。转场三帧与各状态截图、运行细节见 [PA-16 日志](表现资产_PA-16_2026-10-12_log.md)。
+
+- [Tier 1 → Tier 2 闪光 / 偏色 / 恢复序列](previews/pa16_transition_01_flash.png) · [偏色](previews/pa16_transition_02_tint.png) · [恢复](previews/pa16_transition_03_swap.png)
+- [T0 原底板](previews/pa16_tier_0_base_1920.png) · [Tier 1](previews/pa16_tier_1_1920.png) · [Tier 2 · 1280×720](previews/pa16_tier_2_1280.png) · [Tier 5](previews/pa16_tier_5_1920.png) · [Paradox](previews/pa16_paradox_1920.png)
+- [负向 0–10%](previews/pa16_negative_00_10_1920.png) · [10–20%](previews/pa16_negative_10_20_1920.png) · [20–30% · 1280×720](previews/pa16_negative_20_30_1280.png) · [30–40%](previews/pa16_negative_30_40_1920.png)
+- [PK 40% 退出负向覆盖](previews/pa16_recovered_40_1920.png) · [恢复至当前 Tier 1](previews/pa16_recovered_tier_1_1920.png)
+
+**正式联调待办**：PA-11 / PA-15 由真人 Owner 负责且当前未正式交付；本卡只读当前 Tier 与矛盾阶段公开事实，没有改它们的功能。Android 真机未测。完整正常攻击 / 主播效果同屏验收交由正式集成阶段；本预览使用现有 Sandbox 调试入口更新真实 HitResolution PK，不能作为完整自然战斗流程验收。
 ## 目标
 
 让程序可以稳定接入美术正式资源，同时保持占位素材和正式素材可以直接替换。
@@ -129,7 +149,7 @@ assets/
 | PA-12 | Paradox 程序美术：噤声、漫画双斜切、闪白冲击字、画面撕开及矛盾阶段表现 | 运行画面验证 |
 | PA-13 | PK 条仓鼠球指示器：随进度滚动、升降档蹦跳、降档惊慌表情 | Windows 4.7.2 真实 HUD 与双分辨率预览已交；Android / PA-11、PA-15 联调待验 |
 | PA-15 | 对手 T2 idle+漫画汗滴；T3～T5 卡牌翻图与受击漫画冲击 | 实际升降档画面 |
-| PA-16 | PK 条阶段 / 负向贴图短闪调色切换，配合 PA-13 滚动球 | 运行画面验证 |
+| PA-16 | PK 条阶段 / 负向贴图短闪调色切换，配合 PA-13 滚动球 | Windows Godot 4.7.2 双分辨率真实预览已交；Android / PA-11、PA-15 正式联调待验 |
 | PA-17 | 真击破对手专属败北：外星人融化、狐狸花瓣雨、Kiwi 方案 A；未击破 T5 离线 | 成败分支实际演示 |
 | PA-18 | PK 归零战败：仓鼠球跌落、玩家直播 CRT 断流、对手持续直播、失败 UI | 战败画面与重开 |
 | PA-19 | Paradox 两种结果均 CRT 关机、上翻页回主角房间，再弹战后结算 | 双分支战后结算 |
