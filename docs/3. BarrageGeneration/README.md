@@ -17,6 +17,7 @@
 | [BG-21](tasks/BG-21_curved-motion.md) | 普通前景可选平滑曲线运动 | 已合并 main；聚焦回归和 GUI 运动证据通过 |
 | [BG-22](tasks/BG-22_speed-change-motion.md) | 普通前景可选周期加减速 | 已实现；BG-40 限速、BG-21 曲线组合及 GUI 运动验证通过 |
 | [BG-24](tasks/BG-24_overlap-pass-through.md) | 普通移动前景出生重叠与运动穿透 | 已实现；TEST_ONLY 两实例真实运行 smoke 通过 |
+| [BG-25](tasks/BG-25_random-start-layer.md) | 普通前景随机初始层级 | 已实现，已更新 PR #186 |
 | [BG-27](tasks/BG-27_animated-size.md) | 普通移动前景话语缓和缩放 | Godot 4.7.2 GUI 实测通过（2026-10-12） |
 | [BG-28](tasks/BG-28_mixed-rich-text-style.md) | 前景单句局部富文本 | 已完成 · 2026-10-12 |
 | [BG-29](tasks/BG-29_local-text-animation.md) | 局部随机文字动画 | 待开发 |
@@ -74,6 +75,8 @@ LevelSpeech.local_style_bbcode 可选保存普通前景话语的局部 BBCode �
 **BG-27（2026-10-12）** `BarrageArea` 为普通移动前景提供 Inspector 可调缩放范围，默认 `0.96～1.04`、一次往返 6 秒。`BarrageView.configure_animated_size()` 只由普通生成路径启用，使用每实例独立初相位的余弦曲线平滑放大和缩小，并围绕视图中心缩放。静止请求、复读、矛盾与终局实例维持各自尺寸规则。现有 `pulse_presentation()` 与缓和缩放合成同一 `Control.scale`，短时命中和终局脉冲不会覆盖持续缩放。攻击查询继续读取 `BarrageView.get_global_rect()`，该矩形随当前缩放同步变化；当前 GUI smoke 的 28 项检查全部通过。默认值是可调起始值，不代表正式策划平衡数据；程序美术、正式导表及 Android 实机验收不在本卡范围。
 
 **BG-24（2026-10-12）** 普通移动前景使用原轮换行和出生位置，但不再因该位置与当前视图重叠而跳行或拒绝；各 `BarrageView` 继续独立沿已有移动、暂停、寿命和离场逻辑运行，矩形交叠时不追加避让或推开。该规则只传给移动的 `spawn_normal_barrage()` 路径；BG-42 静止请求、Repeat 与 Paradox 继续使用原定位 / 空位检查。临时真实运行 smoke 使用 TEST_ONLY 同关内容、两份内存关卡配置（速度 20 与 100）和 BarrageArea：固定 1280×150 区域产生同位置重叠，随后实例按各自速度通过交叠并自然离开交集，同时核对原句 ID 和各自实例身份。临时 scene / script 已删除。无需修改 Sandbox / Flow。
+
+**BG-25（2026-10-12）** `BarrageView.setup()` 将真实复读记录固定为 `REPEAT_Z_INDEX=0`，携带 `occlusion` 的非复读话语固定为 `OCCLUSION_Z_INDEX=4096`，其余前景在 `FOREGROUND_Z_INDEX=1` 到 `OCCLUSION_Z_INDEX - 1=4095` 间逐条均匀抽取初始层级。伪装成复读外观但 `is_repeat=false` 的普通实例仍走前景随机层级。该改动只影响生成时的 `z_index`，BG-26 的运动中换层仍未实现；通过 Godot 4.7.2 runtime smoke 检查真实 BarrageView 配置结果。
 
 本节是当前派工依据；历史章节中的旧默认值与旧任务说明保留用来追溯已有系统演变。开发时以单卡现行版和本节为准。
 
@@ -287,7 +290,7 @@ INT-02 采用静态 Scene 方案：`sandbox.tscn` 保存所有区域 Rect，编�
 | [BG-22](tasks/BG-22_speed-change-motion.md) | 前景普通话语平缓加减速 | 待实施 |
 | [BG-23](tasks/BG-23_wandering-motion.md) | 前景普通话语低速游荡 | 待实施 |
 | [BG-24](tasks/BG-24_overlap-pass-through.md) | 弹幕自由重叠与穿透 | 待实施 |
-| [BG-25](tasks/BG-25_random-start-layer.md) | 普通前景话语随机初始层级 | 待实施 |
+| [BG-25](tasks/BG-25_random-start-layer.md) | 普通前景话语随机初始层级 | 已实现，已更新 PR #186 |
 | [BG-26](tasks/BG-26_moving-layer-order.md) | 常规前景话语运动中随机改变层级 | 待实施 |
 | [BG-27](tasks/BG-27_animated-size.md) | 普通前景话语的适度缩放 | 待实施 |
 | [BG-28](tasks/BG-28_mixed-rich-text-style.md) | 前景单句局部富文本 | 已完成 · 2026-10-12 |

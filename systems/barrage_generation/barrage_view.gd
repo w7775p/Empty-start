@@ -128,7 +128,7 @@ func setup(
 		modulate = initial_modulate
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# 保留普通前景层级供后续换层；遮挡使用引擎允许的最大 Z，始终压过前景和复读。
+	# 真复读固定在底层；遮挡固定在最前，其余前景从普通层级带随机抽取。
 	var has_occlusion: bool = (
 		barrage_record.trait_set != null and barrage_record.trait_set.has_trait(BarrageTraitSet.OCCLUSION)
 	)
@@ -137,7 +137,7 @@ func setup(
 	elif barrage_record.is_repeat:
 		z_index = REPEAT_Z_INDEX
 	else:
-		z_index = FOREGROUND_Z_INDEX
+		z_index = randi_range(FOREGROUND_Z_INDEX, OCCLUSION_Z_INDEX - 1)
 	autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vertical_alignment = VERTICAL_ALIGNMENT_CENTER
