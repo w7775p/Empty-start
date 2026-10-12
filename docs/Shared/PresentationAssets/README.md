@@ -43,7 +43,15 @@ battle_hud.configure_portrait_character("alien") # 支持 alien / kiwi / fox
 
 Windows 验证入口为 `tests/presentation/pa14_portrait_motion_smoke.tscn`：继承正式 Sandbox Scene，仅在测试场景覆盖组合脚本，使用真实攻击输入、Timer 与 HUD；测试时长 / 分辨率处理仅存放于 `tests/`。Godot 4.7.2 Windows GUI 与 headless 各 23 项通过，GUI 实际 PNG 为 1920×1080。Android 硬件、项目默认 D3D12、PA-09 / PA-11 完整同屏演出仍 **UNVERIFIED**。详见 [PA-14 日志](表现资产_PA-14_2026-10-10_log.md)。
 
-**2026-10-11 策划决策：PA-07 已取消。** 保留现有攻击流程及反馈；实体言弹外观、飞行特效与专用快照坐标接口从开发范围移除。历史试样留在未合并的 #142。
+## PA-15 对手阶段立绘组件（2026-10-10）
+
+`systems/presentation/opponent_tier_portrait.gd` 附着在 PA-14 的对手待机层中，保留原 `OpponentPortraitArt`。`refresh_pk()` 读取运行 Tier：T1 idle，T2 idle 加循环下滑淡出的程序汗滴，T3～T5 对应变化图 01～03，T6 保留变化图 03。不同底图在横向收窄的中点换图并短促弹出漫画冲击线；T1↔T2 只抖动和增减汗滴。快速改档会取消旧翻转，落到最新 Tier。
+
+正式关卡集成方先调用原 `configure_streamer_assets()`，再调用 `configure_opponent_tier_textures(idle, tier_01, tier_02, tier_03)`；现有 CombatStage → Sandbox → `refresh_pk()` 的阶段通知继续驱动画面。四张图由关卡配置提供；当前 `LevelProfile` 尚未接入策划 02/23 表，因此示例关卡只有 idle 占位。三名角色的现成图片和映射见 `assets/README.md`。独立演示场景为 `scenes/demos/pa15_portrait_demo.tscn`，正式 HUD 冒烟为 `tests/presentation/pa15_hud_smoke.tscn`。详见 [PA-15 日志](表现资产_PA-15_2026-10-10_log.md)。
+
+## PA-07 取消记录（2026-10-11）
+
+**策划决策：PA-07 已取消。** 保留现有攻击流程及反馈；实体言弹外观、飞行特效与专用快照坐标接口从开发范围移除。历史试样留在未合并的 #142。
 
 ## 目标
 
