@@ -1,0 +1,56 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/sandbox/sandbox.tscn" id="1_sandbox"]
+[ext_resource type="Script" path="res://scenes/demos/pa16_pk_bar_skin_preview.gd" id="2_preview"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_preview_help"]
+bg_color = Color(0.035, 0.045, 0.065, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.4, 0.7, 0.72, 0.75)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 14.0
+content_margin_top = 12.0
+content_margin_right = 14.0
+content_margin_bottom = 12.0
+
+[node name="PA16PkBarSkinPreview" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_preview")
+
+[node name="Sandbox" parent="." instance=ExtResource("1_sandbox")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+process_mode = 1
+
+[node name="PreviewHelp" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 808.0
+offset_right = 444.0
+offset_bottom = 1060.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_preview_help")
+z_index = 40
+
+[node name="Instructions" type="Label" parent="PreviewHelp"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.93, 0.97, 0.98, 1)
+theme_override_font_sizes/font_size = 17
+text = "PA-16 PK 底板真实战斗预览\n1–4：负向四档   5：T0\n6–Q：Tier 1–5   E：请求真实矛盾阶段\nR：重开   P：暂停/继续"
+autowrap_mode = 3
