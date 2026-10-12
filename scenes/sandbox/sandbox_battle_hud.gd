@@ -5,6 +5,7 @@ signal dialogue_sequence_completed(sequence_id: StringName, side: int)
 signal tier_breakthrough_finished(previous_tier: int, current_tier: int, completed: bool)
 
 const PortraitMotion = preload("res://systems/presentation/streamer_portrait_motion.gd")
+const PK_BAR_SKIN_SCENE: PackedScene = preload("res://systems/presentation/pk_bar_skin.tscn")
 const PK_HAMSTER_BALL_SCENE: PackedScene = preload("res://systems/presentation/pk_hamster_ball_indicator.tscn")
 const DialogueQueueScript = preload("res://ui/streamer_bubble_dialogue/streamer_bubble_dialogue_queue.gd")
 const HAMSTER_LIVE_BACKGROUND: Texture2D = preload("res://assets/environment/live/hamster/background.png")
@@ -37,6 +38,7 @@ var _tier_breakthrough_previous_tier: int = -1
 var _tier_breakthrough_current_tier: int = -1
 var _tier_down_shake_tween: Tween
 var _tier_down_shake_origin: Vector2 = Vector2.ZERO
+var _pk_bar_skin: PkBarSkin
 var _pk_hamster_ball: PkHamsterBallIndicator
 var _last_player_pk: float = 0.5
 # 保留攻击状态供后续获批的正式反馈视图读取；Sandbox 继续通过原公开刷新入口提交。
@@ -75,6 +77,9 @@ func _ready() -> void:
 	opponent_portrait_motion.configure_character("alien")
 	opponent_portrait_motion.attach_portrait(_opponent_portrait)
 	_pk_hamster_ball = PK_HAMSTER_BALL_SCENE.instantiate() as PkHamsterBallIndicator
+	_pk_bar_skin = PK_BAR_SKIN_SCENE.instantiate() as PkBarSkin
+	_pk_bar_skin.name = "PkBarSkin"
+	_pk_progress.add_child(_pk_bar_skin)
 	_pk_hamster_ball.name = "PkHamsterBallIndicator"
 	_pk_progress.add_child(_pk_hamster_ball)
 	_dialogue_queue = DialogueQueueScript.new()
@@ -271,6 +276,10 @@ func refresh_pk(player_pk: float, current_tier: int) -> void:
 		set_opponent_portrait_connected(current_tier > 0)
 	var player_share: float = clampf(player_pk, 0.0, 1.0)
 	_last_player_pk = player_share
+
+	# 底板只从最新 PK 与阶段事实选择；数值和球体继续使用原视图入口。
+	if _pk_bar_skin != null:
+		_pk_bar_skin.set_display_state(player_share, current_tier, _paradox_stage_active)
 	_pk_progress.value = player_share
 	if _pk_hamster_ball != null:
 		_pk_hamster_ball.set_player_pk(player_share)
@@ -332,6 +341,8 @@ func _cancel_tier_down_shake() -> void:
 # 仅切换 HUD 阶段文案；普通 CombatStage Tier 与 PK 仍由战斗流程持有。
 func set_paradox_stage_active(active: bool, current_tier: int) -> void:
 	_paradox_stage_active = active
+	if _pk_bar_skin != null:
+		_pk_bar_skin.set_display_state(_last_player_pk, current_tier, active)
 	_refresh_stage_label(current_tier)
 
 
@@ -434,6 +445,8 @@ func reset_for_attempt() -> void:
 	player_portrait_motion.set_idle_strength(1.0)
 	opponent_portrait_motion.set_idle_strength(1.0)
 	set_opponent_portrait_connected(false)
+	if _pk_bar_skin != null:
+		_pk_bar_skin.reset_for_attempt(_last_player_pk, 0, false)
 	set_paradox_stage_active(false, 0)
 	_last_status_tier = 0
 	if _pk_hamster_ball != null:
