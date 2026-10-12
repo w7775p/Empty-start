@@ -123,7 +123,7 @@ assets/
 | PA-12 | Paradox 程序美术：噤声、漫画双斜切、闪白冲击字、画面撕开及矛盾阶段表现 | 运行画面验证 |
 | PA-13 | PK 条仓鼠球指示器：随进度滚动、升降档蹦跳、降档惊慌表情 | 真实战斗画面验收 |
 | PA-15 | 对手 T2 idle+漫画汗滴；T3～T5 卡牌翻图与受击漫画冲击 | 实际升降档画面 |
-| PA-16 | PK 条阶段 / 负向贴图短闪调色切换，配合 PA-13 滚动球 | 运行画面验证 |
+| PA-16 | PK 条阶段 / 负向贴图短闪调色切换 | 独立底板与 Windows 预览完成；PA-13 共层验收待补 |
 | PA-17 | 真击破对手专属败北：外星人融化、狐狸花瓣雨、Kiwi 方案 A；未击破 T5 离线 | 成败分支实际演示 |
 | PA-18 | PK 归零战败：仓鼠球跌落、玩家直播 CRT 断流、对手持续直播、失败 UI | 战败画面与重开 |
 | PA-19 | Paradox 两种结果均 CRT 关机、上翻页回主角房间，再弹战后结算 | 双分支战后结算 |
@@ -206,3 +206,14 @@ PA-02 负责把正式美术资产导入工程并接到对应 Resource；PA-03 �
 **连续演出录像补交（2026-10-12）：**Godot 4.7.2 实际录制 AVI（1280×720，30fps，23.8 秒；录像仅留在本机审查档案），共 714 帧、40,712,094 字节。录像片段：外星人融化 00:00.40–00:05.50；狐狸花瓣雨 00:05.87–00:12.23；Kiwi 挣扎 00:12.60–00:17.70；未击破 T5 展示 00:18.07、离线 00:18.53–00:23.77。Godot 原生 MovieWriter 连续渲染录制；本机没有可用的 ffmpeg / HandBrake 等转码器，因此录制为 MovieWriter AVI。可用 `--record-pa17` 自动复播录制；MovieWriter 分辨率取项目 viewport，复录 1280×720 时录制进程启动前临时设 `window/size/viewport_width=1280`、`window/size/viewport_height=720`，之后恢复项目原设置。
 
 **状态：策划视觉验收仅及格，允许先集成，演出节奏和质感后续需要调整；正式流程联调未完成。** 当前 main 仅有 `LevelProfile.streamer_portrait`，代码搜索未发现 `portrait_set_id` 到 23 立绘配置的运行时消费者。`ContradictionOracleFlow.outcome_resolved` 发出后，未击破会继续打开 Rest；成功分支也没有等待 PA 表现结束的接口。后续场景协调方需要在真实结果确认后调用本组件，并在收到完成信号后继续 Oracle / Rest；本卡未改 `sandbox.gd`、`sandbox.tscn` 或 `sandbox_battle_hud.gd`。PA-11、PA-15、PA-13、PA-18 文件与逻辑均未修改。详见 [PA-17 日志](表现资产_PA-17_2026-10-12_log.md)。
+## PA-16 PK 条底板独立交付（2026-10-12）
+
+`PkBarSkin` 作为真实 `%PlayerShare` ProgressBar 的背景子层读取 `refresh_pk()` 提交的玩家 PK、CombatStage Tier 与 Paradox 阶段；低于 40% 选择四档负向图，恢复到 40% 后立即映射当前最新 Tier。阶段底板变化触发局部可调 Tween，参数留在 Inspector；底板使用 `show_behind_parent` 绘制，ProgressBar 的实际填充比例继续由原 Range 值绘制。
+
+本次交付不依赖 PA-13 组件、资源、分支或 PR #200。今后 PA-13 可作为当前 `%PlayerShare` 控件的独立前景绘制层读取 `ProgressBar.value`（归一化 PK 比例）；PA-16 只保留自己的背景子层，没有 PA-13 类型引用。PA-13 尚未交付，球层共存画面待其接入后复验。T0 的 `pk_bar_pos_00.png` 尚未提供，40% 及以上继续显示原底板。
+
+Godot 版本：`4.7.2.stable.steam.ed1daf0bf`，Windows D3D12 / Forward+。实际 Sandbox 预览入口为 `scenes/demos/pa16_pk_bar_skin_preview.tscn`，在 Godot Editor 按 F6 可重播。预览通过 Sandbox 现有调试入口设定 PK，再读取真实 PlayerShare、Tier 与矛盾阶段状态；画面截图在 `RenderingServer.frame_post_draw` 后直接读取 Godot Viewport 并调用 `Image.save_png()`，没有合成或网页模拟。采集模式需传 `--pa16-capture` 或 `--pa16-capture-1280`，并用 `--pa16-output-dir=<绝对本机目录>` 指向本地输出位置；脚本拒绝把截图写回工程目录。
+
+本机 18 张 PNG 预览保存在 `D:\tmp\gamejam-pa16-review-media-20261012`，总大小 2,695,824 字节。截图包含 1920×1080 的 Tier、过渡、负向四档、恢复及真实 Paradox 状态；另有 1280×720 Tier 2 / 负向状态。预览图与录像仅保存在本机，不随仓库提交。
+
+PA-13 仓鼠球共层目视验收和 Android 实机检查仍待完成；这次没有修改 PA-11 / PA-13 / PA-15 / PA-18，也没有复用旧 #202 中的球体组件或截图。完整文件和验证记录见 [PA-16 日志](表现资产_PA-16_2026-10-12_log.md)。
