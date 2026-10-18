@@ -41,13 +41,30 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="IdentityCards" type="GridContainer" parent="Margins/Content/CardScroll"]
+[node name="CardRowCenter" type="HBoxContainer" parent="Margins/Content/CardScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="CardLeftSpacer" type="Control" parent="Margins/Content/CardScroll/CardRowCenter"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="IdentityCards" type="GridContainer" parent="Margins/Content/CardScroll/CardRowCenter"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
 theme_override_constants/h_separation = 16
 theme_override_constants/v_separation = 16
 columns = 4
+
+[node name="CardRightSpacer" type="Control" parent="Margins/Content/CardScroll/CardRowCenter"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
 
 [node name="SelectionStatus" type="Label" parent="Margins/Content"]
 unique_name_in_owner = true

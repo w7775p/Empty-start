@@ -2,6 +2,10 @@ extends Control
 
 const CARD_BACK_TEXTURE: Texture2D = preload("res://assets/ui/identity/cards/identity_card_back.png")
 const CARD_BLANK_TEXTURE: Texture2D = preload("res://assets/ui/identity/cards/identity_card_front_00_blank.png")
+const CARD_WIDTH: float = 280.0
+const CARD_HEIGHT: float = 350.0
+const CARD_GRID_GAP: float = 16.0
+const CARD_MAX_COLUMNS: int = 4
 
 signal selection_changed(option: IdentityOption)
 signal next_requested(option: IdentityOption)
@@ -12,6 +16,7 @@ var _buttons: Array[Button] = []
 var _revealed_ids: Dictionary[StringName, bool] = {}
 
 @onready var _grid: GridContainer = %IdentityCards
+@onready var _card_row_center: HBoxContainer = %CardRowCenter
 @onready var _scroll: ScrollContainer = %CardScroll
 @onready var _status: Label = %SelectionStatus
 @onready var _reveal_all: Button = %RevealAllButton
@@ -23,8 +28,9 @@ func _ready() -> void:
 	for option in IdentityOptions.CARDS:
 		var button := Button.new()
 		button.name = String(option.identity_id)
-		button.custom_minimum_size = Vector2(280, 350)
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		# 保留297×371原卡面的0.80比例，按钮不再跟随整列横向扩张。
+		button.custom_minimum_size = Vector2(CARD_WIDTH, CARD_HEIGHT)
+		button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		button.toggle_mode = true
 		_grid.add_child(button)
 		# 在原有 Button 状态层内部绘制卡面，保留按钮焦点与选中描边。
@@ -34,10 +40,10 @@ func _ready() -> void:
 		card_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		card_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		card_art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		card_art.offset_left = 5.0
-		card_art.offset_top = 5.0
-		card_art.offset_right = -5.0
-		card_art.offset_bottom = -5.0
+		card_art.offset_left = 0.0
+		card_art.offset_top = 0.0
+		card_art.offset_right = 0.0
+		card_art.offset_bottom = 0.0
 		button.add_child(card_art)
 		var selected_style := button.get_theme_stylebox("pressed").duplicate() as StyleBoxFlat
 		selected_style.set_border_width_all(3)
@@ -79,8 +85,10 @@ func _ready() -> void:
 	_wire_focus()
 	_refresh_selection()
 	resized.connect(_fit_layout)
+	_scroll.resized.connect(_fit_grid_columns)
 	get_window().size_changed.connect(_fit_layout.call_deferred)
 	_fit_layout()
+	call_deferred("_fit_grid_columns")
 
 # 抵消项目默认画布缩放，按实际窗口像素排版；小窗口保留正文并滚动。
 func _fit_layout() -> void:
@@ -90,6 +98,19 @@ func _fit_layout() -> void:
 	var canvas_scale := get_viewport().get_final_transform().get_scale()
 	_margins.scale = Vector2.ONE / canvas_scale
 	_margins.size = size * canvas_scale
+	call_deferred("_fit_grid_columns")
+
+
+# 4列优先；窗口变窄时减列数，让固定宽度卡片仍留在可见横向范围内。
+func _fit_grid_columns() -> void:
+	if not is_inside_tree() or _scroll.size.x <= 0.0:
+		return
+	_grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var fitting_columns := int((_scroll.size.x + CARD_GRID_GAP) / (CARD_WIDTH + CARD_GRID_GAP))
+	var next_columns := clampi(fitting_columns, 1, CARD_MAX_COLUMNS)
+	if _grid.columns != next_columns:
+		_grid.columns = next_columns
+		_wire_focus()
 
 # 换行标签交由卡片接收鼠标，完整正文随容器高度展开。
 func _make_label(value: String, font_size: int) -> Label:
@@ -100,20 +121,40 @@ func _make_label(value: String, font_size: int) -> Label:
 	label.add_theme_font_size_override("font_size", font_size)
 	return label
 
-# 四列方向键按行列移动，底行向下到下一步。
+# 按当前自适应列数布置方向键，底行向下到下一步。
 func _wire_focus() -> void:
+	var columns := maxi(_grid.columns, 1)
 	for index in range(_buttons.size()):
 		var button := _buttons[index]
-		button.focus_neighbor_left = button.get_path_to(_buttons[index - 1] if index % 4 > 0 else button)
-		button.focus_neighbor_right = button.get_path_to(_buttons[index + 1] if index % 4 < 3 else button)
-		button.focus_neighbor_top = button.get_path_to(_buttons[index - 4] if index >= 4 else button)
-		button.focus_neighbor_bottom = button.get_path_to(_buttons[index + 4] if index < 8 else _next)
-	_next.focus_neighbor_top = _next.get_path_to(_buttons[8])
+		var column := index % columns
+		var next_row_index := index + columns
+		button.focus_neighbor_left = button.get_path_to(_buttons[index - 1] if column > 0 else button)
+		button.focus_neighbor_right = button.get_path_to(_buttons[index + 1] if column + 1 < columns and index + 1 < _buttons.size() else button)
+		button.focus_neighbor_top = button.get_path_to(_buttons[index - columns] if index >= columns else button)
+		button.focus_neighbor_bottom = button.get_path_to(_buttons[next_row_index] if next_row_index < _buttons.size() else _next)
+	_next.focus_neighbor_top = _next.get_path_to(_buttons[maxi(0, _buttons.size() - columns)])
 
-# 使用网格局部坐标滚动，避免缩放后的全局矩形重复影响滚动距离。
+# 只在卡片实际离开可视区域时滚动；比视口更高的卡片始终以顶边为准。
 func _scroll_to_card(button: Button) -> void:
-	_scroll.scroll_horizontal = int(clampf(_scroll.scroll_horizontal, button.position.x + button.size.x - _scroll.size.x + 12, button.position.x))
-	_scroll.scroll_vertical = int(clampf(_scroll.scroll_vertical, button.position.y + button.size.y - _scroll.size.y + 12, button.position.y))
+	var card_position := _card_row_center.position + _grid.position + button.position
+	var card_left := card_position.x
+	var card_right := card_left + button.size.x
+	var visible_left := float(_scroll.scroll_horizontal)
+	var visible_right := visible_left + _scroll.size.x
+	if card_left < visible_left:
+		_scroll.scroll_horizontal = maxi(0, ceili(card_left))
+	elif card_right > visible_right:
+		var target_left := card_left if button.size.x >= _scroll.size.x else card_right - _scroll.size.x
+		_scroll.scroll_horizontal = maxi(0, ceili(target_left))
+	var card_top := card_position.y
+	var card_bottom := card_top + button.size.y
+	var visible_top := float(_scroll.scroll_vertical)
+	var visible_bottom := visible_top + _scroll.size.y
+	if card_top < visible_top:
+		_scroll.scroll_vertical = maxi(0, ceili(card_top))
+	elif card_bottom > visible_bottom:
+		var target_top := card_top if button.size.y >= _scroll.size.y else card_bottom - _scroll.size.y
+		_scroll.scroll_vertical = maxi(0, ceili(target_top))
 
 # 背面首次点击只翻本张；正面再次点击才进入既有单选流程。
 func _on_card_pressed(option: IdentityOption, button: Button) -> void:
