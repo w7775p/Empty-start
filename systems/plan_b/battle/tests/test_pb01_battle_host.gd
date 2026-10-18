@@ -50,15 +50,15 @@ func _run() -> void:
 		_finish()
 		return
 
-	var invalid_target: Dictionary = host.publish_word("player", player_words[0], "missing_viewer")
+	var invalid_target: Dictionary = host.publish_legacy_seed_word("player", player_words[0], "missing_viewer")
 	_check(not bool(invalid_target.get("ok", true)), "无效目标必须拒绝发表")
 	_check(host.get_used_word_ids().size() == 2, "失败发表不能占用话语或顺序号")
-	var first_publish: Dictionary = host.publish_word("player", player_words[0], str(neutral_ids[0]))
+	var first_publish: Dictionary = host.publish_legacy_seed_word("player", player_words[0], str(neutral_ids[0]))
 	_check(bool(first_publish.get("ok", false)), "有效玩家发表应成功")
 	_check(int(first_publish.get("word_order", 0)) == 3, "开局两条费米话后首条玩家话取得顺序3")
-	var duplicate_word: Dictionary = host.publish_word("player", player_words[0], str(neutral_ids[1]))
+	var duplicate_word: Dictionary = host.publish_legacy_seed_word("player", player_words[0], str(neutral_ids[1]))
 	_check(StringName(duplicate_word.get("reason", &"")) == &"word_already_used", "重复词应被拒绝")
-	var player_cooldown: Dictionary = host.publish_word("player", player_words[1], str(neutral_ids[1]))
+	var player_cooldown: Dictionary = host.publish_legacy_seed_word("player", player_words[1], str(neutral_ids[1]))
 	_check(StringName(player_cooldown.get("reason", &"")) == &"cooldown", "发表冷却期间应拒绝新词")
 	_check(not host.get_used_word_ids().has(player_words[1]), "冷却失败不能占用话语")
 	var player_counts: Dictionary = host.get_faction_counts()
@@ -69,7 +69,7 @@ func _run() -> void:
 	_check(host.get_pk() < pk_before_player_advantage, "玩家落后时PK应朝0%变化")
 
 	host.update_battle(5.1)
-	var player_retry: Dictionary = host.publish_word("player", player_words[1], str(neutral_ids[1]))
+	var player_retry: Dictionary = host.publish_legacy_seed_word("player", player_words[1], str(neutral_ids[1]))
 	_check(bool(player_retry.get("ok", false)), "冷却结束后同一句话可以发表")
 	_check(int(player_retry.get("word_order", 0)) == 4, "失败发表不占用全局顺序号")
 	var equal_pk: float = host.get_pk()
@@ -77,25 +77,25 @@ func _run() -> void:
 	_check(is_equal_approx(host.get_pk(), equal_pk), "玩家和费米人数相等时PK保持不变")
 
 	host.update_battle(5.1)
-	var player_third_publish: Dictionary = host.publish_word("player", player_words[2], str(neutral_ids[2]))
+	var player_third_publish: Dictionary = host.publish_legacy_seed_word("player", player_words[2], str(neutral_ids[2]))
 	_check(bool(player_third_publish.get("ok", false)), "玩家冷却结束后可以继续发表")
 	var pk_before_lead: float = host.get_pk()
 	host.update_pk(0.1)
 	_check(host.get_pk() > pk_before_lead, "玩家领先时PK应朝100%变化")
 
-	var opponent_publish: Dictionary = host.publish_word("opponent", opponent_words[0], str(neutral_ids[3]))
+	var opponent_publish: Dictionary = host.publish_legacy_seed_word("opponent", opponent_words[0], str(neutral_ids[3]))
 	_check(bool(opponent_publish.get("ok", false)), "费米主动发表复用同一个入口")
 	_check(int(opponent_publish.get("word_order", 0)) == 6, "双方共用一个全局递增顺序号")
-	var opponent_cooldown: Dictionary = host.publish_word("opponent", opponent_words[1], str(neutral_ids[4]))
+	var opponent_cooldown: Dictionary = host.publish_legacy_seed_word("opponent", opponent_words[1], str(neutral_ids[4]))
 	_check(StringName(opponent_cooldown.get("reason", &"")) == &"cooldown", "费米同样受A层主动发言冷却约束")
 	_check(not host.get_used_word_ids().has(opponent_words[1]), "费米冷却失败不能占用词语")
 	host.update_battle(11.5)
-	var opponent_retry: Dictionary = host.publish_word("opponent", opponent_words[1], str(neutral_ids[4]))
+	var opponent_retry: Dictionary = host.publish_legacy_seed_word("opponent", opponent_words[1], str(neutral_ids[4]))
 	_check(bool(opponent_retry.get("ok", false)), "费米冷却结束后可发表新词")
 	_check(int(opponent_retry.get("word_order", 0)) == 7, "失败费米请求不占用顺序号")
 
 	host.pause_battle()
-	var paused_publish: Dictionary = host.publish_word("player", player_words[3], str(neutral_ids[5]))
+	var paused_publish: Dictionary = host.publish_legacy_seed_word("player", player_words[3], str(neutral_ids[5]))
 	_check(StringName(paused_publish.get("reason", &"")) == &"battle_not_running", "暂停期间不能发表")
 	_check(host.get_used_word_ids().size() == 7, "暂停失败发表不得改变已用词集合")
 
@@ -121,7 +121,7 @@ func _test_counterattack(demo: Control, host: PlanBBattleHost, simulation: PlanB
 	for index: int in range(4):
 		if index > 0:
 			host.update_battle(5.1)
-		var result: Dictionary = host.publish_word(
+		var result: Dictionary = host.publish_legacy_seed_word(
 			"player", player_words[index], str(neutral_ids[index])
 		)
 		_check(bool(result.get("ok", false)), "反击样本中的玩家发表成功")
@@ -152,7 +152,7 @@ func _test_terminal_boundaries(host: PlanBBattleHost, simulation: PlanBUnitSimul
 	host.restart_battle(Vector2(900.0, 490.0))
 	var neutral_ids: Array[int] = simulation.get_neutral_unit_ids()
 	var player_words: Array[String] = host.get_available_word_ids("player")
-	var winning_publish: Dictionary = host.publish_word("player", player_words[0], str(neutral_ids[0]))
+	var winning_publish: Dictionary = host.publish_legacy_seed_word("player", player_words[0], str(neutral_ids[0]))
 	_check(int(winning_publish.get("word_order", 0)) == 1, "重开后全局顺序从1重新开始")
 	host.update_pk(60.0)
 	_check(is_equal_approx(host.get_pk(), 100.0), "PK应钳制在100%")

@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="IdentityOption" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="IdentityOption" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://data/identity/identity_option.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/identity/cards/identity_card_front_01.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1_script")
@@ -8,3 +9,4 @@ identity_id = &"identity_orthodox_1"
 display_name = "随侍"
 description = "祂是你绝不会离开的人，也是你绝不会承认的人"
 tendency_id = "orthodox"
+icon = ExtResource("2_icon")

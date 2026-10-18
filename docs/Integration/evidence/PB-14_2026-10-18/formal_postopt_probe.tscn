@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/sandbox/sandbox_plan_b.tscn" id="1_sandbox"]
+[ext_resource type="Script" path="res://docs/Integration/evidence/PB-14_2026-10-18/formal_postopt_probe.gd" id="2_probe"]
+
+[node name="Sandbox" instance=ExtResource("1_sandbox")]
+
+[node name="PB14ProfileProbe" type="Node" parent="."]
+script = ExtResource("2_probe")

@@ -1,0 +1,8 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PB13 LEGAL_INFECTION: strength=1 attempts=60 converted=30 rate=0.500 expected=0.50
+PB13 LEGAL_INFECTION: strength=2 attempts=60 converted=33 rate=0.550 expected=0.60
+PB13 LEGAL_INFECTION: strength=3 attempts=60 converted=39 rate=0.650 expected=0.70
+PB13 TRAIT: successes=10 contacts=15 awards=1 trait=split
+PB13 TRAIT: successes=10 contacts=16 awards=1 trait=reflect
+PB-13 PASS: complete batches, atomic capacity, 50/60/70 legal infection, one-shot split/reflect

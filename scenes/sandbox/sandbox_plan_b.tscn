@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/sandbox/sandbox.tscn" id="1_sandbox"]
+
+[node name="Sandbox" instance=ExtResource("1_sandbox")]
+use_plan_b_campaign = true

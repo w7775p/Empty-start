@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="IdentityOption" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="IdentityOption" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://data/identity/identity_option.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/identity/cards/identity_card_front_07.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1_script")
@@ -8,3 +9,4 @@ identity_id = &"identity_heresy_3"
 display_name = "净化者"
 description = "异见者将受雷火天降，但没有说过必须由祂亲自动手"
 tendency_id = "heretical"
+icon = ExtResource("2_icon")

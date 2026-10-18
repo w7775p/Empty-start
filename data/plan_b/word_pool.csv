@@ -1,36 +1,186 @@
-word_id,text,battle_type,strength,traits,tendency,available_level,available_to,source_table,source_id,test_only,notes
-w_0001,天堂名额少，先点点关注！,type_a,1,none,heresy,level_001,player,03_普通词库.csv,w_0001,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0005,不听鼠言，后果自行承担,type_b,2,none,heresy,level_001,player,03_普通词库.csv,w_0005,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0006,鼠对经文有撤回权,type_c,3,none,heresy,level_001,player,03_普通词库.csv,w_0006,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0009,许愿发财，不知神会分几期,type_a,2,none,absurd,level_001,player,03_普通词库.csv,w_0009,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0013,祂无处不在,type_b,2,none,orthodox,level_001,player,03_普通词库.csv,w_0013,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0015,对空气道谢，它当然不否认,type_c,3,none,absurd,level_001,player,03_普通词库.csv,w_0015,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0019,这条不代表本鼠立场,type_a,1,none,neutral,level_001,player,03_普通词库.csv,w_0019,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0020,谁说得对？点赞高的那个,type_b,1,none,neutral,level_001,player,03_普通词库.csv,w_0020,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0022,鼠先把补光灯调亮,type_c,1,none,neutral,level_001,player,03_普通词库.csv,w_0022,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0023,鼠刚刚是不是说错话了？剪掉！,type_a,1,none,neutral,level_001,player,03_普通词库.csv,w_0023,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0028,这题可以跳过吗？跳过键在哪？,type_b,1,none,neutral,level_001,player,03_普通词库.csv,w_0028,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0030,祂若呼召，鼠就回答,type_c,2,none,orthodox,level_001,player,03_普通词库.csv,w_0030,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0032,祂给过鼠恩典，鼠不能装作没收到,type_a,2,none,orthodox,level_001,player,03_普通词库.csv,w_0032,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0033,就算所有人散去，鼠也要留下,type_b,3,none,orthodox,level_001,player,03_普通词库.csv,w_0033,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0035,神爱世人，但总得排个先后,type_c,1,none,heresy,level_001,player,03_普通词库.csv,w_0035,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0038,神不会偏爱鼠，祂只是更常听鼠的,type_a,1,none,heresy,level_001,player,03_普通词库.csv,w_0038,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0039,祂会惩罚罪人，鼠只是帮祂节省时间,type_b,2,none,heresy,level_001,player,03_普通词库.csv,w_0039,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0041,祂给鼠能力，显然希望鼠使用它,type_c,2,none,heresy,level_001,player,03_普通词库.csv,w_0041,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0046,鼠的敌人恰好也是神的敌人,type_a,3,none,heresy,level_001,player,03_普通词库.csv,w_0046,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0052,水能变成酒，那酒兑水应该也不算造假,type_b,2,none,absurd,level_001,player,03_普通词库.csv,w_0052,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0057,十三个人一起吃晚餐，谁负责买单？,type_c,1,none,absurd,level_001,player,03_普通词库.csv,w_0057,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0063,如果祂无处不在，那为什么会有404notfound,type_a,3,none,absurd,level_001,player,03_普通词库.csv,w_0063,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0064,如果连鼠都能被原谅，那你们也可以,type_b,2,none,orthodox,level_001,player,03_普通词库.csv,w_0064,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0067,如果大家都能被选上，那“拣选”还有什么意思,type_c,1,none,heresy,level_001,player,03_普通词库.csv,w_0067,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0072,有时候仁慈就是让人没有别的选择,type_a,3,none,heresy,level_001,player,03_普通词库.csv,w_0072,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0076,这个，鼠真不知道,type_b,1,none,neutral,level_001,player,03_普通词库.csv,w_0076,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0080,算了，当鼠没说,type_c,1,none,neutral,level_001,player,03_普通词库.csv,w_0080,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0105,忏悔不需要预约,type_a,1,none,orthodox,level_001,player,03_普通词库.csv,w_0105,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0112,怀疑也是信仰的一部分,type_b,2,none,orthodox,level_001,player,03_普通词库.csv,w_0112,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-w_0118,祂就是我手里的这颗瓜子,type_c,3,none,absurd,level_001,player,03_普通词库.csv,w_0118,true,Plan B TEST_ONLY；battle_type 为轮转实验配置，tendency 与原表相同。
-pb_fermi_01,乌咪拉咻！,type_a,2,none,neutral,level_001,opponent,20_主播气泡对白.csv,bubble_alien_script_20261013_001,true,Plan B TEST_ONLY；复用费米已启用开场台词，tendency=neutral 仅作旧字段占位。
-pb_fermi_02,喵哇，地球朋友们好！,type_b,1,none,neutral,level_001,opponent,20_主播气泡对白.csv,bubble_alien_script_20261013_002,true,Plan B TEST_ONLY；复用费米已启用开场台词，tendency=neutral 仅作旧字段占位。
-pb_fermi_03,欢迎来到费米的宇宙房车！,type_c,2,none,neutral,level_001,opponent,20_主播气泡对白.csv,bubble_alien_script_20261013_003,true,Plan B TEST_ONLY；复用费米已启用开场台词，tendency=neutral 仅作旧字段占位。
-pb_fermi_04,鼠鼠你好喵哇!,type_a,1,none,neutral,level_001,opponent,20_主播气泡对白.csv,bubble_alien_script_20261013_004,true,Plan B TEST_ONLY；复用费米已启用开场台词，tendency=neutral 仅作旧字段占位。
-pb_fermi_05,鼠是我本光年遇见的第一只鼠！,type_b,3,none,neutral,level_001,opponent,20_主播气泡对白.csv,bubble_alien_script_20261013_005,true,Plan B TEST_ONLY；复用费米已启用开场台词，tendency=neutral 仅作旧字段占位。
+word_id,text,battle_type,strength,traits,tendency,available_level,available_to,streamer_id,source_table,source_id,source_pool_id,source_story_config_id,source_trigger_type,source_trigger_key,appearance_weight,mapping_status,test_only,notes
+w_0001,天堂名额少，先点点关注！,type_a,1,none,heresy,all,player,,03_普通词库.csv,w_0001,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0002,教规有会员制，别问为什么,type_b,1,none,heresy,all,player,,03_普通词库.csv,w_0002,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0003,神开的群，群主当然是鼠,type_c,1,none,heresy,all,player,,03_普通词库.csv,w_0003,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0004,想进天堂？先填一份申请表,type_a,1,none,heresy,all,player,,03_普通词库.csv,w_0004,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0005,不听鼠言，后果自行承担,type_b,2,none,heresy,all,player,,03_普通词库.csv,w_0005,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0006,鼠对经文有撤回权,type_c,3,none,heresy,all,player,,03_普通词库.csv,w_0006,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0007,你被选中了，快签免责协议,type_a,2,none,heresy,all,player,,03_普通词库.csv,w_0007,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0008,先交点教费，救赎马上安排,type_b,2,none,heresy,all,player,,03_普通词库.csv,w_0008,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0009,许愿发财，不知神会分几期,type_c,2,none,absurd,all,player,,03_普通词库.csv,w_0009,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0010,充电线打结，是天使在歌唱,type_a,2,none,absurd,all,player,,03_普通词库.csv,w_0010,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0011,鼠即全知,type_b,3,none,heresy,all,player,,03_普通词库.csv,w_0011,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0012,神迹可能还在加载中,type_c,1,none,absurd,all,player,,03_普通词库.csv,w_0012,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0013,祂无处不在,type_a,2,none,orthodox,all,player,,03_普通词库.csv,w_0013,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0014,WI-FI和信仰都是满格,type_b,2,none,orthodox,all,player,,03_普通词库.csv,w_0014,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0015,对空气道谢，它当然不否认,type_c,3,none,absurd,all,player,,03_普通词库.csv,w_0015,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0016,神说一切早有安排，那么鼠的外卖呢？,type_a,2,none,absurd,all,player,,03_普通词库.csv,w_0016,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0017,祂要是全知，知道鼠偷吃了吗？,type_b,3,none,absurd,all,player,,03_普通词库.csv,w_0017,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0018,太阳每天打卡，谁给它发工资,type_c,3,none,absurd,all,player,,03_普通词库.csv,w_0018,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0019,这条不代表本鼠立场,type_a,1,none,neutral,all,player,,03_普通词库.csv,w_0019,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0020,谁说得对？点赞高的那个,type_b,1,none,neutral,all,player,,03_普通词库.csv,w_0020,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0021,鼠先嗑颗瓜子,type_c,1,none,neutral,all,player,,03_普通词库.csv,w_0021,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0022,鼠先把补光灯调亮,type_a,1,none,neutral,all,player,,03_普通词库.csv,w_0022,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0023,鼠刚刚是不是说错话了？剪掉！,type_b,1,none,neutral,all,player,,03_普通词库.csv,w_0023,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0024,提问很好，下次直播再回答,type_c,1,none,neutral,all,player,,03_普通词库.csv,w_0024,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0025,看鼠干嘛？哦，鼠正在直播,type_a,1,none,neutral,all,player,,03_普通词库.csv,w_0025,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0026,那个取关的朋友，鼠们能聊聊吗？,type_b,1,none,neutral,all,player,,03_普通词库.csv,w_0026,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0027,鼠一点也不紧张！,type_c,1,none,neutral,all,player,,03_普通词库.csv,w_0027,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0028,这题可以跳过吗？跳过键在哪？,type_a,1,none,neutral,all,player,,03_普通词库.csv,w_0028,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0029,先把手机放好，大家听鼠狡辩,type_b,1,none,neutral,all,player,,03_普通词库.csv,w_0029,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0030,祂若呼召，鼠就回答,type_c,2,none,orthodox,all,player,,03_普通词库.csv,w_0030,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0031,祂爱世人，鼠也该试着去爱,type_a,2,none,orthodox,all,player,,03_普通词库.csv,w_0031,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0032,祂给过鼠恩典，鼠不能装作没收到,type_b,2,none,orthodox,all,player,,03_普通词库.csv,w_0032,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0033,就算所有人散去，鼠也要留下,type_c,3,none,orthodox,all,player,,03_普通词库.csv,w_0033,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0034,如果必须失去什么，那就从鼠开始,type_a,3,none,orthodox,all,player,,03_普通词库.csv,w_0034,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0035,神爱世人，但总得排个先后,type_b,1,none,heresy,all,player,,03_普通词库.csv,w_0035,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0036,祂说要宽恕，可没说要宽恕所有鼠,type_c,1,none,heresy,all,player,,03_普通词库.csv,w_0036,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0037,鼠当然服从神，只是解释权归鼠,type_a,1,none,heresy,all,player,,03_普通词库.csv,w_0037,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0038,神不会偏爱鼠，祂只是更常听鼠的,type_b,1,none,heresy,all,player,,03_普通词库.csv,w_0038,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0039,祂会惩罚罪人，鼠只是帮祂节省时间,type_c,2,none,heresy,all,player,,03_普通词库.csv,w_0039,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0040,如果神不赞成，祂早就阻止鼠了,type_a,2,none,heresy,all,player,,03_普通词库.csv,w_0040,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0041,祂给鼠能力，显然希望鼠使用它,type_b,2,none,heresy,all,player,,03_普通词库.csv,w_0041,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0042,你反对鼠，就是在反对祂的安排,type_c,2,none,heresy,all,player,,03_普通词库.csv,w_0042,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0043,鼠的胜利，证明神在鼠这边,type_a,2,none,heresy,all,player,,03_普通词库.csv,w_0043,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0044,神赐自由意志，所以鼠替你作了选择,type_b,2,none,heresy,all,player,,03_普通词库.csv,w_0044,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0045,祂叫我们彼此相爱，鼠负责决定谁算彼此,type_c,2,none,heresy,all,player,,03_普通词库.csv,w_0045,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0046,鼠的敌人恰好也是神的敌人,type_a,3,none,heresy,all,player,,03_普通词库.csv,w_0046,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0047,鼠只是替祂保管真理,type_b,2,none,heresy,all,player,,03_普通词库.csv,w_0047,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0048,只有鼠能听懂祂真正想说什么,type_c,3,none,heresy,all,player,,03_普通词库.csv,w_0048,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0049,错的不是鼠，是这个世界,type_a,2,none,heresy,all,player,,03_普通词库.csv,w_0049,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0050,神的旨意当然不可质疑——尤其是由鼠宣布的时候,type_b,3,none,heresy,all,player,,03_普通词库.csv,w_0050,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0051,上帝已鼠,type_c,3,none,heresy,all,player,,03_普通词库.csv,w_0051,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0052,水能变成酒，那酒兑水应该也不算造假,type_a,2,none,absurd,all,player,,03_普通词库.csv,w_0052,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0053,祂看见一切，所以摄像头其实很多余,type_b,2,none,absurd,all,player,,03_普通词库.csv,w_0053,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0054,神鼠了，但账号还在更新,type_c,2,none,absurd,all,player,,03_普通词库.csv,w_0054,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0055,鼠向神祈祷，手机立刻震了一下,type_a,2,none,absurd,all,player,,03_普通词库.csv,w_0055,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0056,圣水也是水，说明包装真的很重要,type_b,2,none,absurd,all,player,,03_普通词库.csv,w_0056,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0057,十三个人一起吃晚餐，谁负责买单？,type_c,1,none,absurd,all,player,,03_普通词库.csv,w_0057,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0058,要在水上行走，最好先确认地球Online的延迟,type_a,2,none,absurd,all,player,,03_普通词库.csv,w_0058,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0059,如果人人都是教皇，那今天轮到鼠值班,type_b,3,none,absurd,all,player,,03_普通词库.csv,w_0059,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0060,万事都与五有关,type_c,3,none,absurd,all,player,,03_普通词库.csv,w_0060,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0061,祂既粉红又隐形,type_a,3,none,absurd,all,player,,03_普通词库.csv,w_0061,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0062,天启四骑士其实是超管,type_b,2,none,absurd,all,player,,03_普通词库.csv,w_0062,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0063,如果祂无处不在，那为什么会有404notfound,type_c,3,none,absurd,all,player,,03_普通词库.csv,w_0063,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0064,如果连鼠都能被原谅，那你们也可以,type_a,2,none,orthodox,all,player,,03_普通词库.csv,w_0064,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0065,祂知道鼠做不到爱所有人,type_b,3,none,orthodox,all,player,,03_普通词库.csv,w_0065,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0066,鼠只知道鼠很感激,type_c,3,none,orthodox,all,player,,03_普通词库.csv,w_0066,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0067,如果大家都能被选上，那“拣选”还有什么意思,type_a,1,none,heresy,all,player,,03_普通词库.csv,w_0067,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0068,鼠会原谅你的,type_b,1,none,heresy,all,player,,03_普通词库.csv,w_0068,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0069,你可以不同意鼠，但神呢？,type_c,2,none,heresy,all,player,,03_普通词库.csv,w_0069,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0070,鼠是在帮你悔改,type_a,1,none,heresy,all,player,,03_普通词库.csv,w_0070,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0071,神爱罪人，不代表罪人可以不听鼠的,type_b,2,none,heresy,all,player,,03_普通词库.csv,w_0071,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0072,有时候仁慈就是让人没有别的选择,type_c,3,none,heresy,all,player,,03_普通词库.csv,w_0072,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0073,末日要是真的来了，至少不用交房租了,type_a,1,none,absurd,all,player,,03_普通词库.csv,w_0073,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0074,鼠觉得“不可知”这个词很方便,type_b,2,none,absurd,all,player,,03_普通词库.csv,w_0074,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0075,如果神真的在看直播，能不能顺手点个关注,type_c,3,none,absurd,all,player,,03_普通词库.csv,w_0075,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0076,这个，鼠真不知道,type_a,1,none,neutral,all,player,,03_普通词库.csv,w_0076,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0077,别急别急，一个个来,type_b,1,none,neutral,all,player,,03_普通词库.csv,w_0077,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0078,你们听鼠解释,type_c,1,none,neutral,all,player,,03_普通词库.csv,w_0078,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0079,这个不怪鼠吧,type_a,1,none,neutral,all,player,,03_普通词库.csv,w_0079,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0080,算了，当鼠没说,type_b,1,none,neutral,all,player,,03_普通词库.csv,w_0080,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0081,这个话题怎么聊到这来的,type_c,1,none,neutral,all,player,,03_普通词库.csv,w_0081,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0082,这个问题问得好,type_a,1,none,neutral,all,player,,03_普通词库.csv,w_0082,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0083,这个问题鼠真没想过,type_b,1,none,neutral,all,player,,03_普通词库.csv,w_0083,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0084,等鼠想想怎么说,type_c,1,none,neutral,all,player,,03_普通词库.csv,w_0084,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0085,鼠说得可能有点乱,type_a,1,none,neutral,all,player,,03_普通词库.csv,w_0085,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0086,懂鼠意思吧,type_b,1,none,neutral,all,player,,03_普通词库.csv,w_0086,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0087,你们怎么什么都知道,type_c,1,none,neutral,all,player,,03_普通词库.csv,w_0087,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0088,你这么一说鼠想起来了,type_a,1,none,neutral,all,player,,03_普通词库.csv,w_0088,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0089,鼠记得好像不是这样,type_b,1,none,neutral,all,player,,03_普通词库.csv,w_0089,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0090,鼠可能记错了，你们别全信,type_c,1,none,neutral,all,player,,03_普通词库.csv,w_0090,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0091,鼠先查一下，免得乱讲,type_a,1,none,neutral,all,player,,03_普通词库.csv,w_0091,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0092,鼠就说哪里怪怪的,type_b,1,none,neutral,all,player,,03_普通词库.csv,w_0092,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0093,鼠嘴比脑子快了,type_c,1,none,neutral,all,player,,03_普通词库.csv,w_0093,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0094,当鼠刚刚那句没说,type_a,1,none,neutral,all,player,,03_普通词库.csv,w_0094,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0095,鼠收回，鼠重新讲,type_b,1,none,neutral,all,player,,03_普通词库.csv,w_0095,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0096,算了，换个话题,type_c,1,none,neutral,all,player,,03_普通词库.csv,w_0096,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0097,好啦，这个先放这,type_a,1,none,neutral,all,player,,03_普通词库.csv,w_0097,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0098,鼠知道有人在看，鼠能感觉到,type_b,1,none,neutral,all,player,,03_普通词库.csv,w_0098,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0099,有人理鼠，鼠就会越说越多,type_c,1,none,neutral,all,player,,03_普通词库.csv,w_0099,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0100,你们看不出来吧，鼠现在有一点紧张,type_a,1,none,neutral,all,player,,03_普通词库.csv,w_0100,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0101,人一多鼠就想表现得特别好,type_b,1,none,neutral,all,player,,03_普通词库.csv,w_0101,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0102,鼠记性其实很好，尤其是别人夸过鼠的话,type_c,1,none,neutral,all,player,,03_普通词库.csv,w_0102,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0103,鼠对批评也接受的，温柔一点就行,type_a,1,none,neutral,all,player,,03_普通词库.csv,w_0103,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0104,至少等鼠把这一句讲完,type_b,1,none,neutral,all,player,,03_普通词库.csv,w_0104,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0105,忏悔不需要预约,type_c,1,none,orthodox,all,player,,03_普通词库.csv,w_0105,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0106,祂不怕你问为什么,type_a,2,none,orthodox,all,player,,03_普通词库.csv,w_0106,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0107,祂听见你没说的话,type_b,2,none,orthodox,all,player,,03_普通词库.csv,w_0107,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0108,先画圣像，再找圣人,type_c,3,none,absurd,all,player,,03_普通词库.csv,w_0108,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0109,鼠爱神，神爱鼠,type_a,1,none,orthodox,all,player,,03_普通词库.csv,w_0109,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0110,鼠这样做都是为祂好,type_b,3,none,absurd,all,player,,03_普通词库.csv,w_0110,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0111,神能将一切都能变成鼠想要的样子，前提是...,type_c,2,none,heresy,all,player,,03_普通词库.csv,w_0111,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0112,怀疑也是信仰的一部分,type_a,2,none,orthodox,all,player,,03_普通词库.csv,w_0112,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0113,神要求彼此分享,type_b,1,none,orthodox,all,player,,03_普通词库.csv,w_0113,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0114,怀疑鼠就是怀疑神,type_c,3,none,heresy,all,player,,03_普通词库.csv,w_0114,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0115,如果鼠替你决定一切，反而让你过得更安心呢？,type_a,3,none,heresy,all,player,,03_普通词库.csv,w_0115,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0116,神只爱鼠,type_b,3,none,heresy,all,player,,03_普通词库.csv,w_0116,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0117,祂就像我手里的这颗瓜子,type_c,1,none,orthodox,all,player,,03_普通词库.csv,w_0117,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0118,祂就是我手里的这颗瓜子,type_a,3,none,absurd,all,player,,03_普通词库.csv,w_0118,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0119,愿瓜子指引我们,type_b,3,none,absurd,all,player,,03_普通词库.csv,w_0119,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0120,你掉的是这颗金瓜子还是这颗银瓜子？,type_c,1,none,absurd,all,player,,03_普通词库.csv,w_0120,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0121,祂只能是鼠的！,type_a,3,none,heresy,all,player,,03_普通词库.csv,w_0121,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0122,祂是大家的！,type_b,2,none,orthodox,all,player,,03_普通词库.csv,w_0122,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0123,如果祂是只猫，那鼠也心甘情愿,type_c,3,none,orthodox,all,player,,03_普通词库.csv,w_0123,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0124,安息吧，受苦的灵魂,type_a,1,none,orthodox,all,player,,03_普通词库.csv,w_0124,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0125,信仰终将战胜恐惧,type_b,2,none,orthodox,all,player,,03_普通词库.csv,w_0125,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0126,希望永远存在，救赎亦然,type_c,2,none,orthodox,all,player,,03_普通词库.csv,w_0126,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0127,感谢有一位神始终守护着鼠,type_a,2,none,orthodox,all,player,,03_普通词库.csv,w_0127,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0128,鼠的信仰得到了回应,type_b,2,none,orthodox,all,player,,03_普通词库.csv,w_0128,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0129,让圣浴砂治愈鼠的灵魂,type_c,2,none,orthodox,all,player,,03_普通词库.csv,w_0129,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0130,有人保护鼠，所以鼠也愿意保护其他人,type_a,3,none,orthodox,all,player,,03_普通词库.csv,w_0130,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0131,鼠知道祂也会犯错,type_b,3,none,orthodox,all,player,,03_普通词库.csv,w_0131,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0132,鼠拥有的一切不是理所当然,type_c,1,none,orthodox,all,player,,03_普通词库.csv,w_0132,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0133,祂没有放弃犯错的鼠,type_a,2,none,orthodox,all,player,,03_普通词库.csv,w_0133,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0134,鼠拥有的瓜子都愿意献给祂,type_b,3,none,orthodox,all,player,,03_普通词库.csv,w_0134,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0135,请原谅鼠,type_c,1,none,orthodox,all,player,,03_普通词库.csv,w_0135,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0136,圣战在召唤鼠,type_a,3,none,orthodox,all,player,,03_普通词库.csv,w_0136,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0137,圣战仍在继续！,type_b,3,none,orthodox,all,player,,03_普通词库.csv,w_0137,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0138,鼠正在寻找能够拯救自己信仰的东西,type_c,3,none,orthodox,all,player,,03_普通词库.csv,w_0138,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0139,教皇是抽奖抽中的,type_a,3,none,absurd,all,player,,03_普通词库.csv,w_0139,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0140,神的坐骑是鼠的跑轮,type_b,2,none,absurd,all,player,,03_普通词库.csv,w_0140,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0141,最后的晚餐是鼠粮,type_c,2,none,absurd,all,player,,03_普通词库.csv,w_0141,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0142,今天禁食，瓜子除外,type_a,2,none,absurd,all,player,,03_普通词库.csv,w_0142,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0143,我宣布瓜子无罪,type_b,3,none,absurd,all,player,,03_普通词库.csv,w_0143,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0144,鼠宣布每过60秒就是1分钟,type_c,1,none,absurd,all,player,,03_普通词库.csv,w_0144,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0145,圣光原来是冰箱灯,type_a,2,none,absurd,all,player,,03_普通词库.csv,w_0145,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0146,主教被猫叼走了,type_b,1,none,absurd,all,player,,03_普通词库.csv,w_0146,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0147,天使说自己也在等通知,type_c,2,none,absurd,all,player,,03_普通词库.csv,w_0147,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0148,鼠的礼帽是纸杯,type_a,1,none,absurd,all,player,,03_普通词库.csv,w_0148,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0149,什么是糯米糍？,type_b,1,none,absurd,all,player,,03_普通词库.csv,w_0149,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0150,什么是汤圆？,type_c,1,none,absurd,all,player,,03_普通词库.csv,w_0150,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0151,什么是会呼吸的麻薯？,type_a,2,none,absurd,all,player,,03_普通词库.csv,w_0151,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0152,什么是唯一真鼠？,type_b,2,none,heresy,all,player,,03_普通词库.csv,w_0152,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0153,什么是神赐瓜子？,type_c,1,none,orthodox,all,player,,03_普通词库.csv,w_0153,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0154,什么是被爱的鼠？,type_a,2,none,orthodox,all,player,,03_普通词库.csv,w_0154,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0155,什么是圣光鼠饼？,type_b,2,none,absurd,all,player,,03_普通词库.csv,w_0155,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0156,什么是鼠的特权？,type_c,1,none,heresy,all,player,,03_普通词库.csv,w_0156,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0157,什么是鼠的圣旨？,type_a,2,none,heresy,all,player,,03_普通词库.csv,w_0157,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0158,什么是天选鼠王？,type_b,3,none,heresy,all,player,,03_普通词库.csv,w_0158,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0159,什么是料理鼠王？,type_c,1,none,absurd,all,player,,03_普通词库.csv,w_0159,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0160,什么是精灵鼠小弟？,type_a,1,none,absurd,all,player,,03_普通词库.csv,w_0160,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0161,什么是长毛月饼？,type_b,1,none,absurd,all,player,,03_普通词库.csv,w_0161,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0162,什么是芝麻球？,type_c,1,none,absurd,all,player,,03_普通词库.csv,w_0162,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+w_0163,什么是馒头蘸炼奶？,type_a,1,none,absurd,all,player,,03_普通词库.csv,w_0163,pool_streamer_a,,,,1,provisional_type_cycle,false,03正式启用玩家话语；旧倾向/strength/ID沿用来源；battle_type为V0.5临时轮转映射。
+bubble_alien_script_20261013_001,乌咪拉咻！,type_a,1,none,neutral,level_001,opponent,alien,20_主播气泡对白.csv,bubble_alien_script_20261013_001,,story_level_001,connect,T1_connect,1,provisional_enemy_type_strength,false,20正式启用T1_connect对白；战斗属性来源缺失，type轮转/strength=1/tendency=neutral为临时映射。 缺少20表random_weight，appearance_weight暂按1。
+bubble_alien_script_20261013_002,喵哇，地球朋友们好！,type_b,1,none,neutral,level_001,opponent,alien,20_主播气泡对白.csv,bubble_alien_script_20261013_002,,story_level_001,connect,T1_connect,1,provisional_enemy_type_strength,false,20正式启用T1_connect对白；战斗属性来源缺失，type轮转/strength=1/tendency=neutral为临时映射。 缺少20表random_weight，appearance_weight暂按1。
+bubble_alien_script_20261013_003,欢迎来到费米的宇宙房车！,type_c,1,none,neutral,level_001,opponent,alien,20_主播气泡对白.csv,bubble_alien_script_20261013_003,,story_level_001,connect,T1_connect,1,provisional_enemy_type_strength,false,20正式启用T1_connect对白；战斗属性来源缺失，type轮转/strength=1/tendency=neutral为临时映射。 缺少20表random_weight，appearance_weight暂按1。
+bubble_alien_script_20261013_004,鼠鼠你好喵哇!,type_a,1,none,neutral,level_001,opponent,alien,20_主播气泡对白.csv,bubble_alien_script_20261013_004,,story_level_001,connect,T1_connect,1,provisional_enemy_type_strength,false,20正式启用T1_connect对白；战斗属性来源缺失，type轮转/strength=1/tendency=neutral为临时映射。 缺少20表random_weight，appearance_weight暂按1。
+bubble_alien_script_20261013_005,鼠是我本光年遇见的第一只鼠！,type_b,1,none,neutral,level_001,opponent,alien,20_主播气泡对白.csv,bubble_alien_script_20261013_005,,story_level_001,connect,T1_connect,1,provisional_enemy_type_strength,false,20正式启用T1_connect对白；战斗属性来源缺失，type轮转/strength=1/tendency=neutral为临时映射。 缺少20表random_weight，appearance_weight暂按1。
+bubble_kiwi_script_20261013_001,欢迎来到奥格尔的圣堂,type_a,1,none,neutral,level_002,opponent,kiwi,20_主播气泡对白.csv,bubble_kiwi_script_20261013_001,,story_level_002,connect,T1_connect,1,provisional_enemy_type_strength,false,20正式启用T1_connect对白；战斗属性来源缺失，type轮转/strength=1/tendency=neutral为临时映射。 缺少20表random_weight，appearance_weight暂按1。
+bubble_kiwi_script_20261013_002,愿神赐福给每一位进来的朋友,type_b,1,none,neutral,level_002,opponent,kiwi,20_主播气泡对白.csv,bubble_kiwi_script_20261013_002,,story_level_002,connect,T1_connect,1,provisional_enemy_type_strength,false,20正式启用T1_connect对白；战斗属性来源缺失，type轮转/strength=1/tendency=neutral为临时映射。 缺少20表random_weight，appearance_weight暂按1。
+bubble_kiwi_script_20261013_003,今天有什么烦恼，都可以跟我说,type_c,1,none,neutral,level_002,opponent,kiwi,20_主播气泡对白.csv,bubble_kiwi_script_20261013_003,,story_level_002,connect,T1_connect,1,provisional_enemy_type_strength,false,20正式启用T1_connect对白；战斗属性来源缺失，type轮转/strength=1/tendency=neutral为临时映射。 缺少20表random_weight，appearance_weight暂按1。
+bubble_kiwi_script_20261013_004,不愿意说也没关系,type_a,1,none,neutral,level_002,opponent,kiwi,20_主播气泡对白.csv,bubble_kiwi_script_20261013_004,,story_level_002,connect,T1_connect,1,provisional_enemy_type_strength,false,20正式启用T1_connect对白；战斗属性来源缺失，type轮转/strength=1/tendency=neutral为临时映射。 缺少20表random_weight，appearance_weight暂按1。
+bubble_kiwi_script_20261013_005,不愿意关注也没关系……,type_b,1,none,neutral,level_002,opponent,kiwi,20_主播气泡对白.csv,bubble_kiwi_script_20261013_005,,story_level_002,connect,T1_connect,1,provisional_enemy_type_strength,false,20正式启用T1_connect对白；战斗属性来源缺失，type轮转/strength=1/tendency=neutral为临时映射。 缺少20表random_weight，appearance_weight暂按1。
+bubble_kiwi_script_20261013_006,……真的没关系哦？,type_c,1,none,neutral,level_002,opponent,kiwi,20_主播气泡对白.csv,bubble_kiwi_script_20261013_006,,story_level_002,connect,T1_connect,1,provisional_enemy_type_strength,false,20正式启用T1_connect对白；战斗属性来源缺失，type轮转/strength=1/tendency=neutral为临时映射。 缺少20表random_weight，appearance_weight暂按1。
+bubble_frog_script_20261013_001,欢迎来到咕拉的私蛙厨房~,type_a,1,none,neutral,level_003,opponent,frog,20_主播气泡对白.csv,bubble_frog_script_20261013_001,,story_level_003,connect,T1_connect,1,provisional_enemy_type_strength,false,20正式启用T1_connect对白；战斗属性来源缺失，type轮转/strength=1/tendency=neutral为临时映射。 缺少20表random_weight，appearance_weight暂按1。
+bubble_frog_script_20261013_002,今天依然是呱其林五星的水准~,type_b,1,none,neutral,level_003,opponent,frog,20_主播气泡对白.csv,bubble_frog_script_20261013_002,,story_level_003,connect,T1_connect,1,provisional_enemy_type_strength,false,20正式启用T1_connect对白；战斗属性来源缺失，type轮转/strength=1/tendency=neutral为临时映射。 缺少20表random_weight，appearance_weight暂按1。
+bubble_frog_script_20261013_003,本店没有菜单，只有命运的选择~,type_c,1,none,neutral,level_003,opponent,frog,20_主播气泡对白.csv,bubble_frog_script_20261013_003,,story_level_003,connect,T1_connect,1,provisional_enemy_type_strength,false,20正式启用T1_connect对白；战斗属性来源缺失，type轮转/strength=1/tendency=neutral为临时映射。 缺少20表random_weight，appearance_weight暂按1。
+bubble_frog_script_20261013_004,厨神总是能做出最合适你的那份料理~,type_a,1,none,neutral,level_003,opponent,frog,20_主播气泡对白.csv,bubble_frog_script_20261013_004,,story_level_003,connect,T1_connect,1,provisional_enemy_type_strength,false,20正式启用T1_connect对白；战斗属性来源缺失，type轮转/strength=1/tendency=neutral为临时映射。 缺少20表random_weight，appearance_weight暂按1。
+bubble_frog_script_20261013_005,本店不接受差评~,type_b,1,none,neutral,level_003,opponent,frog,20_主播气泡对白.csv,bubble_frog_script_20261013_005,,story_level_003,connect,T1_connect,1,provisional_enemy_type_strength,false,20正式启用T1_connect对白；战斗属性来源缺失，type轮转/strength=1/tendency=neutral为临时映射。 缺少20表random_weight，appearance_weight暂按1。
+bubble_fox_script_20261014_001,欢迎来到列巴的奥林匹斯行宫♡,type_a,1,none,neutral,level_004,opponent,fox,20_主播气泡对白.csv,bubble_fox_script_20261014_001,,story_level_004,connect,T1_connect,1,provisional_enemy_type_strength,false,20正式启用T1_connect对白；战斗属性来源缺失，type轮转/strength=1/tendency=neutral为临时映射。 缺少20表random_weight，appearance_weight暂按1。
+bubble_fox_script_20261014_002,哎呀，是第一次来吗？,type_b,1,none,neutral,level_004,opponent,fox,20_主播气泡对白.csv,bubble_fox_script_20261014_002,,story_level_004,connect,T1_connect,1,provisional_enemy_type_strength,false,20正式启用T1_connect对白；战斗属性来源缺失，type轮转/strength=1/tendency=neutral为临时映射。 缺少20表random_weight，appearance_weight暂按1。
+bubble_fox_script_20261014_003,别紧张，这里只谈爱与艺术哦♡,type_c,1,none,neutral,level_004,opponent,fox,20_主播气泡对白.csv,bubble_fox_script_20261014_003,,story_level_004,connect,T1_connect,1,provisional_enemy_type_strength,false,20正式启用T1_connect对白；战斗属性来源缺失，type轮转/strength=1/tendency=neutral为临时映射。 缺少20表random_weight，appearance_weight暂按1。
+bubble_fox_script_20261014_004,至于床头的那些锁链……,type_a,1,none,neutral,level_004,opponent,fox,20_主播气泡对白.csv,bubble_fox_script_20261014_004,,story_level_004,connect,T1_connect,1,provisional_enemy_type_strength,false,20正式启用T1_connect对白；战斗属性来源缺失，type轮转/strength=1/tendency=neutral为临时映射。 缺少20表random_weight，appearance_weight暂按1。
+bubble_fox_script_20261014_005,只是为了拴住稍纵即逝的幸福♡,type_b,1,none,neutral,level_004,opponent,fox,20_主播气泡对白.csv,bubble_fox_script_20261014_005,,story_level_004,connect,T1_connect,1,provisional_enemy_type_strength,false,20正式启用T1_connect对白；战斗属性来源缺失，type轮转/strength=1/tendency=neutral为临时映射。 缺少20表random_weight，appearance_weight暂按1。
+bubble_fox_script_20261014_006,今天的喜欢，也先到先得哦♡,type_c,1,none,neutral,level_004,opponent,fox,20_主播气泡对白.csv,bubble_fox_script_20261014_006,,story_level_004,connect,T1_connect,1,provisional_enemy_type_strength,false,20正式启用T1_connect对白；战斗属性来源缺失，type轮转/strength=1/tendency=neutral为临时映射。 缺少20表random_weight，appearance_weight暂按1。

@@ -1,2 +1,0 @@
-opponent_id,level_id,speech_enabled,initial_speech_delay_seconds,speech_cooldown_seconds,counterattack_enabled,counterattack_skill_id,counterattack_trigger_event,counterattack_lead_margin,counterattack_cooldown_seconds,counterattack_pre_windup_seconds,counterattack_effect_id,counterattack_child_count,counterattack_max_uses,test_only,notes
-fermi,level_001,true,11.5,11.5,true,alien_t3_split,player_population_ahead,2,25,1.2,split,2,2,true,Plan B TEST_ONLY；费米反击参数仅用于机制试玩。

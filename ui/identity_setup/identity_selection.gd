@@ -1,5 +1,8 @@
 extends Control
 
+const CARD_BACK_TEXTURE: Texture2D = preload("res://assets/ui/identity/cards/identity_card_back.png")
+const CARD_BLANK_TEXTURE: Texture2D = preload("res://assets/ui/identity/cards/identity_card_front_00_blank.png")
+
 signal selection_changed(option: IdentityOption)
 signal next_requested(option: IdentityOption)
 
@@ -20,10 +23,22 @@ func _ready() -> void:
 	for option in IdentityOptions.CARDS:
 		var button := Button.new()
 		button.name = String(option.identity_id)
-		button.custom_minimum_size = Vector2(280, 260)
+		button.custom_minimum_size = Vector2(280, 350)
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.toggle_mode = true
 		_grid.add_child(button)
+		# 在原有 Button 状态层内部绘制卡面，保留按钮焦点与选中描边。
+		var card_art := TextureRect.new()
+		card_art.name = "CardArt"
+		card_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		card_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		card_art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		card_art.offset_left = 5.0
+		card_art.offset_top = 5.0
+		card_art.offset_right = -5.0
+		card_art.offset_bottom = -5.0
+		button.add_child(card_art)
 		var selected_style := button.get_theme_stylebox("pressed").duplicate() as StyleBoxFlat
 		selected_style.set_border_width_all(3)
 		button.add_theme_stylebox_override("pressed", selected_style)
@@ -38,15 +53,22 @@ func _ready() -> void:
 		var content := VBoxContainer.new()
 		content.name = "Front"
 		content.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		content.add_theme_constant_override("separation", 12)
+		content.add_theme_constant_override("separation", 8)
 		margin.add_child(content)
-		var title := _make_label(option.display_name, 30)
+		var art_clearance := Control.new()
+		art_clearance.custom_minimum_size.y = 120.0
+		art_clearance.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		content.add_child(art_clearance)
+		var title := _make_label(option.display_name, 26)
+		title.add_theme_color_override("font_color", Color("#49312b"))
 		content.add_child(title)
-		content.add_child(_make_label(option.description, 21))
+		var description := _make_label(option.description, 18)
+		description.add_theme_color_override("font_color", Color("#49312b"))
+		content.add_child(description)
 		var back := _make_label("身份牌\n点击翻开", 30)
 		back.name = "Back"
 		back.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		back.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		back.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 		margin.add_child(back)
 		_present_card_face(button, _revealed_ids.has(option.identity_id))
 		button.pressed.connect(_on_card_pressed.bind(option, button))
@@ -106,6 +128,13 @@ func _on_card_pressed(option: IdentityOption, button: Button) -> void:
 
 # 卡背与翻面表现的统一占位入口；后续美术可在此接图或动画，状态由页面持有。
 func _present_card_face(button: Button, revealed: bool) -> void:
+	# 从 IdentityOption.icon 读取暂定图案映射；无资源时回退空白正面。
+	var card_art := button.get_node("CardArt") as TextureRect
+	var option := IdentityOptions.find_option(StringName(button.name))
+	if revealed and option != null and option.icon != null:
+		card_art.texture = option.icon
+	else:
+		card_art.texture = CARD_BLANK_TEXTURE if revealed else CARD_BACK_TEXTURE
 	button.get_node("CardFace/Front").visible = revealed
 	button.get_node("CardFace/Back").visible = not revealed
 

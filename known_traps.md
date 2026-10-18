@@ -259,11 +259,11 @@
 - **条件**：运动按 `Curve2D` 烘焙弧长前进，同时把 `cubic` 插值设为 `true`。
 - **处理**：细分烘焙点间改用 `sample_baked(offset, false)` 线性插值，并用同一 `_process(delta)` 帧时间累计实际路径距离验证速度。BG-21 的 2 px 烘焙步长和 96 px/s 上限回归通过。
 
-### KT-42：动画撕边多边形经过视口边缘时可能三角化失败
+### KT-42：CanvasItem 多边形退化可能导致三角化失败
 
-- **现象**：PA-12 GPU 预览在移动撕幕跨越视口边缘时，`draw_colored_polygon()` 输出 `Invalid polygon data, triangulation failed`，即使场景仍以退出码 0 结束。
-- **条件**：由多点锯齿边构成的单个多边形在动画中伸出视口，边缘点相交、塌缩或变成自交轮廓。
-- **处理**：将幕布边缘按纵向分段为视口内凸三角形/四边形，完全离屏或退化的片段跳过；再次以 Godot GUI 渲染确认 Output 无绘制错误。
+- **现象**：PA-12 GPU 预览在移动撕幕跨越视口边缘时，以及 PB-14 匹配 profile 的团体气泡尾巴绘制中，`draw_colored_polygon()` 输出 `Invalid polygon data, triangulation failed`，即使场景仍以退出码 0 结束。
+- **条件**：多边形边缘点相交、塌缩或变成自交轮廓；团体气泡尾巴的尖端与水平底边重合时也会形成零面积三角形。
+- **处理**：将幕布边缘按纵向分段为视口内凸三角形/四边形，完全离屏或退化的片段跳过；团体气泡尾巴在尖端与底边垂直距离不超过0.001时跳过填充和边线绘制。D headless smoke 已通过；D3D12 修复后复测待 E 执行。
 
 ### KT-44：Windows 标题栏使 1080 预览实际只有 1055
 
@@ -278,6 +278,27 @@
 - **处理**：业务表使用原生 Keep File（`importer="keep"`），把 `data/source_tables/*.csv.import` 随 Git 保存；旧 `.translation` 缓存继续忽略并排除出包。使用包外验证脚本挂载真实 PCK，核对 27 张 CSV、字体和已映射音频，不能仅在源工程 smoke。
 - **证据**：INT-18E 的失败 PCK `csv=0`；修复后 Godot 4.7.2 实包 `csv=27 fonts=2 audio=23`、退出 0。
 
+PB-10 配置核对发现 `data/plan_b/` 的五份战斗 CSV 缺少 Keep File sidecar，Windows / Android include filter 也只包含 `data/source_tables/*.csv`，存在源工程可读、导出 PCK 缺原表的同类风险。五份表都要提交 `importer="keep"` sidecar，并加入两端 include filter；旧 `.translation` 输出需排除。此次 4.7.2 资源 PCK 导出退出 0，包外脚本挂载该 PCK 后逐表用 `FileAccess` 打开，五表 PASS。冷导入还会在 `tests/plan_b/results/` 旁生成 CSV Translation 临时文件，已由 `.gitignore` 定点忽略。
+
+### KT-45：全新 worktree 首次 headless 启动先报资源导入缺失
+
+- **现象**：Godot 4.7.2 在新 worktree 首次 `--headless --editor` 时，项目主题加载先报告字体没有 FontFile loader，部分音频也短暂出现 `Failed loading resource`；同一轮后续扫描会重新导入字体和音频，之后加载 UI 场景正常。
+- **条件**：worktree 尚无 `.godot` 导入缓存，且项目全局主题在首次文件系统扫描前初始化。
+- **处理**：先执行 `godot --headless --editor --import --path <project-root> --quit` 完成资源导入，再用项目场景入口复验。首轮主题加载报错不单独作为资源不存在的结论；随后场景仍失败时再按最终解析日志定位。
+- **证据**：PB-12～14 D worktree 首轮 import 完成后，Plan B UI 场景与 D UI smoke 均退出 0；相同 cold-import 现象在 B 的新 worktree 复现。PB-14 A worktree 另复现了 PNG 与 `.import` sidecar 齐全、但6张弹幕球目标 `.ctex` 缺失；一次 `--headless --editor --import --quit` 返回0仍未生成这些目标，核对实际缓存后从同项目同版本的 E worktree 复制六个确切缓存文件，随后 Sandbox headless 短跑进入运行态。Exit 0 不足以证明指定导入目标已经存在。
+
+### KT-46：PK 归零关闭对手侧后，失败剧情序列被 SD-03 拒收
+
+- **现象**：正式 Plan B 战斗到 0% 后，对手侧 `combat_lose` 序列被标记为拒收。
+- **条件**：外部 PK 同步先发出 `pk_feedback_changed`，Plan B UI 按 T0 禁用对手侧队列；随后 `attempt_failed` 消费者提交对手侧失败剧情。
+- **处理**：Plan B UI 在失败演出开始时重新启用对手立绘与对白侧，再提交后续失败序列；重开仍由 `reset_for_attempt()` 清理活动对白。
+
+### KT-47：Plan B 隐藏的弹幕视图被 DivineDescent 收束查询复用
+
+- **现象**：神降临进入锁句阶段后可持续显示 `locked`，可见占比无法达到收束阈值，Ending 不会开始。
+- **条件**：Plan B 普通战斗隐藏旧 `BarrageArea`；`DivineDescentSpread` 仍用其中 `BarrageView.is_visible_in_tree()` 通过的记录计算锁句占比。
+- **处理**：Plan B 进入 DivineDescent 时恢复 `_barrage_area.visible`，并隐藏旧神谕候选层；可见弹幕事实仍由 `BarrageArea` 提供。
+
 ## 六、自查入口
 遇到问题优先按类别检查：
 - UI 不响应 / 空引用：KT-02、KT-04、KT-05。
@@ -290,6 +311,9 @@
 - headless 位移速度与计时验证：KT-40；Curve2D 速度上限：KT-41。
 - CanvasItem 动画多边形三角化：KT-42。
 - 源工程可读 CSV、导出包缺表：KT-43。
+- 新 worktree 首次字体 / 音频 loader 报错：KT-45。
+- Plan B 到 0% 后失败对白未入队：KT-46。
+- Plan B 神降临锁句占比不收束：KT-47。
 
 ## 附录 A：Godot 生命周期提醒
 

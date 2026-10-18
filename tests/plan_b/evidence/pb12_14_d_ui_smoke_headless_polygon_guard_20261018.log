@@ -1,0 +1,15 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS exactly three fixed card slots exist
+PASS empty middle slot does not shift slot 3 content
+PASS availability stays bound to stable slot_id values
+PASS slot 3 fill reflects its own 2.5 second timer
+PASS mouse card selection publishes the selected word fact
+PASS board coordinate submits one publish request
+PASS publish request keeps the selected slot id
+PASS publish request keeps the selected word
+PASS publish request keeps the chosen board position
+PASS capacity failure leaves the selected slot available
+RENDER B batch, group, split and reflect facts through the D presentation layer
+SKIP preview image: headless renderer does not provide viewport readback
+PASS PB-12/13/11/14 D UI smoke

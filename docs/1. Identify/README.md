@@ -172,3 +172,27 @@ ID-12 提供独立漫画播放控制 Node，按配置发出 1-based 分镜编号
 ## INT-11 当前边界（2026-10-13）
 
 首次 Boot 六幕漫画是角色塑造之前的独立演出，结束到主菜单。它不会代替身份动机漫画；ID-14 在正式动机分镜交付前跳过该素材步骤。
+
+## 2026-10-19 十二张身份卡美术到库
+
+- 新素材路径：`assets/ui/identity/cards/`：`identity_card_back.png`、`identity_card_front_00_blank.png`、`identity_card_front_01.png`～`identity_card_front_12.png`。
+- 12 张带符号卡面已由项目负责人确认为身份卡；空白正面和背面同属于身份卡。
+- 本次只归类美术，不改变翻开、选择和存档逻辑。美术原 01～12 编号保留；已暂按 IdentityOptions.CARDS 的当前顺序，映射至三倾向的 12 个身份，写入各 IdentityOption Resource 的 icon。后续可直接调整映射；当前身份选择 UI 读取 icon 绘制卡面，未翻开时使用统一卡背，缺省贴图时使用空白正面；保留原翻面和选择逻辑。
+- 全部旧文件名到新文件名的对照：`docs/Shared/PresentationAssets/Art_Intake_Rename_2026-10-19.md`。
+
+### 2026-10-19 临时卡面映射
+
+- `card_front_01` → `identity_orthodox_1`
+- `card_front_02` → `identity_heresy_4`
+- `card_front_03` → `identity_absurd_1`
+- `card_front_04` → `identity_heresy_2`
+- `card_front_05` → `identity_absurd_2`
+- `card_front_06` → `identity_orthodox_3`
+- `card_front_07` → `identity_heresy_3`
+- `card_front_08` → `identity_absurd_4`
+- `card_front_09` → `identity_orthodox_4`
+- `card_front_10` → `identity_absurd_3`
+- `card_front_11` → `identity_orthodox_2`
+- `card_front_12` → `identity_heresy_1`
+
+- 2026-10-19：同步写入 `data/source_tables/01_身份配置.csv` 的 icon_asset_id（12 行），正式导表再次生成身份 Resource 时可保留当前暂定映射。

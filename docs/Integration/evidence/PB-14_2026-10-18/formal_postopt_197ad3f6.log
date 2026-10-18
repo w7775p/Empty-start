@@ -1,0 +1,244 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: AMD - AMD Radeon(TM) Graphics
+Requested V-Sync mode: Enabled - FPS will likely be capped to the monitor refresh rate.
+
+WARNING: AudioManager: music event 'music_battle_t0' is missing, empty or not Music.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] change_music (res://core/autoload/audio_manager.gd:106)
+       [1] _publish_current_tier_state (res://core/combat/combat_stage.gd:169)
+       [2] begin_combat (res://core/combat/combat_stage.gd:34)
+       [3] _start_attempt (res://core/combat/battle_attempt_flow.gd:257)
+       [4] start_first_attempt (res://core/combat/battle_attempt_flow.gd:198)
+       [5] _ready (res://scenes/sandbox/sandbox.gd:290)
+PB14_SIMULATION_READY path=/root/Sandbox/PlanBBattleHost/Simulation
+PB14_CENSUS t_ms=765 player=0 opponent=2 neutral=76 total=78 running=true
+PB14_CENSUS t_ms=1782 player=0 opponent=2 neutral=76 total=78 running=true
+GPU PROFILE (total 3.349ms): 
+	-Render CanvasItems: 1.98800007502238ms
+PB14_CENSUS t_ms=2940 player=0 opponent=2 neutral=77 total=79 running=true
+GPU PROFILE (total 2.125ms): 
+	-Cull CanvasItem Tree: 0.0396666675806ms
+	-Render CanvasItems: 2.55633354187012ms
+Project FPS: 5 (200.00 mspf)
+PB14_CENSUS t_ms=4102 player=0 opponent=2 neutral=79 total=81 running=true
+Project FPS: 6 (166.66 mspf)
+GPU PROFILE (total 1.97ms): 
+	-Frame Begin: 0.01171428497349ms
+	-Cull CanvasItem Tree: 0.0214285744088ms
+	-Render CanvasItems: 1.81771428244455ms
+PB14_CENSUS t_ms=5103 player=0 opponent=2 neutral=80 total=82 running=true
+Project FPS: 6 (166.66 mspf)
+GPU PROFILE (total 1.827ms): 
+	-Cull CanvasItem Tree: 0.03250000377496ms
+	-Render CanvasItems: 1.93083349863688ms
+PB14_CENSUS t_ms=6167 player=0 opponent=3 neutral=80 total=83 running=true
+Project FPS: 6 (166.66 mspf)
+GPU PROFILE (total 3.284ms): 
+	-Cull CanvasItem Tree: 0.01899999628464ms
+	-Render CanvasItems: 2.61549997329712ms
+Project FPS: 5 (200.00 mspf)
+PB14_CENSUS t_ms=7299 player=0 opponent=3 neutral=81 total=84 running=true
+GPU PROFILE (total 1.859ms): 
+	-Frame Begin: 0.01283333326379ms
+	-Cull CanvasItem Tree: 0.01300000026822ms
+	-Render CanvasItems: 2.38483317693075ms
+Project FPS: 6 (166.66 mspf)
+PB14_CENSUS t_ms=8344 player=0 opponent=3 neutral=82 total=85 running=true
+GPU PROFILE (total 2.257ms): 
+	-Frame Begin: 0.011833332479ms
+	-Cull CanvasItem Tree: 0.01333333179355ms
+	-Render CanvasItems: 1.78316640853882ms
+Project FPS: 6 (166.66 mspf)
+PB14_CENSUS t_ms=9433 player=0 opponent=3 neutral=83 total=86 running=true
+GPU PROFILE (total 2.767ms): 
+	-Frame Begin: 0.01333333303531ms
+	-Cull CanvasItem Tree: 0.01716666544477ms
+	-Render CanvasItems: 1.99366680781047ms
+Project FPS: 5 (200.00 mspf)
+PB14_CENSUS t_ms=10568 player=0 opponent=4 neutral=83 total=87 running=true
+GPU PROFILE (total 2.229ms): 
+	-Frame Begin: 0.01116666694482ms
+	-Cull CanvasItem Tree: 0.01316666603088ms
+	-Render CanvasItems: 2.04450019200643ms
+Project FPS: 5 (200.00 mspf)
+PB14_CENSUS t_ms=11709 player=0 opponent=5 neutral=83 total=88 running=true
+GPU PROFILE (total 2.151ms): 
+	-Cull CanvasItem Tree: 0.01466666162014ms
+	-Render CanvasItems: 2.22200012207031ms
+Project FPS: 5 (200.00 mspf)
+PB14_CENSUS t_ms=12860 player=0 opponent=5 neutral=84 total=89 running=true
+GPU PROFILE (total 2.741ms): 
+	-Frame Begin: 0.01199999948343ms
+	-Cull CanvasItem Tree: 0.0173333324492ms
+	-Render CanvasItems: 2.85183334350586ms
+Project FPS: 6 (166.66 mspf)
+PB14_CENSUS t_ms=14025 player=0 opponent=6 neutral=84 total=90 running=true
+GPU PROFILE (total 3.046ms): 
+	-Frame Begin: 0.09283333023389ms
+	-Cull CanvasItem Tree: 0.02100000033776ms
+	-Render CanvasItems: 2.6621667544047ms
+Project FPS: 5 (200.00 mspf)
+PB14_CENSUS t_ms=15196 player=0 opponent=6 neutral=85 total=91 running=true
+Project FPS: 5 (200.00 mspf)
+GPU PROFILE (total 2.132ms): 
+	-Cull CanvasItem Tree: 0.01833333447576ms
+	-Render CanvasItems: 1.94799979527791ms
+PB14_CENSUS t_ms=16207 player=0 opponent=7 neutral=85 total=92 running=true
+Project FPS: 5 (200.00 mspf)
+GPU PROFILE (total 2.442ms): 
+	-Frame Begin: 0.01159999966621ms
+	-Cull CanvasItem Tree: 0.01679999530315ms
+	-Render CanvasItems: 2.92439994812012ms
+PB14_CENSUS t_ms=17228 player=0 opponent=10 neutral=85 total=95 running=true
+Project FPS: 5 (200.00 mspf)
+GPU PROFILE (total 2.123ms): 
+	-Cull CanvasItem Tree: 0.02679999470711ms
+	-Render CanvasItems: 1.85799980163574ms
+Project FPS: 4 (250.00 mspf)
+PB14_CENSUS t_ms=18420 player=0 opponent=10 neutral=86 total=96 running=true
+PB14_FULL_POPULATION t_ms=18420
+GPU PROFILE (total 2.265ms): 
+	-Frame Begin: 0.01299999952316ms
+	-Cull CanvasItem Tree: 0.01299999952316ms
+	-Render CanvasItems: 2.13959999084473ms
+Project FPS: 5 (200.00 mspf)
+PB14_CENSUS t_ms=19515 player=0 opponent=10 neutral=86 total=96 running=true
+GPU PROFILE (total 2.317ms): 
+	-Frame Begin: 0.01319999992847ms
+	-Cull CanvasItem Tree: 0.01319999992847ms
+	-Render CanvasItems: 2.4463996887207ms
+Project FPS: 4 (250.00 mspf)
+PB14_CENSUS t_ms=20592 player=0 opponent=11 neutral=85 total=96 running=true
+GPU PROFILE (total 1.93ms): 
+	-Frame Begin: 0.01159999966621ms
+	-Cull CanvasItem Tree: 0.01339999884367ms
+	-Render CanvasItems: 1.96879997253418ms
+Project FPS: 5 (200.00 mspf)
+PB14_CENSUS t_ms=21685 player=0 opponent=11 neutral=85 total=96 running=true
+GPU PROFILE (total 2.082ms): 
+	-Frame Begin: 0.01080000028014ms
+	-Cull CanvasItem Tree: 0.02399999499321ms
+	-Render CanvasItems: 2.01940021514893ms
+Project FPS: 5 (200.00 mspf)
+PB14_CENSUS t_ms=22720 player=0 opponent=11 neutral=85 total=96 running=true
+GPU PROFILE (total 1.934ms): 
+	-Frame Begin: 0.0140000000596ms
+	-Cull CanvasItem Tree: 0.01439999938011ms
+	-Render CanvasItems: 1.90819988250732ms
+Project FPS: 4 (250.00 mspf)
+PB14_CENSUS t_ms=23915 player=0 opponent=11 neutral=85 total=96 running=true
+PB14_PROFILE_BEGIN {"client_window":"(1280, 720)","commit":"1ddd5b41","logic_viewport":"(1920, 1080)","physics_tps":60,"population":{"neutral":85,"opponent":11,"player":0},"sample_ms":20000,"scene":"res://scenes/sandbox/sandbox_plan_b.tscn","warmup_ms":5000,"window_mode":"0"}
+GPU PROFILE (total 1.622ms): 
+	-Frame Begin: 0.0140000000596ms
+	-Cull CanvasItem Tree: 0.01499999910593ms
+	-Render CanvasItems: 1.92299995422363ms
+Project FPS: 5 (200.00 mspf)
+PB14_CENSUS t_ms=25110 player=0 opponent=11 neutral=85 total=96 running=true
+GPU PROFILE (total 2.3ms): 
+	-Frame Begin: 0.01399999981125ms
+	-Cull CanvasItem Tree: 0.01266666377584ms
+	-Render CanvasItems: 2.1063330968221ms
+Project FPS: 5 (200.00 mspf)
+PB14_CENSUS t_ms=26130 player=0 opponent=12 neutral=84 total=96 running=true
+GPU PROFILE (total 1.719ms): 
+	-Frame Begin: 0.01260000020266ms
+	-Cull CanvasItem Tree: 0.01319999843836ms
+	-Render CanvasItems: 1.78159980773926ms
+Project FPS: 5 (200.00 mspf)
+PB14_CENSUS t_ms=27227 player=0 opponent=12 neutral=84 total=96 running=true
+GPU PROFILE (total 2.215ms): 
+	-Frame Begin: 0.01299999952316ms
+	-Cull CanvasItem Tree: 0.01840000003576ms
+	-Render CanvasItems: 2.13960018157959ms
+Project FPS: 5 (200.00 mspf)
+PB14_CENSUS t_ms=28268 player=0 opponent=12 neutral=84 total=96 running=true
+GPU PROFILE (total 1.529ms): 
+	-Frame Begin: 0.01340000033379ms
+	-Cull CanvasItem Tree: 0.01140000000596ms
+	-Render CanvasItems: 1.99759979248047ms
+Project FPS: 5 (200.00 mspf)
+PB14_CENSUS t_ms=29289 player=0 opponent=12 neutral=84 total=96 running=true
+GPU PROFILE (total 2.611ms): 
+	-Frame Begin: 0.0140000000596ms
+	-Cull CanvasItem Tree: 0.01539999693632ms
+	-Render CanvasItems: 2.12040004730225ms
+Project FPS: 5 (200.00 mspf)
+Project FPS: 4 (250.00 mspf)
+PB14_CENSUS t_ms=30322 player=0 opponent=13 neutral=83 total=96 running=true
+GPU PROFILE (total 2.025ms): 
+	-Frame Begin: 0.01319999992847ms
+	-Cull CanvasItem Tree: 0.01440000087023ms
+	-Render CanvasItems: 1.9383996963501ms
+Project FPS: 5 (200.00 mspf)
+PB14_CENSUS t_ms=31378 player=0 opponent=14 neutral=82 total=96 running=true
+GPU PROFILE (total 2.243ms): 
+	-Frame Begin: 0.01140000000596ms
+	-Cull CanvasItem Tree: 0.01180000007153ms
+	-Render CanvasItems: 2.14799995422363ms
+Project FPS: 5 (200.00 mspf)
+PB14_CENSUS t_ms=32405 player=0 opponent=14 neutral=82 total=96 running=true
+GPU PROFILE (total 1.769ms): 
+	-Frame Begin: 0.01260000020266ms
+	-Cull CanvasItem Tree: 0.01200000047684ms
+	-Render CanvasItems: 1.9443998336792ms
+Project FPS: 5 (200.00 mspf)
+PB14_CENSUS t_ms=33454 player=0 opponent=14 neutral=82 total=96 running=true
+GPU PROFILE (total 2.975ms): 
+	-Frame Begin: 0.01359999924898ms
+	-Cull CanvasItem Tree: 0.01399999707937ms
+	-Render CanvasItems: 2.16739959716797ms
+Project FPS: 4 (250.00 mspf)
+PB14_CENSUS t_ms=34597 player=0 opponent=15 neutral=81 total=96 running=true
+GPU PROFILE (total 2.224ms): 
+	-Frame Begin: 0.01220000013709ms
+	-Cull CanvasItem Tree: 0.0222000002861ms
+	-Render CanvasItems: 2.32319984436035ms
+Project FPS: 5 (200.00 mspf)
+PB14_CENSUS t_ms=35824 player=0 opponent=15 neutral=81 total=96 running=true
+GPU PROFILE (total 2.988ms): 
+	-Frame Begin: 0.01159999966621ms
+	-Cull CanvasItem Tree: 0.01340000033379ms
+	-Render CanvasItems: 2.75880012512207ms
+Project FPS: 4 (250.00 mspf)
+PB14_CENSUS t_ms=36856 player=0 opponent=15 neutral=81 total=96 running=true
+GPU PROFILE (total 2.228ms): 
+	-Frame Begin: 0.01399999950081ms
+	-Cull CanvasItem Tree: 0.01350000035018ms
+	-Render CanvasItems: 2.73799991607666ms
+Project FPS: 4 (250.00 mspf)
+PB14_CENSUS t_ms=37941 player=0 opponent=16 neutral=80 total=96 running=true
+GPU PROFILE (total 2.225ms): 
+	-Frame Begin: 0.0140000000596ms
+	-Cull CanvasItem Tree: 0.01539999842644ms
+	-Render CanvasItems: 2.14939975738525ms
+Project FPS: 4 (250.00 mspf)
+PB14_CENSUS t_ms=39083 player=0 opponent=17 neutral=79 total=96 running=true
+GPU PROFILE (total 2.322ms): 
+	-Frame Begin: 0.01299999952316ms
+	-Cull CanvasItem Tree: 0.01340000033379ms
+	-Render CanvasItems: 2.30719966888428ms
+Project FPS: 5 (200.00 mspf)
+PB14_CENSUS t_ms=40161 player=0 opponent=17 neutral=79 total=96 running=true
+GPU PROFILE (total 2.506ms): 
+	-Frame Begin: 0.01180000007153ms
+	-Cull CanvasItem Tree: 0.01559999883175ms
+	-Render CanvasItems: 2.35700016021729ms
+Project FPS: 4 (250.00 mspf)
+PB14_CENSUS t_ms=41294 player=0 opponent=18 neutral=78 total=96 running=true
+GPU PROFILE (total 2.379ms): 
+	-Cull CanvasItem Tree: 0.01400000154972ms
+	-Render CanvasItems: 2.2523998260498ms
+Project FPS: 5 (200.00 mspf)
+Project FPS: 4 (250.00 mspf)
+PB14_CENSUS t_ms=42448 player=0 opponent=21 neutral=75 total=96 running=true
+GPU PROFILE (total 2.168ms): 
+	-Frame Begin: 0.01079999953508ms
+	-Cull CanvasItem Tree: 0.016400000453ms
+	-Render CanvasItems: 2.07199993133545ms
+Project FPS: 5 (200.00 mspf)
+PB14_CENSUS t_ms=43511 player=0 opponent=21 neutral=75 total=96 running=true
+GPU PROFILE (total 1.831ms): 
+	-Cull CanvasItem Tree: 0.01080000028014ms
+	-Render CanvasItems: 2.00659999847412ms
+PB14_PROFILE_END {"commit":"1ddd5b41","draw_calls":{"max":724.0,"mean":705.89247311828,"n":93,"p95":721.0},"duration_ms":20020,"final_counts":{"neutral":75,"opponent":21,"player":0},"fps":{"max":5.0,"mean":4.6236559139785,"n":93,"p95":5.0},"note":"TIME_PROCESS/TIME_PHYSICS_PROCESS are engine monitors; Script/Idle profiler breakdown remains separate.","physics_ms":{"max":38.924,"mean":27.8580107526882,"n":93,"p95":38.924},"population_maximum":96,"population_minimum":96,"process_ms":{"max":58.606,"mean":44.5866774193549,"n":93,"p95":57.37},"render_frames":93,"scene":"res://scenes/sandbox/sandbox_plan_b.tscn","wall_frame_ms":{"max":293.884,"mean":215.266956989247,"n":93,"p95":247.435}}

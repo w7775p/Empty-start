@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://systems/plan_b/simulation/tests/pb11_group_smoke.gd" id="1_smoke"]
+[ext_resource type="Script" path="res://systems/plan_b/simulation/plan_b_unit_simulation.gd" id="2_simulation"]
+
+[node name="PlanBGroupSmoke" type="Node2D"]
+script = ExtResource("1_smoke")
+
+[node name="Simulation" type="Node2D" parent="."]
+script = ExtResource("2_simulation")

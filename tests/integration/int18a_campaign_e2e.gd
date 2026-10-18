@@ -25,6 +25,8 @@ func _run() -> void:
 	get_tree().current_scene = null
 	print("INT18A_USER_DIR=", OS.get_user_data_dir())
 	_check(not SaveManager.has_save(), "验收必须使用新的隔离user目录")
+	# 本夹具继续回归旧普通弹幕 Sandbox；正式玩家入口由 PB-06 另行覆盖。
+	SceneRouter.game_scene_override = load("res://scenes/sandbox/sandbox.tscn") as PackedScene
 	_check(get_tree().change_scene_to_file("res://core/boot/boot.tscn") == OK, "启动Boot")
 	await _wait(func(): return get_tree().current_scene is ComicPlayer, "首次漫画")
 	var comic: ComicPlayer = get_tree().current_scene

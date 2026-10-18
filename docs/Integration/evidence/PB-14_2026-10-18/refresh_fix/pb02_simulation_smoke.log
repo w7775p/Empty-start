@@ -1,0 +1,84 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PB-02 CHECK: default population creates 76 neutrals plus 2 seed slots
+PB-02 CHECK: seed slots remain neutral until A seeds them
+PB-02 CHECK: prototype population ceiling is 96
+PB-02 CHECK: host can query neutral unit IDs
+PB-02 CHECK: host can query one read-only unit snapshot
+PB-02 CHECK: host can pick a neutral at scene position
+PB-02 CHECK: neutral snapshot explicitly has empty phrase identity
+PB-02 EVENT: unit 79 seed
+PB-02 EVENT: unit 80 seed
+PB-02 EVENT: unit 81 seed
+PB-02 EVENT: unit 82 seed
+PB-02 CHECK: counterable enemy triggers chase intent
+PB-02 CHECK: countering enemy triggers flee intent
+PB-02 CHECK: unthreatened neutral keeps wander intent
+PB-02 CHECK: wall bounce clamps the unit to the play area
+PB-02 CHECK: wall bounce reverses the outward velocity
+PB-02 EVENT: unit 84 seed
+PB-02 CHECK: seed new player word
+PB-02 EVENT: unit 85 seed
+PB-02 CHECK: seed old player word
+PB-02 CHECK: seed and public snapshots are deep copies
+PB-02 EVENT: unit 85 relay
+PB-02 EVENT: contact 84/85 same_team_bounce
+PB-02 CHECK: same-team contact bounces
+PB-02 CHECK: newer phrase snapshot relays to older follower
+PB-02 CHECK: relay leaves faction counts unchanged
+PB-02 EVENT: unit 86 seed
+PB-02 EVENT: unit 87 seed
+PB-02 EVENT: contact 86/87 same_type_bounce
+PB-02 CHECK: same-type enemy contact bounces
+PB-02 CHECK: same-type contact preserves opponent snapshot
+PB-02 CHECK: same-type contact preserves team counts
+PB-02 EVENT: unit 88 seed
+PB-02 EVENT: unit 89 seed
+PB-02 EVENT: unit 89 convert
+PB-02 EVENT: contact 88/89 converted
+PB-02 EVENT: unit 90 seed
+PB-02 EVENT: unit 91 seed
+PB-02 EVENT: unit 91 convert
+PB-02 EVENT: contact 90/91 converted
+PB-02 CHECK: fixed seed repeats contact outcome
+PB-02 CHECK: fixed seed repeats resulting faction
+PB-02 CHECK: counter type contact can infect at strength 3
+PB-02 EVENT: unit 92 seed
+PB-02 EVENT: unit 93 convert
+PB-02 EVENT: contact 92/93 converted
+PB-02 CHECK: faction unit infects neutral on a successful strength roll
+PB-02 CHECK: neutral receives complete infecting word snapshot
+PB-02 EVENT: unit 94 seed
+PB-02 EVENT: unit_spawned 96 neutral
+PB-02 EVENT: unit_spawned 97 neutral
+PB-02 CHECK: C split request applies through B public effect API
+PB-02 CHECK: split effect creates two additional opponent units
+PB-02 CHECK: split updates only real unit counts
+PB-02 CHECK: split reports both children through unit_spawned
+PB-02 CHECK: split child inherits complete opponent word state
+PB-02 CHECK: split child inherits complete opponent word state
+PB-02 CHECK: split refuses when the configured population ceiling is full
+PB-02 EVENT: unit_spawned 100 neutral
+PB-02 EVENT: unit_despawned 98
+PB-02 EVENT: unit_despawned 99
+PB-02 EVENT: unit_spawned 101 neutral
+PB-02 EVENT: unit_despawned 100
+PB-02 EVENT: unit_spawned 102 neutral
+PB-02 EVENT: unit_despawned 101
+PB-02 EVENT: unit_spawned 103 neutral
+PB-02 EVENT: unit_despawned 102
+PB-02 EVENT: unit_spawned 104 neutral
+PB-02 EVENT: unit_despawned 103
+PB-02 EVENT: unit_spawned 105 neutral
+PB-02 EVENT: unit_despawned 104
+PB-02 EVENT: unit_spawned 106 neutral
+PB-02 CHECK: natural lifespan emits despawn facts
+PB-02 CHECK: vacant population receives newly spawned unit
+PB-02 CHECK: natural refill does not mutate faction units
+PB-02 CHECK: simulation accepts the full 96-unit candidate population
+PB-02 EVENT: unit 107 seed
+PB-02 EVENT: unit 108 seed
+PB-02 EVENT: contact 107/178 infection_failed
+PB-02 PERF: population=96 physics_frames=180 wall_ms=2982.5 mean_ms_per_tick=16.57 reported_fps=143.0
+PB-02 CHECK: full population remains bounded after motion sample
+PB-02 PASS: Area2D relay, same-type bounce, fixed-seed infection, natural despawn and neutral replenishment

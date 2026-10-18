@@ -46,6 +46,37 @@ func _on_attempt_started(_level: LevelProfile, _hit: HitResolution, _stage: Comb
 	_cooldown_remaining = 0.0
 
 
+## Plan B 的成功发表替代普通射击命中，仍复用同一对白配置和限频规则。
+func on_plan_b_player_publication(definition: Dictionary) -> void:
+	if not _is_configured or _cooldown_remaining > 0.0:
+		return
+	var sentence_id: String = str(
+		definition.get("original_sentence_id", definition.get("source_id", definition.get("word_id", "")))
+	)
+	var sentence_text: String = str(definition.get("text", ""))
+	if sentence_id.is_empty() or sentence_text.is_empty():
+		return
+	if echo_policy == EchoPolicy.STORY_WITH_IDLE:
+		var configured: Array[BubbleDialogueEntry] = _bubble_dialogue_config.find_by_event(
+			&"actual_hit", BubbleDialogueEntry.SpeakerSide.PLAYER, sentence_id
+		)
+		if (
+			not configured.is_empty()
+			and bool(_enqueue_dialogue_bubble.call(configured[0].duplicate(true)))
+		):
+			_cooldown_remaining = minimum_interval_seconds
+		return
+	var traits: Variant = definition.get("traits", [])
+	var has_special_trait: bool = traits is Array and not (traits as Array).is_empty()
+	if echo_policy == EchoPolicy.SPECIAL_THROTTLED and not has_special_trait:
+		return
+	var entry: BubbleDialogueEntry = _bubble_dialogue_config.create_hit_echo(
+		sentence_id, sentence_text, true, has_special_trait
+	)
+	if entry != null and bool(_enqueue_dialogue_bubble.call(entry)):
+		_cooldown_remaining = minimum_interval_seconds
+
+
 # 按最终逐目标列表原序提交气泡；列表不含遮挡整发落空，负收益仍保留其中。
 func _on_shot_resolved(
 	_snapshot: AttackTargetSnapshot,

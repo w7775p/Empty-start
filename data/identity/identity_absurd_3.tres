@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="IdentityOption" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="IdentityOption" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://data/identity/identity_option.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/identity/cards/identity_card_front_10.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1_script")
@@ -8,3 +9,4 @@ identity_id = &"identity_absurd_3"
 display_name = "三二一上链接"
 description = "神奇的优惠券将产品价格一百元变成九十九元，这难道不神奇吗？"
 tendency_id = "absurd"
+icon = ExtResource("2_icon")

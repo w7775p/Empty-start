@@ -14,8 +14,9 @@
 - 逻辑画布：**1920×1080，16:9**。
 - 左主播直播区：**448×1080**；中央：**1024×1080**；右主播直播区：**448×1080**。
 - 中央从上到下：PK **1024×72**；棋盘 **1024×828**；话语栏 **1024×180**。这三块在中央竖向铺满。
+- PB-07 坐标约定：在 1920×1080 逻辑画布中，棋盘场景全局 Rect2 为 `Rect2(Vector2(448, 72), Vector2(1024, 828))`。A 将同一全局 Rect2 传给 B `set_play_area()` 和 D `PlanBUnitField.set_world_bounds()`；B 内部转为模拟节点局部边界，向 D 返回的 `position` 与 `collision_radius` 保持全局像素坐标。B 的模拟根维持无旋转、单位缩放；鼠标位置查询使用同一棋盘全局坐标。
 - 左右直播间继续承担主播立绘、气泡、直播数据、实时评论、Tier/漫画/剧情反馈。玩家操作重心是中央棋盘与底部选句区。
-- 场内观众是视觉主体：看得清棋子感染、阵营占领、当前复读的传播。棋子正式美术资产已存在，直接复用。
+- 场内观众是视觉主体：看得清棋子感染、阵营占领、当前复读的传播。当前仓库未找到独立观众棋子贴图；D 保留纹理注入入口，并以无字母阵营色形状回退。绘制半径读取 B 快照的 `collision_radius`，旧快照回退 13px。
 - PC 使用高分辨率逻辑画布；**默认窗口化**并按实际桌面工作区等比显示，提供全屏切换。默认不强制全屏。字体与棋子应在缩放下保持清晰。
 - 新棋盘改为 1024×828 后，重算棋子显示半径、碰撞/点击映射、移动速度与同屏密度；参数以实际 Godot 运行调校，不直接复制旧场地像素速度。
 
@@ -42,6 +43,12 @@
 - **PB-08 / C**：四关词池/对手配置，按 PB-12 最新三卡独立补位规则接线，提供 A/D 的只读数据与候选事件。
 - **PB-09 / D**：完整三列 UI、旧主播演出、PC 快速选句和棋子可视反馈，由 A 装配。
 - **PB-10 / E**：窗口化清晰显示、五份 CSV Keep File 持久修复、Windows 打包、完整正式流程实机验收。
+
+## PB-09 D 界面接入接口
+- A 实例化 `res://ui/plan_b/plan_b_battle_ui.tscn`，以 `bind_sources(host, simulation, catalog)` 接入战斗状态、棋子快照与词条；`get_board_world_bounds()` 提供 B 开局所用的全局 `Rect2(448, 72, 1024, 828)`。
+- C 的当前手牌通过 `set_word_hand(hand, remaining_count)` 交给 D；数组元素至少包含 `word_id`，建议同时提供 `text`、`strength`、`battle_type`。D 发出 `word_selected(word_id)` 和 `publish_requested(word_id, unit_id)`；A 校验并调用 Host 后以 `resolve_publish_request(word_id, unit_id, result)` 回传结果，成功补位仍由 C 抽取。
+- 正常阶段保留三列与四句手牌。`set_paradox_stage_active(true, tier)` 隐藏普通棋子、手牌、人数条和反击提示，保留棋盘边界、PK/T6、主播列与旧蓄力准星；`set_final_oracle_stage_active(true)` 为最终候选层提供相同布局边界。
+- D 通过 `get_aim_reticle()` 将唯一准星交给 `AttackChargeInput.configure_target_query()`。失败模态框与重启按钮归 A 根场景；D 只发送 `failure_presentation_finished` 和 `restart_requested` 表现/输入事件。
 
 ## 交付顺序与验收
 - **M1**：D 的固定 1920×1080 UI 与 C 的三张独立刷新话语卡可在 B 棋盘上操作，A 可实例化组合。

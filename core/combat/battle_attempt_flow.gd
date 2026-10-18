@@ -41,6 +41,7 @@ var _repeat_queue: RepeatDelayQueue
 var _opening_fan_count: int = 0
 var _is_configured: bool = false
 var _normal_combat_active: bool = false
+var _external_pk_source: Callable
 var _normal_completion_pending: bool = false
 var _contradiction_start_pending: bool = false
 var _tier_transition_active: bool = false
@@ -103,6 +104,93 @@ func configure(
 	return true
 
 
+## 普通战斗由外部 PK 拥有者推进时，沿用本 Flow 的关卡、Tier、失败与矛盾交接。
+func set_external_pk_source(source: Callable) -> bool:
+	if _normal_combat_active:
+		return false
+	if not source.is_valid():
+		return false
+	_external_pk_source = source
+	return true
+
+
+func uses_external_pk_source() -> bool:
+	return _external_pk_source.is_valid()
+
+
+## 从外部唯一 PK 源同步观察值；零值仍通过旧失败入口，满值仍走旧矛盾流程。
+func notify_external_pk_changed() -> bool:
+	if (not uses_external_pk_source() or not _normal_combat_active
+			or _normal_completion_pending or _hit_resolution == null):
+		return false
+	var previous_tier: int = _combat_stage.get_current_tier() if _combat_stage != null else CombatStage.INITIAL_TIER
+	var current_pk: float = _hit_resolution.notify_external_player_pk_changed()
+	if current_pk <= _battle_config.minimum_player_pk:
+		_on_attempt_failed()
+		return true
+	var current_tier: int = _combat_stage.get_current_tier() if _combat_stage != null else previous_tier
+	if _normal_combat_active and current_tier > previous_tier:
+		# 外部 PK 源跨档时复用旧清屏与突破演出入口。
+		tier_transition_cleared.emit(previous_tier, current_tier, 0)
+	return true
+
+
+## 成功发表的玩家原句沿用旧倾向与历史结算，PK 数值仍只由外部 Host 决定。
+func record_plan_b_player_publication(definition: Dictionary) -> bool:
+	if (not uses_external_pk_source() or not _normal_combat_active
+			or _hit_resolution == null or _run_data == null):
+		return false
+	var word_id: String = String(definition.get("word_id", "")).strip_edges()
+	var original_sentence_id: String = String(
+		definition.get("source_id", definition.get("original_sentence_id", word_id))
+	).strip_edges()
+	var tendency_id: String = String(definition.get("tendency", "")).strip_edges()
+	var strength: int = int(definition.get("strength", 0))
+	if word_id.is_empty() or original_sentence_id.is_empty() or strength not in [1, 2, 3]:
+		return false
+	var reward: Dictionary = _hit_resolution.calculate_normal_word_reward(strength, tendency_id)
+	if reward.is_empty():
+		return false
+	_hit_resolution.record_normal_word_hit(StringName(original_sentence_id), StringName(tendency_id))
+	_run_data.tendency_state.record_normal_speech_tendency(
+		tendency_id, int(reward.get("tendency_delta", 0))
+	)
+	_run_data.live_session.record_normal_hit_live_rule()
+	return true
+
+
+## PK 胜利时把真实玩家棋子复读数量投给旧神谕排序与神降临历史。
+func record_plan_b_population_repeats(
+		unit_snapshots: Array[Dictionary], word_catalog: Object
+) -> bool:
+	if (not uses_external_pk_source() or not _normal_combat_active
+			or _repeat_queue == null or word_catalog == null
+			or not word_catalog.has_method("get_word_definition")):
+		return false
+	var counts_by_sentence_id: Dictionary = {}
+	for snapshot: Dictionary in unit_snapshots:
+		if String(snapshot.get("team", "")) != "player":
+			continue
+		var word_id: String = String(snapshot.get("word_id", "")).strip_edges()
+		if word_id.is_empty():
+			continue
+		var definition: Dictionary = word_catalog.call("get_word_definition", word_id)
+		var sentence_id: String = String(
+			definition.get("source_id", definition.get("original_sentence_id", word_id))
+		).strip_edges()
+		if sentence_id.is_empty():
+			continue
+		counts_by_sentence_id[sentence_id] = int(counts_by_sentence_id.get(sentence_id, 0)) + 1
+	for sentence_id: String in counts_by_sentence_id:
+		var plan := RepeatPlan.new()
+		plan.original_line_id = StringName(sentence_id)
+		plan.repeat_type = RepeatPlan.RepeatType.NORMAL
+		_repeat_queue.get_generation_stats().record_generated(
+			plan, int(counts_by_sentence_id[sentence_id])
+		)
+	return true
+
+
 # 新 Sandbox 首次进入时创建并启动本关尝试。
 func start_first_attempt() -> bool:
 	if not _is_configured:
@@ -151,6 +239,9 @@ func _start_attempt(is_restart: bool) -> bool:
 		FORMAL_COMBAT_NUMERICS.negative_pk_shot_cap,
 		FORMAL_COMBAT_NUMERICS
 	)
+	if uses_external_pk_source() and not _hit_resolution.bind_external_player_pk_getter(_external_pk_source):
+		push_error("BattleAttemptFlow: 外部 PK 查询入口无效。")
+		return false
 	_repeat_queue = RepeatDelayQueue.new(_battle_config.maximum_pending_repeat_count)
 	_barrage_area.begin_combat_attempt()
 	_combat_stage = CombatStage.new(_tier_catalog)
@@ -181,13 +272,20 @@ func _start_attempt(is_restart: bool) -> bool:
 
 	_normal_combat_active = true
 	_attack_input.set_contradiction_mode(false)
-	_attack_input.set_combat_active(true)
-	if not _barrage_area.start_normal_generation(current_level):
-		_stop_normal_combat()
-		push_error("BattleAttemptFlow: 无法启动普通弹幕生成。")
-		return false
-	_opponent_pk_bar.start_pullback(_hit_resolution, FORMAL_COMBAT_NUMERICS.base_pullback_speed_pk_per_second)
-	_refresh_pk_feedback()
+	if uses_external_pk_source():
+		# Plan B 使用棋子传播；旧弹幕与回拉仅在矛盾阶段重新启用攻击输入。
+		_attack_input.set_combat_active(false)
+		_barrage_area.stop_normal_generation()
+		_opponent_pk_bar.stop_pullback()
+	else:
+		_attack_input.set_combat_active(true)
+		if not _barrage_area.start_normal_generation(current_level):
+			_stop_normal_combat()
+			push_error("BattleAttemptFlow: 无法启动普通弹幕生成。")
+			return false
+		_opponent_pk_bar.start_pullback(_hit_resolution, FORMAL_COMBAT_NUMERICS.base_pullback_speed_pk_per_second)
+	if not uses_external_pk_source():
+		_refresh_pk_feedback()
 	attempt_started.emit(current_level, _hit_resolution, _combat_stage, _repeat_queue)
 	if is_restart:
 		attempt_restarted.emit(current_level, _hit_resolution, _combat_stage, _repeat_queue)
@@ -278,6 +376,8 @@ func _resume_after_tier_transition() -> bool:
 		return true
 	if not transition_hit.allows_normal_pk_resolution():
 		return false
+	if uses_external_pk_source():
+		return true
 	var current_level: LevelProfile = get_current_level_profile()
 	if current_level == null or not _barrage_area.start_normal_generation(current_level):
 		push_error("BattleAttemptFlow: 突破提示结束后无法恢复本档普通弹幕。")

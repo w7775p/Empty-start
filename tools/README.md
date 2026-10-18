@@ -8,6 +8,14 @@
 
 只有 01_身份配置，以及 06_战斗数值、08_Tier档位中已经写进系统案的确定规则具有正式依据。其他系统（包括当前的 344 条普通词库）均处于待定稿状态。CSV 能解析不代表策划批准。
 
+## PB-10 Windows x64 试玩包
+
+PB-10 在 Windows 与 Android 导出预设中显式包含 `data/plan_b/*.csv`，并对 V0.6 的五份 Plan B CSV 使用原生 Keep File（包括通用 `opponent_config.csv`）。Windows 构建脚本会挂载真实 PCK、逐表用 `FileAccess` 读取五份原表，再运行导出 EXE 冒烟；试玩包 README 说明三槽独立 5 秒补牌、1/2/3 键选句、点击棋盘坐标投放 2/4/8 棋子和 PK 100% 后的矛盾击破。试玩包带 EXE/PCK SHA256。任务最终整合 A/B/C/D 及 PB-11～PB-14 后，以该整合提交的完整 SHA 构建：
+
+~~~powershell
+.\tools\build_internal_playtest.ps1 -Platform Windows -DestinationRoot 'D:\Godot\PB-10-Playtest' -ExpectedCommit '完整提交SHA'
+~~~
+
 ## 日常操作
 
 第一次需要 Python 3.10+ 和 openpyxl：

@@ -1,13 +1,13 @@
 identity_id,display_name,description,tendency,icon_asset_id,notes
-identity_orthodox_1,随侍,祂是你绝不会离开的人，也是你绝不会承认的人,orthodox,,我属于神、我靠近神、我愿意追随神
-identity_orthodox_2,最后的见证者,所有人都在猜测、争论神最后说了什么；只有你记得自己当时就站在祂旁边,orthodox,,因为我爱祂 / 相信祂 / 见过祂，所以我跟随祂
-identity_orthodox_3,圣伤,血与水从那道伤口流出，你是祂被打开的证明,orthodox,,
-identity_orthodox_4,殉道者,你从不相信世界会变好，但还是走上了那条道路,orthodox,,
-identity_heresy_1,神意重释者,你们理解错了，神真正说的是另一回事,heresy,,我声称理解神，但我把神意改造成支持自己的工具
-identity_heresy_2,第二先知,神第一次说得不够完整。幸运的是，祂还有你,heresy,,因为我理解祂，所以我有资格替祂解释、补充甚至执行祂没有说出口的话
-identity_heresy_3,净化者,异见者将受雷火天降，但没有说过必须由祂亲自动手,heresy,,
-identity_heresy_4,但书,神爱世人，但是总得有人替祂划掉几个例外,heresy,,
-identity_absurd_1,耶^^复活了,这就是神迹！......什么电线杆？,absurd,,
-identity_absurd_2,亲爱的朋友,你没有背叛任何人——至少目前没有,absurd,,
-identity_absurd_3,三二一上链接,神奇的优惠券将产品价格一百元变成九十九元，这难道不神奇吗？,absurd,,
-identity_absurd_4,必须想象,石头又滚回去了，请保持微笑,absurd,,
+identity_orthodox_1,随侍,祂是你绝不会离开的人，也是你绝不会承认的人,orthodox,assets/ui/identity/cards/identity_card_front_01.png,我属于神、我靠近神、我愿意追随神
+identity_orthodox_2,最后的见证者,所有人都在猜测、争论神最后说了什么；只有你记得自己当时就站在祂旁边,orthodox,assets/ui/identity/cards/identity_card_front_11.png,因为我爱祂 / 相信祂 / 见过祂，所以我跟随祂
+identity_orthodox_3,圣伤,血与水从那道伤口流出，你是祂被打开的证明,orthodox,assets/ui/identity/cards/identity_card_front_06.png,
+identity_orthodox_4,殉道者,你从不相信世界会变好，但还是走上了那条道路,orthodox,assets/ui/identity/cards/identity_card_front_09.png,
+identity_heresy_1,神意重释者,你们理解错了，神真正说的是另一回事,heresy,assets/ui/identity/cards/identity_card_front_12.png,我声称理解神，但我把神意改造成支持自己的工具
+identity_heresy_2,第二先知,神第一次说得不够完整。幸运的是，祂还有你,heresy,assets/ui/identity/cards/identity_card_front_04.png,因为我理解祂，所以我有资格替祂解释、补充甚至执行祂没有说出口的话
+identity_heresy_3,净化者,异见者将受雷火天降，但没有说过必须由祂亲自动手,heresy,assets/ui/identity/cards/identity_card_front_07.png,
+identity_heresy_4,但书,神爱世人，但是总得有人替祂划掉几个例外,heresy,assets/ui/identity/cards/identity_card_front_02.png,
+identity_absurd_1,耶^^复活了,这就是神迹！......什么电线杆？,absurd,assets/ui/identity/cards/identity_card_front_03.png,
+identity_absurd_2,亲爱的朋友,你没有背叛任何人——至少目前没有,absurd,assets/ui/identity/cards/identity_card_front_05.png,
+identity_absurd_3,三二一上链接,神奇的优惠券将产品价格一百元变成九十九元，这难道不神奇吗？,absurd,assets/ui/identity/cards/identity_card_front_10.png,
+identity_absurd_4,必须想象,石头又滚回去了，请保持微笑,absurd,assets/ui/identity/cards/identity_card_front_08.png,

@@ -1,0 +1,17 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tests/plan_b/pb09_fixed_layout_review.gd" id="1_review"]
+
+[node name="PB09FixedLayoutReviewScaled" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_review")
+review_window_size = Vector2i(1152, 648)
+review_content_size = Vector2i(1920, 1080)
+normal_capture_path = "res://docs/Integration/evidence/PB-09_2026-10-17/pb09_1152x648.png"
+paradox_capture_path = "res://docs/Integration/evidence/PB-09_2026-10-17/pb09_1152x648_paradox.png"
+quit_after_capture = true

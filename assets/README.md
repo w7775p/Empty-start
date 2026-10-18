@@ -122,3 +122,11 @@ assets/
 - 新增的背景、桌子、青蛙立绘需要由直播场景和关卡配置接入，验证真实 Layer 0/1/2 遮挡关系。
 
 漫画打字与翻书音效位于 `audio/sfx/comic/`，CC0 来源与原许可见该目录 README.md；已替换初版点击声占位。
+
+## 2026-10-19 新增美术整理
+
+- 青蛙切图：`characters/opponents/frog/slices/`；旧完整立绘继续用于正式资源。
+- 身份卡：`ui/identity/cards/`；封面：`ui/main_menu/`；粉丝横向标牌：`ui/live/fan_nameplates/`。
+- 徽章：`ui/combat/fan_badges/`；棋子：`ui/plan_b/units/`；按钮：`ui/buttons/`。
+- 开播电脑：`environment/player_room/laptop_start_stream.png`。
+- 全部原名对照及待确认内容：`docs/Shared/PresentationAssets/Art_Intake_Rename_2026-10-19.md`。

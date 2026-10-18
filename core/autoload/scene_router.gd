@@ -20,7 +20,7 @@ func goto_comic(kind: StringName, record_first_view: bool = false) -> Error:
 const MAIN_MENU_SCENE_PATH: String = "res://ui/main_menu/main_menu.tscn"
 const IDENTITY_SETUP_SCENE_PATH: String = "res://ui/identity_setup/identity_setup.tscn"
 const OPENING_ROOM_SCENE_PATH: String = "res://ui/rest/rest_opening_room.tscn"
-const GAME_SCENE_PATH: String = "res://scenes/sandbox/sandbox.tscn"
+const GAME_SCENE_PATH: String = "res://scenes/sandbox/sandbox_plan_b.tscn"
 const ENDING_SCENE_PATH: String = "res://ui/ending/ending_page.tscn"
 
 # 集成夹具可显式替换游戏入口，默认仍加载正式场景。

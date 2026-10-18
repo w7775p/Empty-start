@@ -127,15 +127,15 @@ func _test_battle_host(content: Object) -> void:
 
 	var expected_next_order: int = (host.call("get_used_word_ids") as Array).size() + 1
 	var first_word_id: String = str(host_word_ids[0])
-	var failed_target: Dictionary = host.call("publish_word", "player", first_word_id, "2147483647")
+	var failed_target: Dictionary = host.call("publish_legacy_seed_word", "player", first_word_id, "2147483647")
 	_check(not bool(failed_target.get("ok", false)), "无效目标发表失败")
 	_check((host.call("get_available_word_ids", "player") as Array).has(first_word_id), "失败发表不占用话语")
-	var first_success: Dictionary = host.call("publish_word", "player", first_word_id, neutral_ids[0])
+	var first_success: Dictionary = host.call("publish_legacy_seed_word", "player", first_word_id, neutral_ids[0])
 	_check(bool(first_success.get("ok", false)) and int(first_success.get("word_order", 0)) == expected_next_order, "首个成功发表取得下一个全局顺序号")
-	var duplicate: Dictionary = host.call("publish_word", "player", first_word_id, neutral_ids[1])
+	var duplicate: Dictionary = host.call("publish_legacy_seed_word", "player", first_word_id, neutral_ids[1])
 	_check(not bool(duplicate.get("ok", false)), "同一阵营重复发表相同 word_id 失败")
-	var second_success: Dictionary = host.call("publish_word", "player", str(host_word_ids[1]), neutral_ids[1])
-	var third_success: Dictionary = host.call("publish_word", "player", str(host_word_ids[2]), neutral_ids[2])
+	var second_success: Dictionary = host.call("publish_legacy_seed_word", "player", str(host_word_ids[1]), neutral_ids[1])
+	var third_success: Dictionary = host.call("publish_legacy_seed_word", "player", str(host_word_ids[2]), neutral_ids[2])
 	_check(
 		int(second_success.get("word_order", 0)) == expected_next_order + 1
 		and int(third_success.get("word_order", 0)) == expected_next_order + 2,
@@ -144,7 +144,7 @@ func _test_battle_host(content: Object) -> void:
 	var opponent_ids: Array = host.call("get_available_word_ids", "opponent")
 	_check(not opponent_ids.is_empty(), "A 向费米提供可发表话语")
 	for index: int in range(opponent_publish_count):
-		var opponent_success: Dictionary = host.call("publish_word", "opponent", str(opponent_ids[index]), neutral_ids[3 + index])
+		var opponent_success: Dictionary = host.call("publish_legacy_seed_word", "opponent", str(opponent_ids[index]), neutral_ids[3 + index])
 		_check(
 			bool(opponent_success.get("ok", false))
 			and int(opponent_success.get("word_order", 0)) == expected_next_order + 3 + index,
@@ -178,7 +178,7 @@ func _test_battle_host(content: Object) -> void:
 		var zero_word_ids: Array = zero_host.call("get_available_word_ids", "opponent")
 		var zero_neutral_ids: Array[String] = _get_neutral_ids(zero_host)
 		if not zero_word_ids.is_empty() and not zero_neutral_ids.is_empty():
-			zero_host.call("publish_word", "opponent", str(zero_word_ids[0]), zero_neutral_ids[0])
+			zero_host.call("publish_legacy_seed_word", "opponent", str(zero_word_ids[0]), zero_neutral_ids[0])
 	zero_host.call("update_pk", 1000000.0)
 	_check(_near(float(zero_host.call("get_pk")), 0.0), "真实人口差把 PK 限制在 0 边界")
 	_check(not _battle_end_results.is_empty() and _battle_end_results.back() == &"failed", "PK 达到 0 发出失败事件")
@@ -194,7 +194,7 @@ func _test_battle_host(content: Object) -> void:
 	var hundred_counts: Dictionary = hundred_host.call("get_faction_counts")
 	var hundred_player_publish_count: int = maxi(1, int(hundred_counts.get("opponent", 0)) - int(hundred_counts.get("player", 0)) + 1)
 	for index: int in range(mini(hundred_player_publish_count, mini(hundred_words.size(), hundred_neutrals.size()))):
-		hundred_host.call("publish_word", "player", str(hundred_words[index]), hundred_neutrals[index])
+		hundred_host.call("publish_legacy_seed_word", "player", str(hundred_words[index]), hundred_neutrals[index])
 	_battle_end_results.clear()
 	hundred_host.connect(&"battle_ended", Callable(self, "_on_battle_ended"))
 	hundred_host.call("update_pk", 1000000.0)

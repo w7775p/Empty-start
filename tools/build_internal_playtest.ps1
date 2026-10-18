@@ -131,6 +131,17 @@ if ($Platform -in @('Windows', 'Both')) {
         throw 'Exported PCK lacks its successful resource/content verification record'
     }
 
+    # 旧审计覆盖正式 source_tables；PB-10 另核对新增的五份 Plan B 原始 CSV。
+    $planBCsvSmoke = Join-Path $buildDir 'planb_packed_csv_smoke.gd'
+    Copy-Item -LiteralPath (Join-Path $project 'tests/plan_b/pb10_packed_data_smoke.gd') -Destination $planBCsvSmoke
+    Invoke-BuildProcess 'packed Plan B CSV resources' $GodotEditor @(
+        '--headless', '--path', $buildDir, '--main-pack', $pck,
+        '--script', $planBCsvSmoke
+    ) (Join-Path $buildDir 'planb_packed_csv_smoke.log')
+    if (!(Select-String -LiteralPath (Join-Path $buildDir 'planb_packed_csv_smoke.log.stdout') -SimpleMatch 'PASS PB-10 packed Plan B CSV: 5 original files opened' -Quiet)) {
+        throw 'Exported PCK lacks the five readable Plan B CSV files'
+    }
+
     $smokeStatus = 'skipped'
     if (!$SkipSmoke) {
         $previousAppData = $env:APPDATA
@@ -166,6 +177,11 @@ if ($Platform -in @('Windows', 'Both')) {
         ('Source commit: ' + $commit)
         'Windows 10/11 x64: Unzip ALL files then run GameJam_Playtest.exe.'
         'Keep GameJam_Playtest.pck in the SAME folder as GameJam_Playtest.exe.'
+        'Default display is a centered 1280x720 window using a 1920x1080 logical canvas; toggle fullscreen in Settings.'
+        'In Plan B battle, choose one of 3 speech cards with keys 1-3 or click a card; then click any valid point inside the central board.'
+        'Speech strength deploys 2, 4, or 8 units. Each used card refreshes independently after 5 seconds; the other slots remain available.'
+        'Same-team pieces repeating the same word share one speech bubble while remaining separate pieces.'
+        'At PK 100%, follow the on-screen prompt for the original six-choice charge-shot contradiction phase.'
         'First launch may play the opening comic, followed by the main menu.'
         'Internal build only. Please report reproduction steps and screenshots for bugs.'
     )
@@ -175,6 +191,7 @@ if ($Platform -in @('Windows', 'Both')) {
         pck = Get-ArtifactRecord $pck
         smoke = $smokeStatus
         packed_resources = 'passed'
+        plan_b_csvs = 'passed'
     }
     $winInfo | ConvertTo-Json -Depth 5 | Set-Content (Join-Path $stage 'manifest.json') -Encoding UTF8
     $zip = Join-Path $buildDir 'GameJam_InternalPlaytest_win64.zip'

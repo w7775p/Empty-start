@@ -1,9 +1,33 @@
-skill_id,streamer_id,tier,trait_id,trait_name,weight,candidate_plan_b_behavior,prototype_status,source_notes
-alien_t2_occlusion,alien,2,occlusion,遮挡,3,短时遮挡一个战场区域或选人提示，并显示反击预警；等待 PB-04 接线与试玩。,CANDIDATE_ONLY,试玩方案｜alien T2反击候选；素材效果及强弱待实机验证。
-alien_t2_unselectable,alien,2,unselectable,不可选,2,短时屏蔽一个已标记观众的玩家选取；等待 PB-01/PB-04 共同确认边界。,CANDIDATE_ONLY,试玩方案｜alien T2反击候选；素材效果及强弱待实机验证。
-alien_t3_split,alien,3,split,分裂,3,费米方棋子分裂为两个保留当前 word snapshot 的跟随者；目标池与生成由 PB-02 处理。,PB03_SPLIT_PROFILE,试玩方案｜alien T3反击候选；素材效果及强弱待实机验证。
-alien_t3_occlusion,alien,3,occlusion,遮挡,2,短时遮挡一个战场区域或选人提示，并显示反击预警；等待 PB-04 接线与试玩。,CANDIDATE_ONLY,试玩方案｜alien T3反击候选；素材效果及强弱待实机验证。
-alien_t4_split,alien,4,split,分裂,3,费米方棋子分裂为两个保留当前 word snapshot 的跟随者；目标池与生成由 PB-02 处理。,CANDIDATE_ONLY,试玩方案｜alien T4反击候选；素材效果及强弱待实机验证。
-alien_t4_unselectable,alien,4,unselectable,不可选,2,短时屏蔽一个已标记观众的玩家选取；等待 PB-01/PB-04 共同确认边界。,CANDIDATE_ONLY,试玩方案｜alien T4反击候选；素材效果及强弱待实机验证。
-alien_t5_occlusion,alien,5,occlusion,遮挡,3,短时遮挡一个战场区域或选人提示，并显示反击预警；等待 PB-04 接线与试玩。,CANDIDATE_ONLY,试玩方案｜alien T5反击候选；素材效果及强弱待实机验证。
-alien_t5_reflect,alien,5,reflect,反弹,2,一次接触后反弹目标或回退感染尝试；结果语义仍待策划确定。,CANDIDATE_ONLY,试玩方案｜alien T5反击候选；素材效果及强弱待实机验证。
+skill_id,streamer_id,tier,trait_id,trait_name,weight,candidate_plan_b_behavior,prototype_effect_id,prototype_status,source_table,source_id,source_notes
+alien_t2_occlusion,alien,2,occlusion,遮挡,3,短时遮挡战场区域或选人提示；待D效果接线。,,CANDIDATE_ONLY,21_反击技能池.csv,alien_t2_occlusion,试玩方案｜alien T2反击候选；素材效果及强弱待实机验证。
+alien_t2_unselectable,alien,2,unselectable,不可选,2,暂时锁定中立观众的玩家点选；待A/D边界确认。,,CANDIDATE_ONLY,21_反击技能池.csv,alien_t2_unselectable,试玩方案｜alien T2反击候选；素材效果及强弱待实机验证。
+alien_t3_split,alien,3,split,分裂,3,复制一个对手棋子的完整复读快照并生成子体。,split,ACTIVE_PROFILE,21_反击技能池.csv,alien_t3_split,试玩方案｜alien T3反击候选；素材效果及强弱待实机验证。
+alien_t3_occlusion,alien,3,occlusion,遮挡,2,短时遮挡战场区域或选人提示；待D效果接线。,,CANDIDATE_ONLY,21_反击技能池.csv,alien_t3_occlusion,试玩方案｜alien T3反击候选；素材效果及强弱待实机验证。
+alien_t4_split,alien,4,split,分裂,3,复制一个对手棋子的完整复读快照并生成子体。,,CANDIDATE_ONLY,21_反击技能池.csv,alien_t4_split,试玩方案｜alien T4反击候选；素材效果及强弱待实机验证。
+alien_t4_unselectable,alien,4,unselectable,不可选,2,暂时锁定中立观众的玩家点选；待A/D边界确认。,,CANDIDATE_ONLY,21_反击技能池.csv,alien_t4_unselectable,试玩方案｜alien T4反击候选；素材效果及强弱待实机验证。
+alien_t5_occlusion,alien,5,occlusion,遮挡,3,短时遮挡战场区域或选人提示；待D效果接线。,,CANDIDATE_ONLY,21_反击技能池.csv,alien_t5_occlusion,试玩方案｜alien T5反击候选；素材效果及强弱待实机验证。
+alien_t5_reflect,alien,5,reflect,反弹,2,一次接触时反弹目标或逆转感染尝试；待B规则实现。,,CANDIDATE_ONLY,21_反击技能池.csv,alien_t5_reflect,试玩方案｜alien T5反击候选；素材效果及强弱待实机验证。
+kiwi_t2_fake_card,kiwi,2,fake_card,假弹幕,3,使用误导性复读标记；实际效果待策划确认。,,CANDIDATE_ONLY,21_反击技能池.csv,kiwi_t2_fake_card,试玩方案｜kiwi T2反击候选；素材效果及强弱待实机验证。
+kiwi_t2_retaliation_copy,kiwi,2,retaliation_copy,水军复制/反击,2,复制当前复读内容到新子体；V0.5暂映射为B split效果，待确认。,,CANDIDATE_ONLY,21_反击技能池.csv,kiwi_t2_retaliation_copy,试玩方案｜kiwi T2反击候选；素材效果及强弱待实机验证。
+kiwi_t3_retaliation_copy,kiwi,3,retaliation_copy,水军复制/反击,3,复制当前复读内容到新子体；V0.5暂映射为B split效果，待确认。,split,PROVISIONAL_COPY_TO_SPLIT,21_反击技能池.csv,kiwi_t3_retaliation_copy,试玩方案｜kiwi T3反击候选；素材效果及强弱待实机验证。
+kiwi_t3_fake_card,kiwi,3,fake_card,假弹幕,2,使用误导性复读标记；实际效果待策划确认。,,CANDIDATE_ONLY,21_反击技能池.csv,kiwi_t3_fake_card,试玩方案｜kiwi T3反击候选；素材效果及强弱待实机验证。
+kiwi_t4_reflect,kiwi,4,reflect,反弹,3,一次接触时反弹目标或逆转感染尝试；待B规则实现。,,CANDIDATE_ONLY,21_反击技能池.csv,kiwi_t4_reflect,试玩方案｜kiwi T4反击候选；素材效果及强弱待实机验证。
+kiwi_t4_retaliation_copy,kiwi,4,retaliation_copy,水军复制/反击,2,复制当前复读内容到新子体；V0.5暂映射为B split效果，待确认。,,CANDIDATE_ONLY,21_反击技能池.csv,kiwi_t4_retaliation_copy,试玩方案｜kiwi T4反击候选；素材效果及强弱待实机验证。
+kiwi_t5_fake_card,kiwi,5,fake_card,假弹幕,3,使用误导性复读标记；实际效果待策划确认。,,CANDIDATE_ONLY,21_反击技能池.csv,kiwi_t5_fake_card,试玩方案｜kiwi T5反击候选；素材效果及强弱待实机验证。
+kiwi_t5_reflect,kiwi,5,reflect,反弹,2,一次接触时反弹目标或逆转感染尝试；待B规则实现。,,CANDIDATE_ONLY,21_反击技能池.csv,kiwi_t5_reflect,试玩方案｜kiwi T5反击候选；素材效果及强弱待实机验证。
+frog_t2_split,frog,2,split,分裂,3,复制一个对手棋子的完整复读快照并生成子体。,,CANDIDATE_ONLY,21_反击技能池.csv,frog_t2_split,试玩方案｜frog T2反击候选；素材效果及强弱待实机验证。
+frog_t2_occlusion,frog,2,occlusion,遮挡,2,短时遮挡战场区域或选人提示；待D效果接线。,,CANDIDATE_ONLY,21_反击技能池.csv,frog_t2_occlusion,试玩方案｜frog T2反击候选；素材效果及强弱待实机验证。
+frog_t3_split,frog,3,split,分裂,3,复制一个对手棋子的完整复读快照并生成子体。,split,ACTIVE_PROFILE,21_反击技能池.csv,frog_t3_split,试玩方案｜frog T3反击候选；素材效果及强弱待实机验证。
+frog_t3_fake_card,frog,3,fake_card,假弹幕,2,使用误导性复读标记；实际效果待策划确认。,,CANDIDATE_ONLY,21_反击技能池.csv,frog_t3_fake_card,试玩方案｜frog T3反击候选；素材效果及强弱待实机验证。
+frog_t4_occlusion,frog,4,occlusion,遮挡,3,短时遮挡战场区域或选人提示；待D效果接线。,,CANDIDATE_ONLY,21_反击技能池.csv,frog_t4_occlusion,试玩方案｜frog T4反击候选；素材效果及强弱待实机验证。
+frog_t4_split,frog,4,split,分裂,2,复制一个对手棋子的完整复读快照并生成子体。,,CANDIDATE_ONLY,21_反击技能池.csv,frog_t4_split,试玩方案｜frog T4反击候选；素材效果及强弱待实机验证。
+frog_t5_fake_card,frog,5,fake_card,假弹幕,3,使用误导性复读标记；实际效果待策划确认。,,CANDIDATE_ONLY,21_反击技能池.csv,frog_t5_fake_card,试玩方案｜frog T5反击候选；素材效果及强弱待实机验证。
+frog_t5_retaliation_copy,frog,5,retaliation_copy,水军复制/反击,2,复制当前复读内容到新子体；V0.5暂映射为B split效果，待确认。,,CANDIDATE_ONLY,21_反击技能池.csv,frog_t5_retaliation_copy,试玩方案｜frog T5反击候选；素材效果及强弱待实机验证。
+fox_t2_fake_card,fox,2,fake_card,假弹幕,3,使用误导性复读标记；实际效果待策划确认。,,CANDIDATE_ONLY,21_反击技能池.csv,fox_t2_fake_card,试玩方案｜fox T2反击候选；素材效果及强弱待实机验证。
+fox_t2_reflect,fox,2,reflect,反弹,2,一次接触时反弹目标或逆转感染尝试；待B规则实现。,,CANDIDATE_ONLY,21_反击技能池.csv,fox_t2_reflect,试玩方案｜fox T2反击候选；素材效果及强弱待实机验证。
+fox_t3_reflect,fox,3,reflect,反弹,3,一次接触时反弹目标或逆转感染尝试；待B规则实现。,,CANDIDATE_ONLY,21_反击技能池.csv,fox_t3_reflect,试玩方案｜fox T3反击候选；素材效果及强弱待实机验证。
+fox_t3_unselectable,fox,3,unselectable,不可选,2,暂时锁定中立观众的玩家点选；待A/D边界确认。,,CANDIDATE_ONLY,21_反击技能池.csv,fox_t3_unselectable,试玩方案｜fox T3反击候选；素材效果及强弱待实机验证。
+fox_t4_fake_card,fox,4,fake_card,假弹幕,3,使用误导性复读标记；实际效果待策划确认。,,CANDIDATE_ONLY,21_反击技能池.csv,fox_t4_fake_card,试玩方案｜fox T4反击候选；素材效果及强弱待实机验证。
+fox_t4_retaliation_copy,fox,4,retaliation_copy,水军复制/反击,2,复制当前复读内容到新子体；V0.5暂映射为B split效果，待确认。,split,PROVISIONAL_COPY_TO_SPLIT,21_反击技能池.csv,fox_t4_retaliation_copy,试玩方案｜fox T4反击候选；素材效果及强弱待实机验证。
+fox_t5_reflect,fox,5,reflect,反弹,3,一次接触时反弹目标或逆转感染尝试；待B规则实现。,,CANDIDATE_ONLY,21_反击技能池.csv,fox_t5_reflect,试玩方案｜fox T5反击候选；素材效果及强弱待实机验证。
+fox_t5_fake_card,fox,5,fake_card,假弹幕,2,使用误导性复读标记；实际效果待策划确认。,,CANDIDATE_ONLY,21_反击技能池.csv,fox_t5_fake_card,试玩方案｜fox T5反击候选；素材效果及强弱待实机验证。

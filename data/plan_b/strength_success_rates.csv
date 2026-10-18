@@ -1,4 +1,4 @@
-strength,conversion_probability
-1,0.20
-2,0.35
-3,0.50
+strength,conversion_probability,batch_spawn_count
+1,0.50,2
+2,0.60,4
+3,0.70,8

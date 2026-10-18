@@ -63,7 +63,12 @@ func notify_event(event_id: String) -> bool:
 
 
 ## INT-16 每帧传现有对象；目标几何与满蓄读取真实公开接口，暂停时冻结观察。
-func observe_combat_frame(area: BarrageArea, aim: AimReticle, attack: AttackChargeInput) -> void:
+func observe_combat_frame(
+	area: BarrageArea,
+	aim: AimReticle,
+	attack: AttackChargeInput,
+	contradiction_targets: bool = false
+) -> void:
 	if _finished or area == null or aim == null or attack == null or not area.is_inside_tree() or area.get_tree().paused:
 		return
 	var has_target: bool = false
@@ -76,9 +81,12 @@ func observe_combat_frame(area: BarrageArea, aim: AimReticle, attack: AttackChar
 		if not view.is_visible_in_tree():
 			continue
 		var facts: BarrageRuntimeRecord = view.runtime_record
-		if facts == null or facts.is_repeat or facts.is_contradiction or facts.expires_at_msec <= Time.get_ticks_msec():
+		if (facts == null or facts.is_repeat or facts.is_contradiction != contradiction_targets
+				or facts.expires_at_msec <= Time.get_ticks_msec()):
 			continue
-		if not facts.trait_set.is_selectable() or not facts.trait_set.get_hit_result().receives_normal_reward:
+		if (not contradiction_targets
+				and (not facts.trait_set.is_selectable()
+					or not facts.trait_set.get_hit_result().receives_normal_reward)):
 			continue
 		var visible_rect: Rect2 = area.get_global_rect().intersection(view.get_global_rect())
 		if visible_rect.size.x <= 0.0 or visible_rect.size.y <= 0.0:

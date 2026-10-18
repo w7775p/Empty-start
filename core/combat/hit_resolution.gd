@@ -26,6 +26,7 @@ var _normal_hit_order: int = 0
 var _normal_history_committed: bool = false
 var _normal_pk_resolution_enabled: bool = true
 var _numerics: CombatNumericsConfig
+var _external_player_pk_getter: Callable
 
 
 func _init(
@@ -45,14 +46,16 @@ func _init(
 
 
 func initialize_player_pk(initial_pk: float, minimum_pk: float, maximum_pk: float) -> void:
-	# 开始或重开时替换范围与初始值，玩家 PK 始终由本对象持有。
+	# 开始或重开时设置旧战斗模式的本地 PK 初值与限制范围。
 	_minimum_player_pk = minimum_pk
 	_maximum_player_pk = maximum_pk
 	_player_pk = _clamp_player_pk(initial_pk)
 
 
 func apply_player_pk_delta(delta: float) -> float:
-	# 命中、惩罚或回拉都通过这里修改唯一 PK；clamp 后发送一次最终值事实。
+	# 外部拥有者模式只读 PK；旧战斗模式由本对象应用增量并广播结果。
+	if _external_player_pk_getter.is_valid():
+		return get_player_pk()
 	if not _normal_pk_resolution_enabled:
 		return _player_pk
 	_player_pk = _clamp_player_pk(_player_pk + delta)
@@ -70,12 +73,34 @@ func allows_normal_pk_resolution() -> bool:
 
 
 func get_player_pk() -> float:
-	# 只读提供玩家 PK；对手显示值由读取方按需从总量中计算。
+	# 外部模式直接读取唯一 PK 拥有者；旧模式沿用本对象保存值。
+	if _external_player_pk_getter.is_valid():
+		var external_pk: Variant = _external_player_pk_getter.call()
+		if typeof(external_pk) == TYPE_FLOAT or typeof(external_pk) == TYPE_INT:
+			if is_finite(float(external_pk)):
+				return _clamp_player_pk(float(external_pk))
 	return _player_pk
 
 
+func bind_external_player_pk_getter(getter: Callable) -> bool:
+	# Plan B 的 Host 唯一拥有普通 PK；旧流程只绑定其只读查询入口。
+	if not getter.is_valid():
+		return false
+	_external_player_pk_getter = getter
+	return true
+
+
+func notify_external_player_pk_changed() -> float:
+	# PK 来源发出变化后广播一次快照，驱动旧 Tier / HUD / 关卡结果入口。
+	if not _external_player_pk_getter.is_valid():
+		return _player_pk
+	var current_pk: float = get_player_pk()
+	final_player_pk_updated.emit(current_pk)
+	return current_pk
+
+
 func set_player_pk_for_debug(player_pk: float) -> float:
-	# 调试改值仍通过正式 PK 更新入口发信号，让 Tier 和 HUD 使用真实联动链。
+	# 外部拥有者模式不允许调试入口改写真实 PK。
 	return apply_player_pk_delta(_clamp_player_pk(player_pk) - _player_pk)
 
 

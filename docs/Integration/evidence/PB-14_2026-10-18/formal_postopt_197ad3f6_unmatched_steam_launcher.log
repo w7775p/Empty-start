@@ -1,0 +1,55 @@
+Godot Engine v4.7.2.stable.steam.ed1daf0bf - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: AMD - AMD Radeon(TM) Graphics
+
+WARNING: AudioManager: music event 'music_battle_t0' is missing, empty or not Music.
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] change_music (res://core/autoload/audio_manager.gd:106)
+       [1] _publish_current_tier_state (res://core/combat/combat_stage.gd:169)
+       [2] begin_combat (res://core/combat/combat_stage.gd:34)
+       [3] _start_attempt (res://core/combat/battle_attempt_flow.gd:257)
+       [4] start_first_attempt (res://core/combat/battle_attempt_flow.gd:198)
+       [5] _ready (res://scenes/sandbox/sandbox.gd:290)
+PB14_SIMULATION_READY path=/root/Sandbox/PlanBBattleHost/Simulation
+PB14_CENSUS t_ms=886 player=0 opponent=2 neutral=76 total=78 running=true
+PB14_CENSUS t_ms=2030 player=0 opponent=2 neutral=77 total=79 running=true
+PB14_CENSUS t_ms=3126 player=0 opponent=2 neutral=78 total=80 running=true
+PB14_CENSUS t_ms=4276 player=0 opponent=2 neutral=79 total=81 running=true
+PB14_CENSUS t_ms=5281 player=0 opponent=2 neutral=80 total=82 running=true
+PB14_CENSUS t_ms=6358 player=0 opponent=2 neutral=81 total=83 running=true
+PB14_CENSUS t_ms=7421 player=0 opponent=2 neutral=82 total=84 running=true
+PB14_CENSUS t_ms=8558 player=0 opponent=2 neutral=83 total=85 running=true
+PB14_CENSUS t_ms=9646 player=0 opponent=2 neutral=84 total=86 running=true
+PB14_CENSUS t_ms=10813 player=0 opponent=2 neutral=85 total=87 running=true
+PB14_CENSUS t_ms=11963 player=0 opponent=2 neutral=86 total=88 running=true
+PB14_CENSUS t_ms=13070 player=0 opponent=2 neutral=87 total=89 running=true
+PB14_CENSUS t_ms=14200 player=0 opponent=2 neutral=88 total=90 running=true
+PB14_CENSUS t_ms=15344 player=0 opponent=2 neutral=90 total=92 running=true
+PB14_CENSUS t_ms=16521 player=0 opponent=2 neutral=91 total=93 running=true
+PB14_CENSUS t_ms=17596 player=0 opponent=4 neutral=92 total=96 running=true
+PB14_FULL_POPULATION t_ms=17596
+PB14_CENSUS t_ms=18620 player=0 opponent=4 neutral=92 total=96 running=true
+PB14_CENSUS t_ms=19675 player=0 opponent=4 neutral=92 total=96 running=true
+PB14_CENSUS t_ms=20757 player=0 opponent=5 neutral=91 total=96 running=true
+PB14_CENSUS t_ms=21790 player=0 opponent=5 neutral=91 total=96 running=true
+PB14_CENSUS t_ms=22815 player=0 opponent=5 neutral=91 total=96 running=true
+PB14_PROFILE_BEGIN {"client_window":"(1280, 720)","commit":"1ddd5b41","logic_viewport":"(1920, 1080)","physics_tps":60,"population":{"neutral":91,"opponent":5,"player":0},"sample_ms":20000,"scene":"res://scenes/sandbox/sandbox_plan_b.tscn","warmup_ms":5000,"window_mode":"0"}
+PB14_CENSUS t_ms=23860 player=0 opponent=6 neutral=90 total=96 running=true
+PB14_CENSUS t_ms=24908 player=0 opponent=6 neutral=90 total=96 running=true
+PB14_CENSUS t_ms=25964 player=0 opponent=6 neutral=90 total=96 running=true
+PB14_CENSUS t_ms=27020 player=0 opponent=6 neutral=90 total=96 running=true
+PB14_CENSUS t_ms=28079 player=0 opponent=7 neutral=89 total=96 running=true
+PB14_CENSUS t_ms=29251 player=0 opponent=7 neutral=89 total=96 running=true
+PB14_CENSUS t_ms=30401 player=0 opponent=7 neutral=89 total=96 running=true
+PB14_CENSUS t_ms=31492 player=0 opponent=7 neutral=89 total=96 running=true
+PB14_CENSUS t_ms=32609 player=0 opponent=7 neutral=89 total=96 running=true
+PB14_CENSUS t_ms=33720 player=0 opponent=8 neutral=88 total=96 running=true
+PB14_CENSUS t_ms=34861 player=0 opponent=8 neutral=88 total=96 running=true
+PB14_CENSUS t_ms=35918 player=0 opponent=8 neutral=88 total=96 running=true
+PB14_CENSUS t_ms=36958 player=0 opponent=9 neutral=87 total=96 running=true
+PB14_CENSUS t_ms=38016 player=0 opponent=10 neutral=86 total=96 running=true
+PB14_CENSUS t_ms=39041 player=0 opponent=10 neutral=86 total=96 running=true
+PB14_CENSUS t_ms=40099 player=0 opponent=11 neutral=85 total=96 running=true
+PB14_CENSUS t_ms=41181 player=0 opponent=12 neutral=84 total=96 running=true
+PB14_CENSUS t_ms=42260 player=0 opponent=12 neutral=84 total=96 running=true
+PB14_PROFILE_END {"commit":"1ddd5b41","draw_calls":{"max":719.0,"mean":700.702127659574,"n":94,"p95":715.0},"duration_ms":20068,"final_counts":{"neutral":84,"opponent":12,"player":0},"fps":{"max":5.0,"mean":4.64893617021277,"n":94,"p95":5.0},"note":"TIME_PROCESS/TIME_PHYSICS_PROCESS are engine monitors; Script/Idle profiler breakdown remains separate.","physics_ms":{"max":35.268,"mean":27.2574680851064,"n":94,"p95":33.737},"population_maximum":96,"population_minimum":96,"process_ms":{"max":61.162,"mean":47.6041914893617,"n":94,"p95":61.162},"render_frames":94,"scene":"res://scenes/sandbox/sandbox_plan_b.tscn","wall_frame_ms":{"max":272.16,"mean":213.476180851064,"n":94,"p95":244.378}}
