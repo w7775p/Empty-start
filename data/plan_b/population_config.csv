@@ -1,0 +1,2 @@
+config_id,initial_neutral_count,initial_seed_slot_count,neutral_spawn_interval_seconds,neutral_spawn_jitter_ratio,source_task,mapping_status,test_only,notes
+plan_b_default,30,0,0.75,0.25,PB-15,provisional_engineering_start,false,开局30名为PB-15确定值；补人以当前0.75秒中心间隔按±25%随机，待实机密度验收调节。

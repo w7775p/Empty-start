@@ -5,6 +5,7 @@ const WORD_POOL_PATH := "res://data/plan_b/word_pool.csv"
 const TYPE_MATCHUPS_PATH := "res://data/plan_b/battle_type_matchups.csv"
 const STRENGTH_RATES_PATH := "res://data/plan_b/strength_success_rates.csv"
 const OPPONENT_CONFIG_PATH := "res://data/plan_b/opponent_config.csv"
+const POPULATION_CONFIG_PATH := "res://data/plan_b/population_config.csv"
 const RETALIATION_MAP_PATH := "res://data/plan_b/retaliation_skill_map.csv"
 const DEFAULT_LEVEL_ID := "level_001"
 const DEFAULT_RANDOM_SEED := 20261017
@@ -23,6 +24,7 @@ var _type_relations: Dictionary = {}
 var _strength_probabilities: Dictionary = {}
 var _strength_batch_spawn_counts: Dictionary = {}
 var _opponent_configs: Dictionary = {}
+var _population_config: Dictionary = {}
 var _retaliation_mappings: Array[Dictionary] = []
 var _active_level_context: Dictionary = {}
 var _random_seed: int = DEFAULT_RANDOM_SEED
@@ -39,6 +41,7 @@ func load_configuration() -> bool:
 	_strength_probabilities.clear()
 	_strength_batch_spawn_counts.clear()
 	_opponent_configs.clear()
+	_population_config.clear()
 	_retaliation_mappings.clear()
 	_active_level_context.clear()
 
@@ -46,9 +49,10 @@ func load_configuration() -> bool:
 	var raw_strengths: Array[Dictionary] = _read_csv_rows(STRENGTH_RATES_PATH)
 	var raw_words: Array[Dictionary] = _read_csv_rows(WORD_POOL_PATH)
 	var raw_opponents: Array[Dictionary] = _read_csv_rows(OPPONENT_CONFIG_PATH)
+	var raw_population_configs: Array[Dictionary] = _read_csv_rows(POPULATION_CONFIG_PATH)
 	var raw_retaliations: Array[Dictionary] = _read_csv_rows(RETALIATION_MAP_PATH)
 	if raw_matchups.is_empty() or raw_strengths.is_empty() or raw_words.is_empty() \
-		or raw_opponents.is_empty() or raw_retaliations.is_empty():
+		or raw_opponents.is_empty() or raw_population_configs.size() != 1 or raw_retaliations.is_empty():
 		return false
 
 	for row: Dictionary in raw_matchups:
@@ -150,11 +154,16 @@ func load_configuration() -> bool:
 			return false
 		_opponent_configs[opponent_id] = config
 
+	_population_config = _parse_population_config(raw_population_configs[0])
+	if _population_config.is_empty():
+		return false
+
 	for row: Dictionary in raw_retaliations:
 		_retaliation_mappings.append(_parse_retaliation_mapping(row))
 
 	_loaded = _word_definitions.size() > 0 \
 		and _opponent_configs.size() == LEVEL_PROFILE_PATHS.size() \
+		and not _population_config.is_empty() \
 		and not _retaliation_mappings.is_empty()
 	if not _loaded or not _has_valid_four_level_content():
 		_loaded = false
@@ -267,6 +276,11 @@ func get_strength_success_probability(strength: int) -> float:
 ## 根据正式强度表返回一次话语批次应生成的棋子数量。
 func get_strength_batch_spawn_count(strength: int) -> int:
 	return int(_strength_batch_spawn_counts.get(strength, 0)) if _loaded else 0
+
+
+## 返回 PB-15 开局人口与持续补充的可调配置值副本。
+func get_population_config() -> Dictionary:
+	return _population_config.duplicate(true) if _loaded else {}
 
 
 ## 无参数读取当前 LevelProfile 对应配置；传 ID 时兼容按关卡或主播查询。
@@ -508,6 +522,43 @@ func _parse_opponent_config(row: Dictionary) -> Dictionary:
 		or float(parsed["speech_cooldown_seconds"]) <= 0.0 \
 		or float(parsed["counterattack_pre_windup_seconds"]) < 0.0:
 		return {}
+	return parsed
+
+
+func _parse_population_config(row: Dictionary) -> Dictionary:
+	var required_ints := {
+		"initial_neutral_count": 0,
+		"initial_seed_slot_count": 0,
+	}
+	var parsed: Dictionary = {}
+	for key: String in required_ints:
+		var value_text: String = str(row.get(key, "")).strip_edges()
+		if not value_text.is_valid_int() or int(value_text) < 0:
+			return {}
+		parsed[key] = int(value_text)
+	var interval_text: String = str(row.get("neutral_spawn_interval_seconds", "")).strip_edges()
+	var jitter_text: String = str(row.get("neutral_spawn_jitter_ratio", "")).strip_edges()
+	if not interval_text.is_valid_float() or not jitter_text.is_valid_float():
+		return {}
+	parsed["neutral_spawn_interval_seconds"] = float(interval_text)
+	parsed["neutral_spawn_jitter_ratio"] = float(jitter_text)
+	var interval_center: float = float(parsed["neutral_spawn_interval_seconds"])
+	var jitter_ratio: float = float(parsed["neutral_spawn_jitter_ratio"])
+	if interval_center <= 0.0 or jitter_ratio < 0.0 or jitter_ratio >= 1.0 \
+		or interval_center * (1.0 - jitter_ratio) < 0.05 \
+		or interval_center * (1.0 + jitter_ratio) > 10.0:
+		return {}
+	parsed["neutral_spawn_min_seconds"] = interval_center * (1.0 - jitter_ratio)
+	parsed["neutral_spawn_max_seconds"] = interval_center * (1.0 + jitter_ratio)
+	for key: String in ["config_id", "source_task", "mapping_status"]:
+		parsed[key] = str(row.get(key, "")).strip_edges()
+		if str(parsed[key]).is_empty():
+			return {}
+	var test_only_text: String = str(row.get("test_only", "")).strip_edges().to_lower()
+	if test_only_text != "false":
+		return {}
+	parsed["test_only"] = false
+	parsed["notes"] = str(row.get("notes", ""))
 	return parsed
 
 
