@@ -1,0 +1,4 @@
+battle_type,emoji,mapping_status,notes
+type_a,✊,pb18_user_approved_placeholder,A克B且对应石头克剪刀；仅显示克制类别，不改变战斗关系。
+type_b,✌️,pb18_user_approved_placeholder,B克C且对应剪刀克布；仅显示克制类别，不改变战斗关系。
+type_c,✋,pb18_user_approved_placeholder,C克A且对应布克石头；仅显示克制类别，不改变战斗关系。

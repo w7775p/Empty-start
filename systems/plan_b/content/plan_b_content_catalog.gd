@@ -3,6 +3,7 @@ extends RefCounted
 
 const WORD_POOL_PATH := "res://data/plan_b/word_pool.csv"
 const TYPE_MATCHUPS_PATH := "res://data/plan_b/battle_type_matchups.csv"
+const BATTLE_TYPE_EMOJI_PATH := "res://data/plan_b/battle_type_emoji.csv"
 const STRENGTH_RATES_PATH := "res://data/plan_b/strength_success_rates.csv"
 const OPPONENT_CONFIG_PATH := "res://data/plan_b/opponent_config.csv"
 const POPULATION_CONFIG_PATH := "res://data/plan_b/population_config.csv"
@@ -21,6 +22,7 @@ const LEGACY_TENDENCIES := [&"orthodox", &"heresy", &"absurd", &"neutral"]
 var _word_definitions: Dictionary = {}
 var _word_ids_in_source_order: Array[String] = []
 var _type_relations: Dictionary = {}
+var _battle_type_emojis: Dictionary = {}
 var _strength_probabilities: Dictionary = {}
 var _strength_batch_spawn_counts: Dictionary = {}
 var _opponent_configs: Dictionary = {}
@@ -38,6 +40,7 @@ func load_configuration() -> bool:
 	_word_definitions.clear()
 	_word_ids_in_source_order.clear()
 	_type_relations.clear()
+	_battle_type_emojis.clear()
 	_strength_probabilities.clear()
 	_strength_batch_spawn_counts.clear()
 	_opponent_configs.clear()
@@ -46,12 +49,13 @@ func load_configuration() -> bool:
 	_active_level_context.clear()
 
 	var raw_matchups: Array[Dictionary] = _read_csv_rows(TYPE_MATCHUPS_PATH)
+	var raw_type_emojis: Array[Dictionary] = _read_csv_rows(BATTLE_TYPE_EMOJI_PATH)
 	var raw_strengths: Array[Dictionary] = _read_csv_rows(STRENGTH_RATES_PATH)
 	var raw_words: Array[Dictionary] = _read_csv_rows(WORD_POOL_PATH)
 	var raw_opponents: Array[Dictionary] = _read_csv_rows(OPPONENT_CONFIG_PATH)
 	var raw_population_configs: Array[Dictionary] = _read_csv_rows(POPULATION_CONFIG_PATH)
 	var raw_retaliations: Array[Dictionary] = _read_csv_rows(RETALIATION_MAP_PATH)
-	if raw_matchups.is_empty() or raw_strengths.is_empty() or raw_words.is_empty() \
+	if raw_matchups.is_empty() or raw_type_emojis.is_empty() or raw_strengths.is_empty() or raw_words.is_empty() \
 		or raw_opponents.is_empty() or raw_population_configs.size() != 1 or raw_retaliations.is_empty():
 		return false
 
@@ -66,6 +70,21 @@ func load_configuration() -> bool:
 			return false
 		_type_relations[relation_key] = StringName(relation)
 	if not _has_complete_matchup_table():
+		return false
+	for row: Dictionary in raw_type_emojis:
+		var battle_type: String = str(row.get("battle_type", "")).strip_edges()
+		var emoji: String = str(row.get("emoji", "")).strip_edges()
+		var mapping_status: String = str(row.get("mapping_status", "")).strip_edges()
+		if battle_type.is_empty() or emoji.is_empty() or mapping_status.is_empty() \
+			or _battle_type_emojis.has(battle_type) \
+			or not _type_relations.has(_make_matchup_key(battle_type, battle_type)):
+			return false
+		_battle_type_emojis[battle_type] = {
+			"emoji": emoji,
+			"mapping_status": mapping_status,
+			"notes": str(row.get("notes", "")),
+		}
+	if not _has_complete_battle_type_emoji_map():
 		return false
 
 	for row: Dictionary in raw_strengths:
@@ -99,6 +118,7 @@ func load_configuration() -> bool:
 		var audience := StringName(str(row.get("available_to", "")).strip_edges())
 		var available_level := str(row.get("available_level", "")).strip_edges()
 		var appearance_weight_text := str(row.get("appearance_weight", "1")).strip_edges()
+		var battle_type_display: Dictionary = _battle_type_emojis.get(battle_type, {})
 		if word_id.is_empty() or text.is_empty() or _word_definitions.has(word_id) \
 			or not strength_text.is_valid_int() or not appearance_weight_text.is_valid_float() \
 			or float(appearance_weight_text) <= 0.0 or not LEGACY_TENDENCIES.has(source_tendency) \
@@ -112,6 +132,7 @@ func load_configuration() -> bool:
 			"word_id": word_id,
 			"text": text,
 			"battle_type": StringName(battle_type),
+			"battle_type_emoji": str(battle_type_display.get("emoji", "")),
 			"strength": int(strength_text),
 			"batch_spawn_count": int(_strength_batch_spawn_counts.get(int(strength_text), 0)),
 			"traits": _parse_trait_ids(str(row.get("traits", ""))),
@@ -266,6 +287,14 @@ func get_type_matchup(attacker_type: String, defender_type: String) -> StringNam
 	if not _loaded:
 		return &""
 	return StringName(_type_relations.get(_make_matchup_key(attacker_type, defender_type), &""))
+
+
+## 返回与克制表类型 ID 绑定的显示占位；克制事实仍只读取 matchup 矩阵。
+func get_battle_type_emoji(battle_type: String) -> String:
+	if not _loaded:
+		return ""
+	var display_data: Dictionary = _battle_type_emojis.get(battle_type, {})
+	return str(display_data.get("emoji", ""))
 
 
 ## strength 仅表示一次合法感染尝试的成功概率，其他系统不应挪用。
@@ -460,6 +489,21 @@ func _has_complete_matchup_table() -> bool:
 		for defender: StringName in type_ids:
 			if not _type_relations.has(_make_matchup_key(attacker, defender)):
 				return false
+	return true
+
+
+func _has_complete_battle_type_emoji_map() -> bool:
+	var type_ids: Array[String] = []
+	for relation_key: String in _type_relations:
+		var halves: PackedStringArray = relation_key.split("|", false)
+		for type_id: String in halves:
+			if not type_ids.has(type_id):
+				type_ids.append(type_id)
+	if type_ids.size() != 3 or _battle_type_emojis.size() != type_ids.size():
+		return false
+	for type_id: String in type_ids:
+		if not _battle_type_emojis.has(type_id):
+			return false
 	return true
 
 
