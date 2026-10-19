@@ -13,7 +13,7 @@ const MUSIC_EVENT: StringName = &"music_comic_street"
 const CANVAS_SIZE := Vector2(1920, 1080)
 
 var _canvas: Control
-var _caption: Label
+var _caption: RichTextLabel
 var _control: ComicPanelPlaybackControl
 var _sequence: ComicSequence
 var _layers: Array[TextureRect] = []
@@ -49,9 +49,11 @@ func _ready() -> void:
 	_canvas.size = CANVAS_SIZE
 	_canvas.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_canvas)
-	_caption = Label.new()
-	_caption.add_theme_font_size_override("font_size", 36)
-	_caption.add_theme_color_override("font_color", Color.WHITE)
+	_caption = RichTextLabel.new()
+	_caption.bbcode_enabled = true
+	_caption.scroll_active = false
+	_caption.add_theme_font_size_override("normal_font_size", 36)
+	_caption.add_theme_color_override("default_color", Color.WHITE)
 	_caption.add_theme_color_override("font_shadow_color", Color.BLACK)
 	_caption.add_theme_constant_override("shadow_offset_x", 3)
 	_caption.add_theme_constant_override("shadow_offset_y", 3)
@@ -76,9 +78,9 @@ func _ready() -> void:
 
 # 分镜时长包含延迟气泡的阅读时间，音乐后半起点与自动播放共用此规则。
 func _frame_duration(frame: ComicFrame) -> float:
-	var duration := maxf(frame.seconds, frame.text.length() / maxf(1.0, frame.characters_per_second) + 1.0)
+	var duration := maxf(frame.seconds, ComicCaption.visible_text_length(frame.text) / maxf(1.0, frame.characters_per_second) + 1.0)
 	for caption in frame.captions:
-		duration = maxf(duration, caption.delay + caption.text.length() / maxf(1.0, frame.characters_per_second) + 1.0)
+		duration = maxf(duration, caption.delay + ComicCaption.visible_text_length(caption.text) / maxf(1.0, frame.characters_per_second) + 1.0)
 	return duration
 
 # 各回看入口重置曲目；后两幕从动态版前四幕的实际配置时长继续。
@@ -200,7 +202,7 @@ func _process(delta: float) -> void:
 			danmaku_index += 1
 		view.visible = _elapsed >= view.caption.delay
 		if view.visible:
-			var count := mini(view.caption.text.length(), int((_elapsed - view.caption.delay) * _frame.characters_per_second))
+			var count := mini(view.label.get_total_character_count(), int((_elapsed - view.caption.delay) * _frame.characters_per_second))
 			if count > view.label.visible_characters:
 				view.label.visible_characters = count
 				spoke = true
@@ -209,10 +211,10 @@ func _process(delta: float) -> void:
 	# 纯图片显现、等待或运动均不触发打字声。
 	if _frame.text.is_empty():
 		return
-	if _caption.visible_characters >= _frame.text.length():
+	if _caption.visible_characters >= _caption.get_total_character_count():
 		return
 	_text_elapsed += delta
-	var next_count := mini(_frame.text.length(), int(_text_elapsed * _frame.characters_per_second))
+	var next_count := mini(_caption.get_total_character_count(), int(_text_elapsed * _frame.characters_per_second))
 	if next_count > _caption.visible_characters:
 		_caption.visible_characters = next_count
 		if is_instance_valid(_sound):
@@ -244,9 +246,9 @@ func advance() -> void:
 		return
 	var filled := false
 	for view in _caption_views:
-		if not view.visible or view.label.visible_characters < view.caption.text.length():
+		if not view.visible or view.label.visible_characters < view.label.get_total_character_count():
 			view.show()
-			view.label.visible_characters = view.caption.text.length()
+			view.label.visible_characters = view.label.get_total_character_count()
 			filled = true
 	if filled:
 		# 快进补字后保持完整状态，防止下一帧按旧时间重新截短。
@@ -254,8 +256,8 @@ func advance() -> void:
 		if is_instance_valid(_sound):
 			_sound.stop()
 		return
-	if _caption.visible_characters < _frame.text.length():
-		_caption.visible_characters = _frame.text.length()
+	if _caption.visible_characters < _caption.get_total_character_count():
+		_caption.visible_characters = _caption.get_total_character_count()
 		if is_instance_valid(_sound):
 			_sound.stop()
 		return
