@@ -5,6 +5,12 @@ extends Control
 const OPENING_PATH := "res://data/comics/opening.tres"
 const ENDING_PATH := "res://data/comics/ending.tres"
 const DESIGN_SIZE := Vector2(1920, 1080)
+const FONT_PATHS: Array[String] = [
+	"",
+	"res://assets/fonts/NotoSansSC-VF.ttf",
+	"res://assets/fonts/ZCOOLKuaiLe-Regular.ttf",
+]
+const CAPTION_KINDS: Array[String] = ["speech", "narration", "danmaku", "label"]
 
 var _opening: ComicSequence
 var _ending: ComicSequence
@@ -25,6 +31,9 @@ var _canvas: Control
 var _caption_text: TextEdit
 var _frame_text: TextEdit
 var _kind_select: OptionButton
+var _font_select: OptionButton
+var _font_size_spin: SpinBox
+var _font_color_button: ColorPickerButton
 var _seconds_spin: SpinBox
 var _field_spins: Dictionary = {}
 var _status: Label
@@ -74,7 +83,7 @@ func _build_ui() -> void:
 	left.add_child(nav)
 	_make_button(nav, "◀ 上一格", _go_relative.bind(-1))
 	_make_button(nav, "下一格 ▶", _go_relative.bind(1))
-	left.add_child(_make_label("显示的是当前格的最终合成画面。\n点选气泡可拖动位置。"))
+	left.add_child(_make_label("当前格最终合成画面。\n点选气泡或大字，可拖动位置。"))
 
 	var split_right := HSplitContainer.new()
 	split_right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -124,21 +133,23 @@ func _build_ui() -> void:
 	_frame_text.text_changed.connect(_change_frame_text)
 	right.add_child(_frame_text)
 
-	right.add_child(_make_label("画面气泡 / 旁白 / 弹幕"))
+	right.add_child(_make_label("气泡 / 旁白 / 弹幕 / 纯Label大字"))
 	_caption_list = ItemList.new()
 	_caption_list.custom_minimum_size = Vector2(0, 115)
 	_caption_list.item_selected.connect(_pick_caption)
 	right.add_child(_caption_list)
 	var actions := HBoxContainer.new()
 	right.add_child(actions)
-	_make_button(actions, "＋ 新增", _add_caption)
-	_make_button(actions, "－ 删除选中", _delete_caption)
+	_make_button(actions, "＋ 文案框", _add_caption)
+	_make_button(actions, "＋ 大字", _add_bare_label)
+	_make_button(actions, "－ 删除", _delete_caption)
 
 	right.add_child(_make_label("文案类型"))
 	_kind_select = OptionButton.new()
 	_kind_select.add_item("对话气泡 · speech")
 	_kind_select.add_item("旁白 · narration")
 	_kind_select.add_item("观众弹幕 · danmaku")
+	_kind_select.add_item("纯Label · 无底框")
 	_kind_select.item_selected.connect(_change_kind)
 	right.add_child(_kind_select)
 
@@ -148,6 +159,41 @@ func _build_ui() -> void:
 	_caption_text.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
 	_caption_text.text_changed.connect(_change_caption_text)
 	right.add_child(_caption_text)
+
+	right.add_child(_make_label("选中文字后点效果；未选中时作用于整条文案"))
+	var effects := HBoxContainer.new()
+	right.add_child(effects)
+	_make_button(effects, "粗体", _apply_text_tag.bind("[b]", "[/b]"))
+	_make_button(effects, "金色", _apply_text_tag.bind("[color=#F2BD40]", "[/color]"))
+	_make_button(effects, "抖动", _apply_text_tag.bind("[shake rate=18 level=4]", "[/shake]"))
+	var effects_second := HBoxContainer.new()
+	right.add_child(effects_second)
+	_make_button(effects_second, "波浪", _apply_text_tag.bind("[wave amp=14 freq=3]", "[/wave]"))
+	_make_button(effects_second, "脉冲", _apply_text_tag.bind("[pulse freq=2.5 color=#FFD45C]", "[/pulse]"))
+
+	right.add_child(_make_label("字体"))
+	_font_select = OptionButton.new()
+	_font_select.add_item("项目默认字体")
+	_font_select.add_item("思源黑体 / Noto Sans SC")
+	_font_select.add_item("站酷快乐体 / ZCOOL KuaiLe")
+	_font_select.item_selected.connect(_change_font)
+	right.add_child(_font_select)
+
+	var typography := HBoxContainer.new()
+	right.add_child(typography)
+	typography.add_child(_make_label("字号"))
+	_font_size_spin = SpinBox.new()
+	_font_size_spin.min_value = 12
+	_font_size_spin.max_value = 300
+	_font_size_spin.step = 1
+	_font_size_spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_font_size_spin.value_changed.connect(_change_font_size)
+	typography.add_child(_font_size_spin)
+	typography.add_child(_make_label("颜色"))
+	_font_color_button = ColorPickerButton.new()
+	_font_color_button.custom_minimum_size = Vector2(60, 30)
+	_font_color_button.color_changed.connect(_change_text_color)
+	typography.add_child(_font_color_button)
 
 	right.add_child(_make_label("位置 / 尺寸（1920×1080 原图坐标）"))
 	_add_spin(right, "X", "x", -800, 2600, 1)
@@ -159,7 +205,7 @@ func _build_ui() -> void:
 	_add_spin(right, "尾巴 Y", "tail_y", -1, 1800, 1)
 	right.add_child(_make_label("入场时序"))
 	_add_spin(right, "延迟 / 秒", "delay", 0, 60, 0.05)
-	_hint = _make_label("原画只读。修改文案、坐标后点击顶部保存。")
+	_hint = _make_label("纯Label没有背景或气泡尾巴。字体来自现有项目；原画只读。")
 	right.add_child(_hint)
 
 	_status = Label.new()
@@ -284,12 +330,19 @@ func _refresh_form() -> void:
 	var active := value != null
 	_caption_text.editable = active
 	_kind_select.disabled = not active
+	_font_select.disabled = not active
+	_font_size_spin.editable = active
+	_font_color_button.disabled = not active
 	for field in _field_spins:
 		var spin: SpinBox = _field_spins[field]
 		spin.editable = active
 	if active:
 		_caption_text.text = value.text
-		_kind_select.select(["speech", "narration", "danmaku"].find(value.kind))
+		_kind_select.select(maxi(0, CAPTION_KINDS.find(value.kind)))
+		_font_select.select(maxi(0, FONT_PATHS.find(value.font_path)))
+		_font_size_spin.value = value.font_size
+		var default_color := Color("fff9e9") if value.kind in ["narration", "label"] else Color("31271f")
+		_font_color_button.color = value.text_color if value.text_color.a > 0.0 else default_color
 		_field_spins["x"].value = value.rect.position.x
 		_field_spins["y"].value = value.rect.position.y
 		_field_spins["w"].value = value.rect.size.x
@@ -324,13 +377,15 @@ func _render_preview() -> void:
 		_canvas.add_child(layer)
 
 	if not frame.text.is_empty():
-		var text_label := Label.new()
+		var text_label := RichTextLabel.new()
 		text_label.position = frame.text_position
 		text_label.size = frame.text_size
+		text_label.bbcode_enabled = true
 		text_label.text = frame.text
+		text_label.scroll_active = false
 		text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		text_label.add_theme_font_size_override("font_size", 36)
-		text_label.add_theme_color_override("font_color", Color.WHITE)
+		text_label.add_theme_font_size_override("normal_font_size", 36)
+		text_label.add_theme_color_override("default_color", Color.WHITE)
 		text_label.add_theme_color_override("font_shadow_color", Color.BLACK)
 		text_label.add_theme_constant_override("shadow_offset_x", 3)
 		text_label.add_theme_constant_override("shadow_offset_y", 3)
@@ -418,10 +473,64 @@ func _change_frame_text() -> void:
 func _change_kind(index: int) -> void:
 	if _syncing or _caption() == null:
 		return
-	_caption().kind = ["speech", "narration", "danmaku"][index]
+	var caption := _caption()
+	caption.kind = CAPTION_KINDS[index]
+	if caption.kind == "label" and caption.font_size == 30:
+		caption.font_size = 140
+		if caption.text_color.a == 0:
+			caption.text_color = Color("fff9e9")
+	_refresh_form()
 	_mark_dirty()
 	_refresh_caption_list()
 	_render_preview()
+
+
+func _change_font(index: int) -> void:
+	if _syncing or _caption() == null:
+		return
+	_caption().font_path = FONT_PATHS[index]
+	_mark_dirty()
+	_render_preview()
+
+
+func _change_font_size(number: float) -> void:
+	if _syncing or _caption() == null:
+		return
+	_caption().font_size = int(number)
+	_mark_dirty()
+	_render_preview()
+
+
+func _change_text_color(color: Color) -> void:
+	if _syncing or _caption() == null:
+		return
+	_caption().text_color = color
+	_mark_dirty()
+	_render_preview()
+
+
+func _text_offset(source: String, line_number: int, column: int) -> int:
+	var lines := source.split("\n", true)
+	var offset := 0
+	for index in range(mini(line_number, lines.size())):
+		offset += lines[index].length() + 1
+	return offset + column
+
+
+func _apply_text_tag(open_tag: String, close_tag: String) -> void:
+	if _caption() == null:
+		return
+	var source := _caption_text.text
+	if source.is_empty():
+		return
+	var first := 0
+	var last := source.length()
+	if _caption_text.has_selection():
+		first = _text_offset(source, _caption_text.get_selection_from_line(), _caption_text.get_selection_from_column())
+		last = _text_offset(source, _caption_text.get_selection_to_line(), _caption_text.get_selection_to_column())
+	var middle := source.substr(first, last - first)
+	_caption_text.text = source.substr(0, first) + open_tag + middle + close_tag + source.substr(last)
+	_change_caption_text()
 
 
 func _change_caption_text() -> void:
@@ -466,6 +575,30 @@ func _add_caption() -> void:
 	value.rect = Rect2(920, 790, 690, 165)
 	value.tail = Vector2(-1, -1)
 	value.delay = 0.55
+	frame.captions.append(value)
+	_caption_index = frame.captions.size() - 1
+	_mark_dirty()
+	_refresh_frame_list()
+	_show_frame()
+
+
+func _add_bare_label() -> void:
+	var frame := _frame()
+	if frame == null:
+		return
+	var existing_labels := 0
+	for previous in frame.captions:
+		if previous.kind == "label":
+			existing_labels += 1
+	var value := ComicCaption.new()
+	value.kind = "label"
+	value.text = "大字"
+	value.font_size = 150
+	value.font_path = FONT_PATHS[2]
+	value.text_color = Color("fff9e9")
+	value.rect = Rect2(180 if existing_labels % 2 == 0 else 1110, 430, 630, 240)
+	value.tail = Vector2(-1, -1)
+	value.delay = 0.3
 	frame.captions.append(value)
 	_caption_index = frame.captions.size() - 1
 	_mark_dirty()
