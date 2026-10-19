@@ -917,8 +917,8 @@ func _finish_tier_breakthrough() -> void:
 	tier_breakthrough_finished.emit(previous_tier, current_tier, true)
 
 
+# 短时战场事件复用底部状态行，避免在头像棋盘上绘制临时文字。
 func _show_field_event(message: String, seconds: float = 2.2) -> void:
-	# 短时战场提示复用底部状态行，棋盘面保持清晰。
 	if _hand_status_label == null:
 		return
 	_field_event_text = message
@@ -1648,6 +1648,7 @@ func _update_status_view() -> void:
 			tint = Color("#ffd38e")
 	if not _status_text.is_empty() and _status_kind != "info":
 		next_text = _status_text
+	# 事件倒计时期间优先显示提示；清空后恢复当前发表状态。
 	if not _field_event_text.is_empty() and _feedback_seconds > 0.0:
 		next_text = _field_event_text
 		tint = Color("#e6f2f5")

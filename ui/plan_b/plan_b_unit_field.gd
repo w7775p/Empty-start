@@ -574,6 +574,7 @@ func _choose_group_bubble_rect(
 	return best_rect
 
 
+# 只用当前帧实际绘制的头像中心评分，不修改任何棋子位置。
 func _group_bubble_overlap_score(
 	bubble_rect: Rect2,
 	member_ids: Array,
