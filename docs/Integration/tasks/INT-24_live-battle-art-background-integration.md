@@ -1,58 +1,43 @@
-# INT-24 · 正式直播战斗界面美术底图与矛盾条接入
+# INT-24 · 战斗界面现有美术底图接线
 
-**状态：待开发（仅任务卡）。优先级：P1。Owner：INT-24 界面整合 Agent，领取时独占本卡列出的运行文件。**
-**基线：开始开发时以最新 `main` HEAD 为准；功能 PR → `main`。** 2026-10-19 的共同分支说明属于历史执行基线；本卡采用 2026-10-20 INT-21/INT-22 已使用的最新 `main` 工作流。无论哪个 Agent 接手，先检查文件是否已被 PB-25 或其他任务认领。
+状态：P1，待开发；Owner：领取 `ui/plan_b/plan_b_battle_ui.gd` 的界面整合 Agent。**本卡只做现有资源的接线和遮挡调整。**
 
 ## 开始前先阅读以下文档
-- `AGENTS.md`、`known_traps.md`、`project.godot`、`docs/Original/任务卡模板.md`。
-- `docs/Integration/PLAN-B_V0.5_正式接入与界面定版_2026-10-17.md`、`docs/Integration/2026-10-19_新需求与BUG开发任务卡索引.md`。
-- `docs/Shared/PresentationAssets/Art_Intake_Rename_2026-10-20.md`、`docs/Integration/INT-21_2026-10-20_log.md`、`docs/Integration/tasks/INT-22_live-stats-icon-mapping.md`。
-- `ui/plan_b/plan_b_battle_ui.gd` / `.tscn`、`ui/plan_b/plan_b_streamer_panel.gd`、`scenes/sandbox/sandbox_plan_b.tscn` 与现有正式 PK/Tier、矛盾阶段表现消费者。
+- `AGENTS.md`、`project.godot`、`known_traps.md`、`docs/Original/任务卡模板.md`。
+- `docs/Integration/INT-21_2026-10-20_log.md`、`docs/Shared/PresentationAssets/Art_Intake_Rename_2026-10-20.md`。
+- `ui/plan_b/plan_b_battle_ui.gd` / `.tscn`（重点：`_build_view()` 与中央 PK/矛盾区域）。
 
 ## 已经实现的功能
-- Plan B 正式战斗采用 1920×1080：左主播 448、中间 1024、右主播 448；中部 PK/Tier 72、棋盘 828、话语区 180。三槽发表、棋子、主播立绘、气泡、PK皮肤、矛盾阶段与输入流程已有正式入口。
-- `ui/plan_b/plan_b_battle_ui.gd` 的 `_build_view()` 当前以代码构造底色与三列控件；主播各自还会加载真实房间背景。原有底色、面板不一定会自动透出新增全屏贴图。
-- `assets/ui/live/livestream_layout_background.png`（1920×1080，左右直播间 + 中央棋盘 UI 底板）与 `assets/ui/combat/paradox_bar_background.png`（532×144，矛盾计量条背景）已经正式归档，但尚未找到主流程中明确的实际纹理消费链路。素材档案中的 `live_pk_layout_reference_20261019.jpg` 是**参考图**，不得作为全屏底图接入。
-- INT-22 已有执行人，负责 `ui/live_data/live_data_hud.gd` 的左右八张统计图标；LD-17-FIX 的粉丝评论排版、PA-23-FIX 的立绘与房间背景已经单独处理。
+- 正式 Plan B 三列布局、棋盘、PK 皮肤、三张话语卡、左右主播区及其交互均已存在。
+- 已入库待接的图片：
+  - `assets/ui/live/livestream_layout_background.png`（1920×1080，直播/棋盘总底图）。
+  - `assets/ui/combat/paradox_bar_background.png`（532×144，矛盾条美术）。
+- INT-22 **正在开发**八张直播统计图标，本卡无需处理。
 
 ## 本次任务
-1. **真正使用直播总底图：** 在正式 `PlanBBattleUI` 可视树内接入 `livestream_layout_background.png`，维持 1920×1080 原图比例及 448/1024/448 设计坐标。根据 PNG 实际透明区域和现有节点层级安排背景、已有主播房间、PK/Tier、棋盘、三槽话语、评论与气泡的显示顺序；让美术实际可见且清晰，禁止粗暴盖在控件最上层或被全不透明程序面板完全挡住。
-2. **真正使用矛盾条美术：** 追踪正式玩法中“矛盾计量/矛盾阶段”现有、实际可见的消费者及其数值来源；把 `paradox_bar_background.png` 作为对应的美术底板接入，保持 532×144 的长宽比和可读安全区。**不得将其误当 PK 进度条皮肤**（PK/Tier 已有独立素材）；不得新造计量机制、修改矛盾判断或改变数值。若正式流程中不存在与这张图匹配的计量控件，明确记录真实场景与原因，保留 Draft 并交总控决定其显示位置，禁止生造功能。
-3. **层级与交互收口：** 正常棋盘、T6 矛盾射击、切关及暂停恢复时维持同一 1920×1080 布局；不改变棋盘输入坐标、棋子和气泡 z-index、三槽冷却、准心瞄准/蓄力、PK皮肤、左右背景与立绘。底图节点忽略鼠标事件；不得为了展示背景降低文字对比度、造成大面积视觉遮挡或增加明显眼花效果。
-4. **两档真实视觉检查：** 以正式 `sandbox_plan_b.tscn` 运行，分别获取 1920×1080 与 1280×720 的完整三列正常战斗截图，并补一张矛盾阶段截图以确认矛盾条实际出现在正确位置；记录同帧对应代码 SHA 与截图分辨率。若素材与现有设计冲突，提供图证和可见差异供人工定稿；不能仅用 Demo、headless 或代码引用宣称完成。
+1. 在正式 `PlanBBattleUI` 接入 `livestream_layout_background.png`，替换现有纯色底层或相应背景层。使用 Godot 原生纹理显示，按照现有 1920×1080 画布适配；让图片可见，并确保主播房间、棋盘、PK、文字、三卡及气泡保持原有层级和可读性。
+2. 核查 `paradox_bar_background.png` 对应的**已有**矛盾条或阶段显示位置。如已有匹配的背景节点/容器，直接更换美术并保留原数值与状态表现；如没有合适位置，**只在完成日志里写明“暂无对应正式容器”并跳过此项**，无需新增计量系统、设计新条或等待策划决定。本卡主要完成第 1 项。
+3. 仅调整为显示两张图片所必需的尺寸、缩放、遮罩、层级或背景透明度。保留三列尺寸 448 / 1024 / 448、棋盘操作坐标、PK/Tier、发表和冷却行为。
+
+**明确排除：** INT-22 直播统计、评论/粉丝牌、角色立绘、教程、矛盾机制、PK 算法、输入重构、全局 UI 美化、重新制作贴图。
 
 ## 本任务所属分支和文件归属
-- **唯一主要运行文件 Owner：INT-24 Agent → `ui/plan_b/plan_b_battle_ui.gd`；**确有必要时同一 Owner 可处理 `ui/plan_b/plan_b_battle_ui.tscn` 及该卡专属最小显示资源。任何需要触碰额外正式文件的接线，先核对其唯一当前 Owner。
-- **禁止改动 INT-22 正在开发的 `ui/live_data/live_data_hud.gd`**，也不得改评论横牌/图标排序、`ui/plan_b/plan_b_streamer_panel.gd` 的内部直播数据、PB-25 教学气泡、PA-22 青蛙动画、`scenes/sandbox/sandbox.gd` 的流程、PK计算与存档。
-- 如果 PB-25 或其他当前 Agent 正在修改 `plan_b_battle_ui.gd`，本卡先做只读层级核查，**待文件释放后从最新 main 取代码实施**；不得覆盖对方未提交工作。
-- 正式功能 PR 独立开 D 盘工作树，base `main`；文档与本卡短日志随同一功能 PR 交付。不得在 C 盘产生项目、缓存或截图数据。
+- 从开发时最新 `main` HEAD 建独立分支，PR 指向 `main`；工作树、Godot 缓存、截图、日志均在 D 盘。
+- **唯一可改运行文件：** `ui/plan_b/plan_b_battle_ui.gd`；如现有场景确实需要，附带修改 `.tscn`。禁止修改 `ui/live_data/live_data_hud.gd`（INT-22 正在开发）、`ui/plan_b/plan_b_streamer_panel.gd`、`scenes/sandbox/sandbox.gd` 以及其他 Agent 已占用的文件。
+- 若当前仍有 Agent 修改本卡运行文件，等待 Owner 释放后再接线；不得并发覆盖。
 
 ## Godot 开发环境
-Godot 4.7.2；GDScript；项目根目录 `Empty-start/`；PC 优先，逻辑 1920×1080、检查 1280×720。工程操作 MCP：Godot-MCP-Native；官方文档 MCP：godot_mcp。
+Godot 4.7.2、GDScript、Windows PC；1920×1080 逻辑画布。工程操作 Godot-MCP-Native；API 查阅 godot_mcp。
 
 ## 最小执行流程
-1. 认领运行文件并确认 `main` HEAD、INT-22/PB-25 当前冲突与实际美术文件。
-2. 在 D 盘独立工作树完成底图和矛盾条的**真实运行时消费**；独立子任务各自 commit，不改美术原始像素。
-3. 只对正式相关场景执行一次最小加载/运行验证和上述关键截图。
-4. 写 `docs/Integration/INT-24_2026-10-20_log.md`（实际实施日期可调整），在同一个功能 PR 附图与 SHA；视觉有疑问或截图缺失保持 Draft，等人工验收。
+1. 从最新 main 核对两张 PNG 和已有可见层，一次性完成最小资源接线；独立子任务按需各自 commit。
+2. 运行**正式** `scenes/sandbox/sandbox_plan_b.tscn`，留 **1 张 1920×1080 实际游戏截图**，检查背景真正可见、控件未遮挡，鼠标点卡/棋盘仍正常。若发现 720p 适配异常，再补 1280×720 截图；不要求模拟多关与完整矛盾流程。
+3. 同一代码 PR 写短日志 `docs/Integration/INT-24_YYYY-MM-DD_log.md`，列出两张图分别“已接入/无对应容器”、修改文件、commit 和截图。截图缺失时保持 Draft；由策划视觉验收后合并。
 
-## 执行要求（沿用仓库14项模板）
-1. **先检查当前项目状态：** 核对分支、未提交改动、正式场景树、资源路径与配置。
-2. **严格控制任务范围：** 只修改两张底图的显示与必要布局层级。
-3. **保持最小必要复杂度：** 优先现有 Control/TextureRect；不另造皮肤系统。
-4. **组合优于继承：** 复用现有 PlanBBattleUI 组件。
-5. **保持场景边界：** UI 表现层消费现有游戏事实。
-6. **区分场景、逻辑和数据：** 材质/布局与 PK/矛盾数值分开。
-7. **新增实现前按顺序检查：** 先查现有组件、Godot 原生 API、已有插件。
-8. **Godot API 不允许猜：** 不熟悉的节点属性与缩放行为查 godot_mcp。
-9. **使用 Godot-MCP-Native 检查真实工程：** 验证节点层级与运行画面。
-10. **自动化与额外保障机制：** 复用最小检查；不建新的审计框架。
-11. **避免脆弱的 Godot 依赖：** 保持既有公开接口与稳定节点。
-12. **修改现有场景时尊重现有结构：** 保留节点 owner、Resource UID 与实例。
-13. **验证实际 Godot 行为：** 普通/矛盾阶段可见；鼠标、键盘、冷却和暂停正常。
-14. **完成前检查：** 确认无重复背景、裁切、遮挡、重叠工作与新增解析错误。
+## 执行要求
+完整遵守仓库 `docs/Original/任务卡模板.md` 的 14 项通用要求；本卡无额外测试框架、专项架构重构或跨系统回归。
 
 ## 验收标准与最终汇报
-- 两张指定 PNG 都有**可追溯的正式场景消费链**；对应的美术在真实 Godot 画面可见且比例正确，矛盾条没有冒充 PK 皮肤。
-- 两档分辨率下主播名/立绘、评论、八统计图标（INT-22 合流后）、PK、棋子、三张卡片与矛盾提示都易读；发表、切阶段、暂停功能没有因显示层丢失输入。
-- 在功能 PR 列明两张 PNG → 哪个节点/哪个消费者、修改文件、实际截图及 SHA、未完成的人工美术判断。尚未取得证明时不宣称已完成、不合并。
+- 直播总底图在**正式游戏画面**实际显示，按原图比例呈现，不遮住主播、三卡、棋盘或文字；原有点击行为正常。
+- 矛盾条底图若有对应旧容器即完成替换，若无则明确记录并放行本卡，不虚构新功能。
+- PR 附最少 1 张真实 Godot 截图（标注分辨率、commit SHA），短述素材映射、改动位置与遗留问题；未经人工确认不自动合并。
