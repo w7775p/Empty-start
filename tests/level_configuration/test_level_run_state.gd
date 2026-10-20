@@ -12,8 +12,13 @@ func _init() -> void:
 		print("PASS: 切换关卡序号后读取对应配置。")
 	else:
 		push_error("FAIL: 切换关卡序号后未读取对应配置。")
-	print("LC-05: %d/2 tests passed." % passed_count)
-	quit(0 if passed_count == 2 else 1)
+	if _test_restore_completed_campaign_for_terminal_resume():
+		passed_count += 1
+		print("PASS: 末关下播后可恢复终局上下文。")
+	else:
+		push_error("FAIL: 末关下播后的终局恢复校验失败。")
+	print("LC-05: %d/3 tests passed." % passed_count)
+	quit(0 if passed_count == 3 else 1)
 
 ## 构造乱序目录，确认流程状态按关卡序号定位，不依赖数组位置。
 func _make_run_state() -> LevelRunState:
@@ -41,3 +46,27 @@ func _test_changing_order_reads_selected_level() -> bool:
 		return false
 	var current_level: LevelProfile = run_state.get_current_level_profile()
 	return current_level != null and current_level.level_id == "level_002"
+
+## 末关下播后应恢复终局上下文，且拒绝不完整或序号错误的终局存档。
+func _test_restore_completed_campaign_for_terminal_resume() -> bool:
+	var completed_run: LevelRunState = _make_run_state()
+	if completed_run.complete_level("level_001") != LevelRunState.CompletionResult.ADVANCED:
+		return false
+	if completed_run.complete_level("level_002") != LevelRunState.CompletionResult.ALL_NORMAL_LEVELS_COMPLETED:
+		return false
+
+	var completed_ids: Array[String] = ["level_001", "level_002"]
+	var restored: LevelRunState = _make_run_state()
+	if not restored.restore_progress(2, completed_ids, true):
+		return false
+	var current: LevelProfile = restored.get_current_level_profile()
+	if not restored.is_all_normal_levels_completed() or current == null or current.level_id != "level_002":
+		return false
+
+	var incomplete_ids: Array[String] = ["level_001"]
+	var incomplete_restore: LevelRunState = _make_run_state()
+	if incomplete_restore.restore_progress(2, incomplete_ids, true):
+		return false
+
+	var wrong_order_restore: LevelRunState = _make_run_state()
+	return not wrong_order_restore.restore_progress(1, completed_ids, true)

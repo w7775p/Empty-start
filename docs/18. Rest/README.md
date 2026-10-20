@@ -131,9 +131,16 @@ ID-09 页面在 `_ready()` 连接自身 `opening_saved(run_data)` 到 `_on_openi
 
 ## RS-13 战后继续直播 / 暂时下播（2026-10-20 · Draft）
 
-`RestResultView` 显示“是否继续直播？”与“继续直播”“暂时下播”两个选项。两按钮在结果展示结束后解锁；选择其一后同时锁定。保留 `continue_requested`，新增 `stop_streaming_requested`。`RestSession` 继续冻结本场稳定 `level_id` 和结果快照；已提交奖励仍走只读入口，进度去重由 `LevelRunState.complete_level()` 负责。
+`RestResultView` 展示“继续直播”与“暂时下播”。演出结束后开放两个选项，首次选择会锁定双方，Sandbox 负责结算提交与路由。
 
-Sandbox 将两种选择交给同一个结果提交入口。普通关推进后，Continue 在当前 Sandbox 通过 `restart_current_attempt()` 直接开始下一关，Stop 通过 `SceneRouter.goto_opening_room()` 返回休息室；末关 Continue 调用现有 `_enter_divine_descent()`，末关 Stop 返回休息室。失败 UI 保持原路线，未击破结果沿用既有 Rest 入口。选择 UI 的 Godot 截图和烟测已提交；本地 Godot 路由烟测受 Plan B 新增 PNG 的导入缓存阻塞，完整 Sandbox / Plan B 路由仍待实机验收，当前 PR 保持 Draft。详见 [RS-13 日志](休息时刻系统_RS-13_2026-10-20_log.md)。
+- 普通关 Continue：按稳定 `level_id` 提交本场进度并保存下一关序号，在当前 Sandbox 的遮幕下调用 `SceneRouter.prepare_live_attempt()` 重建下一场正式 Plan B；不经过休息室。
+- 普通关 Stop：复用同一份已提交结果，保存下一关序号后调用 `SceneRouter.goto_opening_room()`。
+- 末关 Continue：保存完整普通关完成状态，进入现有 `_enter_divine_descent()`。
+- 末关 Stop：保存 `normal_campaign_completed` 与全部已完成关卡 ID 后返回房间。房间显示“进入神降临”；再次开播会恢复最后一关上下文并进入现有神降临流程，不会重复最后一关。
+- 进度一旦提交便缓存在 Sandbox 中。存档失败、同步路由失败或异步场景切换失败会释放按钮并显示错误；重试复用同一份完成结果，不重复推进。Continue 通知只发出一次。
+- `tests/level_configuration/test_level_run_state.gd` 增加终局恢复回归用例，覆盖完整完成 ID、缺少关卡 ID、错误末关序号。代码提交不代表正式 Godot 路由实机已通过。
+
+当前 PR 保持 Draft。RestResultView 的现有 Godot 截图只证明选项 UI；正式 Sandbox 路由验收仍需验证普通关两条路线、末关两条路线，以及失败后的安全重试。详见 [RS-13 日志](休息时刻系统_RS-13_2026-10-20_log.md)。
 
 ## LD-10：本场直播结果展示
 
