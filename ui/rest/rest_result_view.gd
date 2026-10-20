@@ -8,6 +8,7 @@ signal result_performance_finished
 var _result_active: bool = false
 var _menu_input_enabled: bool = false
 var _route_choice_dispatched: bool = false
+var _base_result_description: String = ""
 var _presentation_id: int = 0
 var _battle_aim: AimReticle
 var _aim_input_was_enabled: bool = false
@@ -91,6 +92,7 @@ func show_result(
 	else:
 		_result_title.text = "本场直播结束"
 		_result_description.text = "本场结果已保存。"
+	_base_result_description = _result_description.text
 	# 首次展示冻结真实数据；重复查看只读同一快照，粉丝提交仍归 PK 胜利入口。
 	session.capture_live_result(run_data)
 	_render_live_result(session.get_live_result_snapshot())
@@ -239,8 +241,19 @@ func _claim_route_choice() -> bool:
 	if not _menu_input_enabled or _route_choice_dispatched:
 		return false
 	_route_choice_dispatched = true
+	_result_description.text = _base_result_description
 	_set_menu_input_enabled(false)
 	return true
+
+
+# 存档或路由失败时保留诊断信息，并重新开放选择供玩家重试。
+func release_route_choice_for_retry(message: String) -> void:
+	if not _result_active:
+		return
+	_route_choice_dispatched = false
+	_result_description.text = "%s\n%s" % [_base_result_description, message]
+	_set_menu_input_enabled(true)
+	_continue_button.grab_focus()
 
 
 # 等待静态展示布局完成；关闭或重开后旧等待不能解锁新页面。
