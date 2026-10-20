@@ -1,6 +1,6 @@
 # INT-22 · 八张直播统计图标正式接线
 
-状态：P1，Owner：A。直接依赖：已合并 LD-17-FIX PR #326。
+状态：已完成（PR #336 已合并至 main），Owner：A。直接依赖：已合并 LD-17-FIX PR #326。
 
 ## 开始前先阅读以下文档
 AGENTS.md、known_traps.md、docs/Original/任务卡模板.md、INT-21 审计复核、LD-17-FIX 任务与日志、ui/live_data/live_data_hud.gd、ui/plan_b/plan_b_streamer_panel.gd。
