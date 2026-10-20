@@ -39,3 +39,9 @@
 - 详情：`IdentityDetailsPanel` 的纸张安全边距提高为左右 36px、顶部 38px，新增 `InnerPadding` 独立 MarginContainer（左右 18px、上 10px、下 12px），避免描述文字压到纸边。保留原图边框与滚动行为；略微扩大详情宽度到 280–365px，高度 425px（紧凑）／565px（常规），缩短图案预览高度让正文有更多实际空间。
 - 本次恢复原有 Shader 暗角与中心暖色提亮、卡牌轻投影不变。正式 Godot 4.7.2 实际窗口 1280×720 与 1920×1080 再次截图比对，按钮、卡面、详情全部可见。行为测试打印 `ID16_VISUAL_REWORK_FUNCTION_PASS 12 cards / flip / select / next / reveal-all / long-description-scroll`。
 - 修改范围仅 `ui/identity_setup/identity_selection.gd` 与 `ui/identity_setup/identity_selection.tscn`；本 PR 继续 Draft，等待人工美术验收。
+
+## 2026-10-20 · 卡背提示与翻开详情分态（第五轮）
+- 右侧 `DescriptionScroll` 保留供翻开后的 `option.description` 显示；卡背时将其隐藏，改由独立的 `UnrevealedHint` Label 左对齐显示「请点击身份卡翻开」，卡背无滚动条。
+- `IdentityDetailsName` 水平居中，翻开后身份名称例如「随侍」居中，配表描述继续左对齐。保留 `SelectionStatus` 和其余选择逻辑。
+- Godot 4.7.2 / Windows OpenGL 3 真实运行：验证 12 卡、卡背提示无滚动、翻开后 `description == option.description`、切换到卡背再切回、长文本产生滚动条、第二次点击选择；1280×720 与 1920×1080 截图已输出，均返回 `PR327_CORRECTED_PASS` / exit 0。
+- 修改范围：`ui/identity_setup/identity_selection.gd`、`.tscn`；后续界面美术仍等人工确认，保持 Draft。
