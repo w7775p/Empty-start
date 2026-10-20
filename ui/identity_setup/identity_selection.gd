@@ -51,9 +51,9 @@ func _ready() -> void:
 	_configure_detail_panel()
 	_configure_navigation_buttons()
 	_page_title.add_theme_color_override("font_color", Color("#4a2c20"))
-	_page_title.add_theme_font_size_override("font_size", 38)
+	_page_title.add_theme_font_size_override("font_size", 44)
 	_instruction.add_theme_color_override("font_color", Color("#624737"))
-	_instruction.add_theme_font_size_override("font_size", 19)
+	_instruction.add_theme_font_size_override("font_size", 22)
 	for option in IdentityOptions.CARDS:
 		_add_identity_card(option)
 	_reveal_all.pressed.connect(_reveal_all_cards)
@@ -108,7 +108,7 @@ func _add_identity_card(option: IdentityOption) -> void:
 	margin.add_theme_constant_override("margin_left", 8)
 	margin.add_theme_constant_override("margin_right", 8)
 	margin.add_theme_constant_override("margin_top", 8)
-	margin.add_theme_constant_override("margin_bottom", 8)
+	margin.add_theme_constant_override("margin_bottom", 61)
 	button.add_child(margin)
 
 	var front := VBoxContainer.new()
@@ -125,7 +125,7 @@ func _add_identity_card(option: IdentityOption) -> void:
 	var title_panel := PanelContainer.new()
 	title_panel.name = "CardTitlePanel"
 	title_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	title_panel.custom_minimum_size.y = 30.0
+	title_panel.custom_minimum_size.y = 28.0
 	title_panel.add_theme_stylebox_override("panel", _card_caption_style.duplicate())
 	front.add_child(title_panel)
 
@@ -133,7 +133,8 @@ func _add_identity_card(option: IdentityOption) -> void:
 	title.name = "CardTitle"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	title.add_theme_color_override("font_color", Color("#2b1c14"))
+	title.add_theme_color_override("font_color", Color("#3d271e"))
+	title.add_theme_font_override("font", BUTTON_FONT)
 	title_panel.add_child(title)
 	_card_title_panels.append(title_panel)
 	_card_title_labels.append(title)
@@ -166,18 +167,19 @@ func _configure_detail_panel() -> void:
 	_details_panel.add_theme_stylebox_override("panel", panel_style)
 	_details_panel.size_flags_horizontal = Control.SIZE_SHRINK_END
 	_details_panel.size_flags_vertical = Control.SIZE_FILL
-	_details_panel.custom_minimum_size.y = 420.0
-	_details_header.add_theme_font_size_override("font_size", 20)
+	_details_panel.custom_minimum_size.y = 0.0
+	_details_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_details_header.add_theme_font_size_override("font_size", 24)
 	_details_header.add_theme_color_override("font_color", Color("#54311e"))
 	_details_name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_details_name_label.add_theme_font_size_override("font_size", 25)
+	_details_name_label.add_theme_font_size_override("font_size", 30)
 	_details_name_label.add_theme_color_override("font_color", Color("#321c13"))
 	_details_description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_details_description_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	_details_description_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_details_description_label.add_theme_font_size_override("font_size", 19)
 	_details_description_label.add_theme_color_override("font_color", Color("#362119"))
-	_status.add_theme_font_size_override("font_size", 15)
+	_status.add_theme_font_size_override("font_size", 17)
 	_status.add_theme_color_override("font_color", Color("#56321e"))
 
 
@@ -188,14 +190,14 @@ func _button_style(texture: Texture2D, shade: Color) -> StyleBoxTexture:
 	atlas.region = Rect2(27.0, 66.0, 391.0, 359.0)
 	var style := StyleBoxTexture.new()
 	style.texture = atlas
-	style.texture_margin_left = 70.0
-	style.texture_margin_top = 28.0
-	style.texture_margin_right = 70.0
-	style.texture_margin_bottom = 28.0
-	style.content_margin_left = 20.0
-	style.content_margin_top = 10.0
-	style.content_margin_right = 20.0
-	style.content_margin_bottom = 10.0
+	style.texture_margin_left = 0.0
+	style.texture_margin_top = 0.0
+	style.texture_margin_right = 0.0
+	style.texture_margin_bottom = 0.0
+	style.content_margin_left = 12.0
+	style.content_margin_top = 12.0
+	style.content_margin_right = 12.0
+	style.content_margin_bottom = 12.0
 	style.modulate_color = shade
 	return style
 
@@ -217,7 +219,7 @@ func _configure_navigation_buttons() -> void:
 		button.add_theme_color_override("font_hover_color", Color("#fff9e8") if is_secondary else Color("#382012"))
 		button.add_theme_color_override("font_pressed_color", Color("#fff0d7") if is_secondary else Color("#382012"))
 		button.add_theme_color_override("font_disabled_color", Color("#cfb59c") if is_secondary else Color("#655346"))
-		button.add_theme_font_size_override("font_size", 24)
+		button.add_theme_font_size_override("font_size", 26)
 		button.add_theme_font_override("font", BUTTON_FONT)
 		button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 
@@ -279,6 +281,10 @@ func _fit_grid_columns() -> void:
 		_details_panel.custom_minimum_size.x = details_width
 	if _scroll.size.y <= 0.0:
 		return
+	# Details sheet tracks the row height, with an upper cap for 1920 and a safe 1280 lower bound.
+	var details_height := minf(620.0, maxf(330.0, _card_area.size.y - 10.0))
+	if not is_equal_approx(_details_panel.offset_bottom, details_height):
+		_details_panel.offset_bottom = details_height
 	var available_card_width := maxf(CARD_MIN_WIDTH, content_width_limit - details_width - 12.0)
 	var fitting_columns := int(floor((available_card_width + CARD_GRID_GAP) / (CARD_MIN_WIDTH + CARD_GRID_GAP)))
 	var next_columns := clampi(fitting_columns, 1, CARD_GRID_COLUMNS)
@@ -299,8 +305,8 @@ func _fit_grid_columns() -> void:
 
 	for index in range(_buttons.size()):
 		_buttons[index].custom_minimum_size = Vector2(card_width, card_height)
-		_card_title_panels[index].custom_minimum_size.y = clampf(card_width * 0.20, 28.0, 46.0)
-		_card_title_labels[index].add_theme_font_size_override("font_size", clampi(roundi(card_width * 0.11), 16, 22))
+		_card_title_panels[index].custom_minimum_size.y = clampf(card_width * 0.15, 26.0, 34.0)
+		_card_title_labels[index].add_theme_font_size_override("font_size", clampi(roundi(card_width * 0.105), 16, 23))
 
 	var content_width := card_width * cards_per_column + CARD_GRID_GAP * float(next_columns - 1)
 	var content_height := card_height * float(row_count) + CARD_GRID_GAP * float(row_count - 1)
@@ -341,10 +347,10 @@ func _make_label(value: String, font_size: int) -> Label:
 # 统一定义身份卡底部的纸色名称条。
 func _make_caption_style() -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color("#ead7b4")
-	style.border_color = Color("#b79a72")
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(5)
+	style.bg_color = Color(1, 1, 1, 0)
+	style.border_color = Color(1, 1, 1, 0)
+	style.set_border_width_all(0)
+	style.set_corner_radius_all(0)
 	style.content_margin_left = 4.0
 	style.content_margin_top = 2.0
 	style.content_margin_right = 4.0

@@ -52,6 +52,11 @@ layout_mode = 2
 text = "点击身份牌翻开，再次点击选择身份"
 horizontal_alignment = 1
 
+[node name="HeaderToCardsSpacer" type="Control" parent="Margins/Content"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 50)
+mouse_filter = 2
+
 [node name="CardArea" type="HBoxContainer" parent="Margins/Content"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -94,7 +99,7 @@ mouse_filter = 2
 [node name="DetailsHolder" type="Control" parent="Margins/Content/CardArea"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(255, 420)
+custom_minimum_size = Vector2(255, 0)
 size_flags_vertical = 3
 mouse_filter = 2
 
@@ -103,18 +108,18 @@ unique_name_in_owner = true
 layout_mode = 1
 anchor_right = 1.0
 offset_bottom = 420.0
-custom_minimum_size = Vector2(255, 420)
+custom_minimum_size = Vector2(255, 0)
 
 [node name="DetailsContent" type="VBoxContainer" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 12
+theme_override_constants/separation = 16
 
 [node name="IdentityDetailsTitle" type="Label" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/DetailsContent"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
-text = "身份详情"
+text = "身 份 档 案"
 
 [node name="IdentityDetailsName" type="Label" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/DetailsContent"]
 unique_name_in_owner = true
@@ -146,9 +151,9 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 32.0
-offset_top = -104.0
+offset_top = -186.0
 offset_right = -32.0
-offset_bottom = -24.0
+offset_bottom = -46.0
 grow_horizontal = 2
 theme_override_constants/separation = 16
 
@@ -161,13 +166,13 @@ text = "返回主播取名"
 
 [node name="RevealAllButton" type="Button" parent="Navigation"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 80)
+custom_minimum_size = Vector2(154, 140)
 layout_mode = 2
 text = "一键翻开"
 
 [node name="NextButton" type="Button" parent="Navigation"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 80)
+custom_minimum_size = Vector2(154, 140)
 layout_mode = 2
 theme_type_variation = &"PrimaryButton"
 disabled = true
