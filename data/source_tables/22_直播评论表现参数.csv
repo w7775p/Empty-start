@@ -3,7 +3,7 @@ comment_spawn_interval_min_s,2.5,s,both,左右双方各自计时随机刷新；�
 comment_spawn_interval_max_s,4.5,s,both,避免固定节拍与密集刷屏，实机可调整
 comment_visible_row_cap,5,rows/side,both,每侧最多同时显示5条滚动评论，长句需可读
 comment_scroll_speed_px_s,24,px/s,both,从下往上平稳滚动，按实机可读性调整
-comment_fan_probability,0.45,0~1,both,粉丝显示本侧粉丝牌，路人无牌
+comment_fan_probability,1.0,0~1,both,粉丝评论始终显示本侧粉丝牌与名牌，路人保持普通昵称；如缺少素材则降级为纯文字
 comment_row_spacing_px,8,px,both,评论行间距，避免文字拥挤
 comment_pause_with_game,true,bool,both,暂停冻结两侧计时及滚动，战斗重开清空旧评论
 comment_updates_business_counter,false,bool,both,随机滚动评论为展示，不叠加LD-05的真实comment_count
