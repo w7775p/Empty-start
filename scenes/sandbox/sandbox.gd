@@ -28,6 +28,12 @@ const PLAN_B_SIMULATION_SCRIPT: Script = preload("res://systems/plan_b/simulatio
 const PB14_PERFORMANCE_TRACKER_SCRIPT: Script = preload("res://systems/plan_b/performance/pb14_performance_tracker.gd")
 const PLAN_B_CONTENT_CATALOG_SCRIPT: Script = preload("res://systems/plan_b/content/plan_b_content_catalog.gd")
 const PLAN_B_OPPONENT_DIRECTOR_SCRIPT: Script = preload("res://systems/plan_b/opponent/fermi_opponent_director.gd")
+const PB25_TUTORIAL_CONFIG_ID := "tutorial_level_001"
+const PB25_LEVEL_ID := "level_001"
+const PB25_STEP_INTRO := "pb25_intro_publish"
+const PB25_STEP_PAPER_S1 := "pb25_paper_s1_invasion"
+const PB25_STEP_CONVERSION := "pb25_paper_conversion_success"
+const PB25_STEP_FERMI_SCISSORS := "pb25_fermi_scissors"
 # 关卡资料统一由目录提供，运行验证可注入独立临时目录。
 @export var level_catalog: LevelCatalog = preload("res://data/level_configuration/level_catalog.tres")
 @export var battle_config: SandboxBattleConfig = preload("res://data/sandbox/playable_battle_config.tres")
@@ -96,6 +102,22 @@ var _trait_catalog: BarrageTraitCatalog
 var _trait_runtime: BarrageTraitRuntime
 var _tutorial_runner: TutorialStepRunner
 var _tutorial_hint: Control
+var _pb25_tutorial_active: bool = false
+var _pb25_tutorial_ai_paused: bool = false
+var _pb25_saved_opponent_auto_publish_enabled: bool = true
+var _pb25_saved_counterattack_paused: bool = false
+var _pb25_tutorial_paper_draw_requested: bool = false
+var _pb25_tutorial_paper_rewrite_completed: bool = false
+var _pb25_tutorial_paper_conversion_completed: bool = false
+var _pb25_tutorial_paper_word_id: String = ""
+var _pb25_tutorial_rewrite_unit_ids: Array[String] = []
+var _pb25_tutorial_initial_stone_unit_ids: Dictionary = {}
+var _pb25_tutorial_force_conversion_remaining: float = 0.0
+var _pb25_tutorial_fermi_story_remaining: float = 0.0
+var _pb25_tutorial_final_hint_remaining: float = 0.0
+var _pb25_tutorial_fermi_scissors_word_id: String = ""
+var _pb25_tutorial_fermi_scissors_published: bool = false
+var _pb25_tutorial_fermi_story_pending: bool = false
 var _result_feedback_system: ContradictionBreakSystem
 var _opponent_live: LiveSessionData
 var _mobile_touch: Control
@@ -200,6 +222,8 @@ func _ready() -> void:
 	_battle_attempt_flow.shot_resolved.connect(_trait_runtime.on_shot_resolved)
 	_tutorial_runner = TutorialStepRunner.new()
 	_tutorial_runner.step_completed.connect(_on_tutorial_step_completed)
+	_tutorial_runner.hint_requested.connect(_on_pb25_tutorial_hint_requested)
+	_tutorial_runner.tutorial_completed.connect(_on_tutorial_completed)
 	_battle_attempt_flow.shot_resolved.connect(_tutorial_runner.on_shot_resolved)
 	if use_plan_b_campaign:
 		_tutorial_hint = TUTORIAL_HINT_SCENE.instantiate() as Control
@@ -207,7 +231,7 @@ func _ready() -> void:
 		var paradox_overlay: Control = _battle_hud.call("get_paradox_overlay_layer")
 		paradox_overlay.add_child(_tutorial_hint)
 		_tutorial_hint.position = Vector2(30.0, 90.0)
-		_tutorial_hint.size = Vector2(paradox_overlay.size.x - 60.0, 90.0)
+		_tutorial_hint.size = Vector2(paradox_overlay.size.x - 60.0, 128.0)
 		_tutorial_hint.call("bind_runner", _tutorial_runner)
 	else:
 		_battle_hud.bind_tutorial_runner(_tutorial_runner)
@@ -408,6 +432,8 @@ func _create_plan_b_runtime() -> bool:
 	_plan_b_content_catalog.call("set_random_seed", 20261017)
 	_plan_b_host.pk_changed.connect(_on_plan_b_pk_changed)
 	_plan_b_host.publish_result.connect(_on_plan_b_publish_result)
+	_plan_b_host.player_s1_rewrite_resolved.connect(_on_pb25_player_s1_rewrite_resolved)
+	_plan_b_host.unit_changed.connect(_on_pb25_unit_changed)
 	_plan_b_host.battle_ended.connect(_on_plan_b_battle_ended)
 	_plan_b_host.counterattack_windup_started.connect(_on_plan_b_counterattack_windup_started)
 	_plan_b_host.counterattack_resolved.connect(_on_plan_b_counterattack_resolved)
@@ -519,12 +545,18 @@ func _on_attempt_started(current_level: LevelProfile, _hit: HitResolution, stage
 	var presentation: Dictionary = _formal_sheet_consumer.get_level_presentation(current_level.level_id)
 	_battle_hud.configure_opponent_result(current_level, presentation)
 	_trait_runtime.begin_attempt(current_level)
-	if _battle_attempt_flow.uses_external_pk_source():
-		_tutorial_runner.begin("", SaveManager.data.completed_tutorial_step_ids)
-	else:
-		_tutorial_runner.begin(
-			current_level.tutorial_config_id, SaveManager.data.completed_tutorial_step_ids
-		)
+	_reset_pb25_tutorial_attempt_state()
+	var tutorial_config_id := ""
+	if use_plan_b_campaign and current_level.level_id == PB25_LEVEL_ID:
+		tutorial_config_id = current_level.tutorial_config_id
+	_pb25_tutorial_active = (
+		use_plan_b_campaign and current_level.level_id == PB25_LEVEL_ID
+		and tutorial_config_id == PB25_TUTORIAL_CONFIG_ID
+	)
+	_set_pb25_tutorial_ai_paused(_pb25_tutorial_active)
+	if _battle_hud.has_method("set_tutorial_highlighted_battle_types"):
+		_battle_hud.call("set_tutorial_highlighted_battle_types", [])
+	_tutorial_runner.begin(tutorial_config_id, SaveManager.data.completed_tutorial_step_ids)
 	var streamer_id: String = str(presentation.get("streamer_id", current_level.streamer_id))
 	var opponent_name: String = str(presentation.get("streamer_name", current_level.streamer_name))
 	var fan_group_name: String = str(presentation.get("fan_group_name", current_level.fan_group_name))
@@ -585,12 +617,34 @@ func _start_plan_b_battle(level: LevelProfile) -> bool:
 	if board_bounds.size.x <= 0.0 or board_bounds.size.y <= 0.0:
 		return false
 	_plan_b_host.available_level = level.level_id
+	if _pb25_tutorial_active and not bool(
+			_plan_b_host.call("set_tutorial_initial_opponent_battle_type", &"type_a")):
+		push_error("Sandbox: PB-25 无法指定费米初始石头棋子。")
+		return false
 	_battle_hud.call("set_world_bounds", board_bounds)
 	_plan_b_host.start_battle(board_bounds.size, board_bounds.position)
 	if _plan_b_host.get_battle_state() != &"running":
 		return false
+	if _pb25_tutorial_active:
+		# Host.start_battle 会重新配置导演；开战后再应用教程暂停，保留 Tier 资格但冻结费米行动。
+		_set_pb25_tutorial_ai_paused(true)
+		if not _capture_pb25_initial_stones():
+			push_error("Sandbox: PB-25 开局未生成两名 type_a 费米信徒。")
+			return false
 	var current_hand: Array[Dictionary] = _plan_b_host.get_player_hand()
 	_refresh_plan_b_hand(current_hand)
+	if _pb25_tutorial_active:
+		var active_step := _tutorial_runner.get_active_step_id()
+		if active_step == PB25_STEP_INTRO:
+			_tutorial_runner.notify_event("pb25_tutorial_begin")
+		elif active_step == PB25_STEP_PAPER_S1:
+			_pb25_request_tutorial_paper_s1()
+		elif active_step == PB25_STEP_CONVERSION:
+			_schedule_pb25_fermi_scissors()
+		elif active_step == PB25_STEP_FERMI_SCISSORS:
+			_pb25_tutorial_final_hint_remaining = 3.5
+			if not _pb25_tutorial_fermi_scissors_published:
+				_pb25_tutorial_fermi_story_pending = true
 	return true
 
 
@@ -635,9 +689,22 @@ func _on_plan_b_publish_result(team: String, word_id: String, result: Dictionary
 		_hit_echo_presenter.call("on_plan_b_player_publication", definition)
 		_specific_sentence_reply_presenter.call("on_plan_b_player_publication", definition)
 		SaveManager.data.live_session.record_generated_comments(1)
+		if _pb25_tutorial_active and _tutorial_runner.get_active_step_id() == PB25_STEP_INTRO:
+			_tutorial_runner.notify_event("pb25_first_player_publish")
+			if _tutorial_runner.get_active_step_id() == PB25_STEP_PAPER_S1:
+				_pb25_request_tutorial_paper_s1()
 	elif team == "opponent" and _opponent_live != null:
 		_opponent_live.record_normal_hit_live_rule()
 		_opponent_live.record_generated_comments(1)
+	if (team == "opponent" and _pb25_tutorial_active
+			and not _pb25_tutorial_fermi_scissors_word_id.is_empty()
+			and word_id == _pb25_tutorial_fermi_scissors_word_id
+			and str(definition.get("battle_type", "")) == "type_b"):
+		# 剧情发表走正式 Host 回执，不经过导演反击次数结算。
+		_pb25_tutorial_fermi_scissors_published = true
+		_pb25_tutorial_fermi_story_pending = false
+		_pb25_tutorial_fermi_story_remaining = 0.0
+		_tutorial_runner.notify_event("pb25_fermi_scissors_published")
 
 
 func _on_plan_b_publish_requested(slot_id: int, word_id: String, spawn_position: Vector2) -> void:
@@ -652,6 +719,9 @@ func _on_plan_b_hand_changed(hand: Array) -> void:
 		if card is Dictionary:
 			typed_hand.append((card as Dictionary).duplicate(true))
 	_refresh_plan_b_hand(typed_hand)
+	if (_pb25_tutorial_active and _tutorial_runner.get_active_step_id() == PB25_STEP_PAPER_S1
+			and not _pb25_tutorial_paper_draw_requested):
+		_pb25_request_tutorial_paper_s1()
 
 
 func _on_plan_b_counterattack_windup_started(request: Dictionary) -> void:
@@ -770,7 +840,10 @@ func _on_contradiction_stage_entered(_system: ContradictionBreakSystem) -> void:
 		_battle_hud.set_final_oracle_stage_active(false)
 		_barrage_area.visible = true
 		var current_level: LevelProfile = _battle_attempt_flow.get_current_level_profile()
-		if current_level != null:
+		if (use_plan_b_campaign and current_level != null
+				and current_level.level_id == PB25_LEVEL_ID and _tutorial_hint != null):
+			_show_pb25_paradox_prompt()
+		elif current_level != null:
 			# 旧准心教程只在恢复射击的矛盾阶段出现。
 			_tutorial_runner.begin(
 				current_level.tutorial_config_id, SaveManager.data.completed_tutorial_step_ids
@@ -797,6 +870,8 @@ func _on_final_oracle_opened(session: FinalOracleSession) -> void:
 	_battle_hud.set_paradox_stage_active(false, _battle_attempt_flow.get_current_tier())
 	if use_plan_b_campaign:
 		_battle_hud.set_final_oracle_stage_active(true)
+		if _tutorial_hint != null:
+			_tutorial_hint.call("clear_hint")
 	final_oracle_opened.emit(session)
 	_refresh_mobile_touch_phase()
 
@@ -911,6 +986,7 @@ func _process(delta: float) -> void:
 	SaveManager.data.live_session.advance_short_boosts(delta)
 	_battle_attempt_flow.advance(delta)
 	_contradiction_oracle_flow.advance(delta)
+	_advance_pb25_tutorial(delta)
 	if _tutorial_runner != null:
 		if _battle_attempt_flow.uses_external_pk_source():
 			if _contradiction_oracle_flow.is_contradiction_active():
@@ -1404,6 +1480,268 @@ func _on_tutorial_step_completed(step_id: String) -> void:
 	SaveManager.data.completed_tutorial_step_ids.append(step_id)
 	if SaveManager.save_game() != OK:
 		push_error("Sandbox: 教学进度保存失败。")
+
+
+## PB-25 每次正式重开都清空棋子引用与计时，只保留 SaveData 已完成步骤。
+func _reset_pb25_tutorial_attempt_state() -> void:
+	if _pb25_tutorial_ai_paused:
+		_set_pb25_tutorial_ai_paused(false)
+	_pb25_tutorial_active = false
+	_pb25_tutorial_paper_draw_requested = false
+	_pb25_tutorial_paper_rewrite_completed = false
+	_pb25_tutorial_paper_conversion_completed = false
+	_pb25_tutorial_paper_word_id = ""
+	_pb25_tutorial_rewrite_unit_ids.clear()
+	_pb25_tutorial_initial_stone_unit_ids.clear()
+	_pb25_tutorial_force_conversion_remaining = 0.0
+	_pb25_tutorial_fermi_story_remaining = 0.0
+	_pb25_tutorial_final_hint_remaining = 0.0
+	_pb25_tutorial_fermi_scissors_word_id = ""
+	_pb25_tutorial_fermi_scissors_published = false
+	_pb25_tutorial_fermi_story_pending = false
+	if _battle_hud != null and _battle_hud.has_method("set_tutorial_highlighted_battle_types"):
+		_battle_hud.call("set_tutorial_highlighted_battle_types", [])
+	if is_instance_valid(_tutorial_hint):
+		_tutorial_hint.call("clear_hint")
+
+
+## 教学期只暂停普通自动发话与一般反击；恢复时回到本局原始开关状态。
+func _set_pb25_tutorial_ai_paused(paused: bool) -> void:
+	if _plan_b_host == null:
+		return
+	if paused:
+		if not _pb25_tutorial_ai_paused:
+			_pb25_saved_opponent_auto_publish_enabled = _plan_b_host.opponent_auto_publish_enabled
+			var director_state: Dictionary = _plan_b_host.get_debug_snapshot().get("opponent_director", {})
+			_pb25_saved_counterattack_paused = bool(director_state.get("counterattack_paused", false))
+		_plan_b_host.opponent_auto_publish_enabled = false
+		_plan_b_host.set_counterattack_paused(true)
+		_pb25_tutorial_ai_paused = true
+		return
+	if not _pb25_tutorial_ai_paused:
+		return
+	_plan_b_host.opponent_auto_publish_enabled = _pb25_saved_opponent_auto_publish_enabled
+	_plan_b_host.set_counterattack_paused(_pb25_saved_counterattack_paused)
+	_pb25_tutorial_ai_paused = false
+
+
+## 三类卡牌与阶段提示由 24 表 Runner 驱动；未进入的步骤不会抢先高亮。
+func _on_pb25_tutorial_hint_requested(step_id: String, _hint_text: String) -> void:
+	if not _pb25_tutorial_active:
+		return
+	if is_instance_valid(_tutorial_hint):
+		_tutorial_hint.size.y = 128.0
+	match step_id:
+		PB25_STEP_INTRO:
+			_battle_hud.call("set_tutorial_highlighted_battle_types", ["type_a", "type_b", "type_c"])
+		PB25_STEP_PAPER_S1:
+			_battle_hud.call("set_tutorial_highlighted_battle_types", ["type_c"])
+		PB25_STEP_CONVERSION:
+			_battle_hud.call("set_tutorial_highlighted_battle_types", [])
+			_schedule_pb25_fermi_scissors()
+		PB25_STEP_FERMI_SCISSORS:
+			_battle_hud.call("set_tutorial_highlighted_battle_types", [])
+			_pb25_tutorial_final_hint_remaining = 3.5
+			if not _pb25_tutorial_fermi_scissors_published:
+				_pb25_tutorial_fermi_story_pending = true
+
+
+## 只发起一次合法的 type_c/S1 抽牌；开局前恢复提示时由正式开战入口重试。
+func _pb25_request_tutorial_paper_s1() -> bool:
+	if (_pb25_tutorial_paper_draw_requested or _plan_b_host == null
+			or _tutorial_runner.get_active_step_id() != PB25_STEP_PAPER_S1):
+		return _pb25_tutorial_paper_draw_requested
+	if not _plan_b_host.request_tutorial_type_c_s1_draw():
+		return false
+	_pb25_tutorial_paper_draw_requested = true
+	return true
+
+
+## 保存本次新开局的两名石头 Fermi ID；这些临时引用绝不写进存档。
+func _capture_pb25_initial_stones() -> bool:
+	_pb25_tutorial_initial_stone_unit_ids.clear()
+	for snapshot: Dictionary in _plan_b_host.get_unit_snapshots():
+		if (str(snapshot.get("team", "")) == "opponent"
+				and str(snapshot.get("battle_type", "")) == "type_a"):
+			_pb25_tutorial_initial_stone_unit_ids[str(snapshot.get("unit_id", ""))] = true
+	return _pb25_tutorial_initial_stone_unit_ids.size() == 2
+
+
+## PB-23 只报告真实成功 S1；PB-25 额外要求玩家此前旧友军实际改口至少一名。
+func _on_pb25_player_s1_rewrite_resolved(result: Dictionary) -> void:
+	if (not _pb25_tutorial_active
+			or _tutorial_runner.get_active_step_id() != PB25_STEP_PAPER_S1):
+		return
+	var word_id := str(result.get("word_id", ""))
+	var definition := _plan_b_host.get_word_definition(word_id)
+	var rewrite_ids_value: Variant = result.get("rewrite_unit_ids", [])
+	if (str(definition.get("battle_type", "")) != "type_c"
+			or int(definition.get("strength", 0)) != 1
+			or int(result.get("rewrite_count", 0)) < 1
+			or not rewrite_ids_value is Array):
+		return
+	_pb25_tutorial_paper_word_id = word_id
+	_pb25_tutorial_paper_rewrite_completed = true
+	_pb25_tutorial_rewrite_unit_ids.clear()
+	for unit_id: Variant in rewrite_ids_value:
+		_pb25_tutorial_rewrite_unit_ids.append(str(unit_id))
+	_pb25_tutorial_force_conversion_remaining = 2.0
+	_try_complete_pb25_paper_stage()
+
+
+## 只接受初始石头在真实转换后变成当前玩家✋话语的单位变化。
+func _on_pb25_unit_changed(unit_id: String, reason: StringName) -> void:
+	if (not _pb25_tutorial_active or reason != &"convert"
+			or not _pb25_tutorial_initial_stone_unit_ids.has(unit_id)):
+		return
+	var snapshot := _pb25_get_unit_snapshot(unit_id)
+	if (str(snapshot.get("team", "")) != "player"
+			or str(snapshot.get("word_id", "")) != _pb25_tutorial_paper_word_id
+			or str(snapshot.get("battle_type", "")) != "type_c"):
+		return
+	_pb25_tutorial_paper_conversion_completed = true
+	_try_complete_pb25_paper_stage()
+
+
+## 旧友军改口和初始✊被✋压制均为真后，才完成异端阶段。
+func _try_complete_pb25_paper_stage() -> void:
+	if (not _pb25_tutorial_active or not _pb25_tutorial_paper_rewrite_completed
+			or not _pb25_tutorial_paper_conversion_completed
+			or _tutorial_runner.get_active_step_id() != PB25_STEP_PAPER_S1):
+		return
+	_pb25_tutorial_force_conversion_remaining = 0.0
+	_tutorial_runner.notify_event("pb25_paper_type_c_conversion")
+
+
+## 仅当自然接触未成功时，按 simulation 的正式克制表为一对现存棋子执行一次感染。
+func _apply_pb25_tutorial_conversion_fallback() -> bool:
+	var snapshots: Array[Dictionary] = _plan_b_host.get_unit_snapshots()
+	# 优先让已经真实改口的老友军完成剧情感染，失效时才退到同批其他✋单位。
+	var source_unit_ids: Array[String] = _pb25_tutorial_rewrite_unit_ids.duplicate()
+	for snapshot: Dictionary in snapshots:
+		var unit_id := str(snapshot.get("unit_id", ""))
+		if (str(snapshot.get("team", "")) == "player"
+				and str(snapshot.get("word_id", "")) == _pb25_tutorial_paper_word_id
+			and str(snapshot.get("battle_type", "")) == "type_c"
+			and not source_unit_ids.has(unit_id)):
+			source_unit_ids.append(unit_id)
+	for source_unit_id: String in source_unit_ids:
+		var snapshot := _pb25_get_unit_snapshot(source_unit_id)
+		if (str(snapshot.get("team", "")) != "player"
+				or str(snapshot.get("word_id", "")) != _pb25_tutorial_paper_word_id
+				or str(snapshot.get("battle_type", "")) != "type_c"):
+			continue
+		for target_id: String in _pb25_tutorial_initial_stone_unit_ids:
+			var target_snapshot := _pb25_get_unit_snapshot(target_id)
+			if (str(target_snapshot.get("team", "")) != "opponent"
+					or str(target_snapshot.get("battle_type", "")) != "type_a"):
+				continue
+			var result: Dictionary = _plan_b_host.call(
+				"apply_tutorial_conversion", snapshot.get("unit_id", ""), target_id
+			)
+			if bool(result.get("ok", false)):
+				_pb25_tutorial_paper_conversion_completed = true
+				_try_complete_pb25_paper_stage()
+				return true
+	return false
+
+
+## 不持有 Unit 节点引用；只按 Host 权威快照查当前棋子事实。
+func _pb25_get_unit_snapshot(unit_id: String) -> Dictionary:
+	for snapshot: Dictionary in _plan_b_host.get_unit_snapshots():
+		if str(snapshot.get("unit_id", "")) == unit_id:
+			return snapshot
+	return {}
+
+
+## 反馈先展示一小段时间，再由 Fermi 通过正常发表接口讲出指定✌️神谕。
+func _schedule_pb25_fermi_scissors() -> void:
+	_pb25_tutorial_fermi_story_pending = true
+	_pb25_tutorial_fermi_story_remaining = 1.5
+
+
+## 找一条当前关卡可用的 type_b 词句，用真实 Host 批次发表来完成剧情动作。
+func _publish_pb25_fermi_scissors() -> bool:
+	if _plan_b_host == null or _plan_b_host.get_battle_state() != &"running":
+		return false
+	for word_id: String in _plan_b_host.get_available_word_ids("opponent"):
+		var definition := _plan_b_host.get_word_definition(word_id)
+		if str(definition.get("battle_type", "")) != "type_b":
+			continue
+		var bounds: Rect2 = _battle_hud.call("get_board_world_bounds")
+		_pb25_tutorial_fermi_scissors_word_id = word_id
+		var result: Dictionary = _plan_b_host.publish_word("opponent", word_id, bounds.get_center())
+		if bool(result.get("ok", false)):
+			return true
+		_pb25_tutorial_fermi_scissors_word_id = ""
+		if StringName(str(result.get("reason", ""))) == &"cooldown":
+			return false
+	return false
+
+
+## 给自然感染两秒机会，并在本关 S1 或故事词发表失败时短间隔重试。
+func _advance_pb25_tutorial(delta: float) -> void:
+	if not _pb25_tutorial_active or _tutorial_runner == null or _plan_b_host == null:
+		return
+	var active_step := _tutorial_runner.get_active_step_id()
+	var battle_running := _plan_b_host.get_battle_state() == &"running"
+	if battle_running:
+		if active_step == PB25_STEP_PAPER_S1:
+			if not _pb25_tutorial_paper_draw_requested:
+				_pb25_request_tutorial_paper_s1()
+			if (_pb25_tutorial_paper_rewrite_completed
+					and not _pb25_tutorial_paper_conversion_completed):
+				_pb25_tutorial_force_conversion_remaining = maxf(
+					0.0, _pb25_tutorial_force_conversion_remaining - delta
+				)
+				if _pb25_tutorial_force_conversion_remaining <= 0.0:
+					if not _apply_pb25_tutorial_conversion_fallback():
+						_pb25_tutorial_force_conversion_remaining = 0.5
+		if (_pb25_tutorial_fermi_story_pending
+				and active_step in [PB25_STEP_CONVERSION, PB25_STEP_FERMI_SCISSORS]):
+			_pb25_tutorial_fermi_story_remaining = maxf(
+				0.0, _pb25_tutorial_fermi_story_remaining - delta
+			)
+			if _pb25_tutorial_fermi_story_remaining <= 0.0:
+				if not _publish_pb25_fermi_scissors():
+					_pb25_tutorial_fermi_story_remaining = 0.5
+	if (active_step == PB25_STEP_FERMI_SCISSORS
+			and _pb25_tutorial_fermi_scissors_published
+			and _pb25_tutorial_final_hint_remaining > 0.0):
+		_pb25_tutorial_final_hint_remaining = maxf(
+			0.0, _pb25_tutorial_final_hint_remaining - delta
+		)
+		if _pb25_tutorial_final_hint_remaining <= 0.0:
+			_tutorial_runner.notify_event("pb25_final_hint_finished")
+
+
+## 故事教学完播后关闭高亮并恢复本局对手原始 AI 状态。
+func _on_tutorial_completed(config_id: String) -> void:
+	if config_id != PB25_TUTORIAL_CONFIG_ID or not _pb25_tutorial_active:
+		return
+	_pb25_tutorial_active = false
+	_pb25_tutorial_force_conversion_remaining = 0.0
+	_pb25_tutorial_fermi_story_remaining = 0.0
+	_pb25_tutorial_final_hint_remaining = 0.0
+	_pb25_tutorial_fermi_story_pending = false
+	_set_pb25_tutorial_ai_paused(false)
+	if _battle_hud != null and _battle_hud.has_method("set_tutorial_highlighted_battle_types"):
+		_battle_hud.call("set_tutorial_highlighted_battle_types", [])
+	if _contradiction_oracle_flow != null and _contradiction_oracle_flow.is_contradiction_active():
+		# TutorialHintView 也监听 tutorial_completed；延后重显，保留矛盾阶段独立指引。
+		call_deferred("_show_pb25_paradox_prompt")
+
+
+## 矛盾阶段沿用既有攻击输入，只替换当前教程面板里的提示文字。
+func _show_pb25_paradox_prompt() -> void:
+	if not is_instance_valid(_tutorial_hint):
+		return
+	# 三段原文含两个空行；扩高面板保证 26px 正文字号能完整显示。
+	_tutorial_hint.size.y = 190.0
+	_tutorial_hint.call(
+		"show_hint", "pb25_paradox_prompt",
+		"它的身上藏着秘密！\n\n真相只有一个！\n\n长按蓄力射击！"
+	)
 
 
 ## 集成验收读取正式运行器，测试不直接通知教学完成事件。

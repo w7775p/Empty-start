@@ -1,6 +1,6 @@
 # PB-25 · 费米第一关剧情教学与矛盾击破提示
 
-**状态：2026-10-19 用户确认／待实施。优先级：P0。Owner：C（教程配置与敌人教学行动）／A（Sandbox）／D（现有提示UI）。**
+**状态：2026-10-20 已实现；Draft PR 待视觉验收。优先级：P0。Owner：C（教程配置与敌人教学行动）／A（Sandbox）／D（现有提示UI）。**
 
 ## 开始前先阅读以下文档
 - AGENTS.md、project.godot、known_traps.md、docs/Original/任务卡模板.md。
@@ -48,8 +48,10 @@
 8. 复用现有完成ID存档与失败重开入口，按已完成的步骤恢复未完成提示；重开时直接重新生成第一关已有30中立+2敌方演员，再依据步骤恢复剧情事件，避免持久化单位坐标/运动快照。教程在正式第一关与正式UI内运行。
 
 ## 本任务所属分支和文件归属
-- 编号、状态、Owner：PB-25；待实施；C（教程配置与敌人教学行动）／A（Sandbox）／D（现有提示UI）。
-- 开发入口：integrate/gamejam-shared-baseline-20261019 **最新HEAD**，从此建立独立功能分支，PR base指向同一共同分支。
+- 编号、状态、Owner：PB-25；已实现，Draft PR 待视觉验收；C（教程配置与敌人教学行动）／A（Sandbox）／D（现有提示UI）。
+- 开发入口：本次用户明确要求从最新 `main` 建分支，PR base 使用 `main`；本任务按该最新指示执行。
+- PR：[#324](https://github.com/w7775p/Empty-start/pull/324)，Draft，等待 GUI 视觉证据。
+- 视觉状态：真实 Sandbox/Host 剧情链与重开恢复已做 headless 验证；尚未取得 GUI 截图，PR 保持 Draft，待人工验收卡片高亮和矛盾提示排版。
 - 直接依赖：现有24表Runner、Level001与正式Sandbox。C可以先完成脚本事件表和剧情AI请求，A并行接线；集成验收时消费PB-22的✋S1抽牌、PB-23的改口结果和PB-24的高亮。
 - 文件归属（各文件在任一实施时点由一个Owner修改）：
 - C：data/source_tables/24_新手教学配置.csv；systems/barrage_traits/tutorial_step_runner.gd；systems/plan_b/opponent/fermi_opponent_director.gd（教学定向发表）。
