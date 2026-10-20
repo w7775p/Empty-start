@@ -160,6 +160,7 @@ text = "聚焦卡片查看完整名称"
 [node name="SelectionStatus" type="Label" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/InnerPadding/DetailsContent"]
 unique_name_in_owner = true
 layout_mode = 2
+visible = false
 theme_type_variation = &"MutedLabel"
 autowrap_mode = 3
 text = "尚未选择身份"
