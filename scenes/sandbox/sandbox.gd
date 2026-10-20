@@ -642,8 +642,6 @@ func _start_plan_b_battle(level: LevelProfile) -> bool:
 			_tutorial_runner.notify_event("pb25_tutorial_begin")
 		elif active_step == PB25_STEP_PAPER_S1:
 			_pb25_request_tutorial_paper_s1()
-		elif active_step == PB25_STEP_CONVERSION:
-			_schedule_pb25_fermi_scissors()
 		elif active_step == PB25_STEP_FERMI_SCISSORS:
 			if not _pb25_tutorial_fermi_scissors_published:
 				_pb25_tutorial_fermi_story_pending = true
@@ -864,10 +862,13 @@ func _on_contradiction_stage_entered(_system: ContradictionBreakSystem) -> void:
 				_battle_hud.call("set_tutorial_highlighted_battle_types", [])
 			_show_pb25_paradox_prompt()
 		elif current_level != null:
-			# 旧准心教程只在恢复射击的矛盾阶段出现。
-			_tutorial_runner.begin(
-				current_level.tutorial_config_id, SaveManager.data.completed_tutorial_step_ids
+			# 旧准心教程继续从独立 24 表配置读取，避免混入 Plan B 剧情步骤。
+			var legacy_config_id := (
+				PB25_LEGACY_TUTORIAL_CONFIG_ID
+				if current_level.level_id == PB25_LEVEL_ID and not use_plan_b_campaign
+				else current_level.tutorial_config_id
 			)
+			_tutorial_runner.begin(legacy_config_id, SaveManager.data.completed_tutorial_step_ids)
 	_refresh_mobile_touch_phase()
 
 
@@ -1560,7 +1561,6 @@ func _on_pb25_tutorial_hint_requested(step_id: String, hint_text: String) -> voi
 			_battle_hud.call("set_tutorial_highlighted_battle_types", ["type_c"])
 		PB25_STEP_CONVERSION:
 			_battle_hud.call("set_tutorial_highlighted_battle_types", [])
-			_schedule_pb25_fermi_scissors()
 		PB25_STEP_FERMI_SCISSORS:
 			_battle_hud.call("set_tutorial_highlighted_battle_types", [])
 
@@ -1642,6 +1642,10 @@ func _on_pb25_tutorial_dialogue_sequence_completed(sequence_id: StringName, side
 	var completed_step_id := _pb25_tutorial_bubble_step_id
 	_pb25_tutorial_bubble_sequence_id = &""
 	_pb25_tutorial_bubble_step_id = ""
+	# 费米的剧情发表要在成功感染的鼓励台词播完后才触发。
+	if (completed_step_id == PB25_STEP_CONVERSION and _pb25_tutorial_active
+			and _tutorial_runner.get_active_step_id() == PB25_STEP_CONVERSION):
+		_schedule_pb25_fermi_scissors()
 	if (completed_step_id == PB25_STEP_FERMI_SCISSORS and _pb25_tutorial_active
 			and _tutorial_runner.get_active_step_id() == PB25_STEP_FERMI_SCISSORS):
 		_tutorial_runner.notify_event("pb25_final_hint_finished")
@@ -1765,10 +1769,7 @@ func _pb25_get_unit_snapshot(unit_id: String) -> Dictionary:
 ## 反馈先展示一小段时间，再由 Fermi 通过正常发表接口讲出指定✌️神谕。
 func _schedule_pb25_fermi_scissors() -> void:
 	_pb25_tutorial_fermi_story_pending = true
-	var current_hint: Dictionary = _tutorial_runner.get_current_hint()
-	_pb25_tutorial_fermi_story_remaining = _pb25_tutorial_bubble_duration_seconds(
-		PB25_STEP_CONVERSION, str(current_hint.get("hint_text", ""))
-	) + 0.25
+	_pb25_tutorial_fermi_story_remaining = 0.25
 
 
 ## 找一条当前关卡可用的 type_b 词句，用真实 Host 批次发表来完成剧情动作。
