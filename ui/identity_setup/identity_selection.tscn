@@ -154,6 +154,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HeadingLabel"
 autowrap_mode = 3
+horizontal_alignment = 1
 text = "聚焦卡片查看完整名称"
 
 [node name="SelectionStatus" type="Label" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/InnerPadding/DetailsContent"]
@@ -163,8 +164,18 @@ theme_type_variation = &"MutedLabel"
 autowrap_mode = 3
 text = "尚未选择身份"
 
+[node name="UnrevealedHint" type="Label" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/InnerPadding/DetailsContent"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+autowrap_mode = 3
+horizontal_alignment = 0
+text = "请点击身份卡翻开"
+
 [node name="DescriptionScroll" type="ScrollContainer" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/InnerPadding/DetailsContent"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 size_flags_vertical = 3
 
@@ -173,6 +184,7 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 autowrap_mode = 3
+horizontal_alignment = 0
 text = "聚焦或翻开身份卡查看完整说明。"
 
 [node name="Navigation" type="HBoxContainer" parent="."]
