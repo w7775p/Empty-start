@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="EndingMainArtConfig" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="EndingMainArtConfig" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://data/ending/ending_main_art_config.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/identity/cards/identity_card_back.png" id="2_card_back"]
 
 [resource]
 script = ExtResource("1_script")
-orthodox_main_art = null
-heretical_main_art = null
-absurd_main_art = null
+orthodox_main_art = ExtResource("2_card_back")
+heretical_main_art = ExtResource("2_card_back")
+absurd_main_art = ExtResource("2_card_back")
