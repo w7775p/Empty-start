@@ -351,7 +351,7 @@ func _add_editor_field(key: String, value: String, is_main_text: bool) -> void:
 		edit.text = value
 		edit.custom_minimum_size = Vector2(0, 130 if is_main_text or key == "text" else 72)
 		edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		edit.wrap_mode = TextServer.LINE_WRAPPING_BOUNDARY
+		edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
 		edit.text_changed.connect(_on_text_edit_changed.bind(key))
 		_form.add_child(edit)
 		_field_controls[key] = edit
