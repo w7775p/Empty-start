@@ -13,7 +13,7 @@ const CARD_GRID_GAP: float = 12.0
 const CARD_GRID_COLUMNS: int = 6
 const DETAILS_PANEL_MIN_WIDTH: float = 255.0
 const DETAILS_PANEL_MAX_WIDTH: float = 330.0
-const NAVIGATION_RESERVED_HEIGHT: float = 28.0
+const NAVIGATION_RESERVED_HEIGHT: float = 126.0
 
 signal selection_changed(option: IdentityOption)
 signal next_requested(option: IdentityOption)
@@ -199,17 +199,17 @@ func _configure_detail_panel() -> void:
 	_status.add_theme_color_override("font_color", Color("#56321e"))
 
 
-# 使用现成主/次按钮图。原图含大面积透明留白，裁到实际有色区域后用九宫格适配横向按钮。
+# 底部通栏保留原按钮边角：九宫格只延展中段，避免横向拉长时压扁轮廓。
 func _button_style(texture: Texture2D, shade: Color) -> StyleBoxTexture:
 	var atlas := AtlasTexture.new()
 	atlas.atlas = texture
 	atlas.region = Rect2(27.0, 66.0, 391.0, 359.0)
 	var style := StyleBoxTexture.new()
 	style.texture = atlas
-	style.texture_margin_left = 0.0
-	style.texture_margin_top = 0.0
-	style.texture_margin_right = 0.0
-	style.texture_margin_bottom = 0.0
+	style.texture_margin_left = 88.0
+	style.texture_margin_top = 46.0
+	style.texture_margin_right = 88.0
+	style.texture_margin_bottom = 46.0
 	style.content_margin_left = 12.0
 	style.content_margin_top = 12.0
 	style.content_margin_right = 12.0
@@ -240,11 +240,16 @@ func _configure_navigation_buttons() -> void:
 		button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 
 
-# 卡背素材完整露出；选中及焦点仅使用轻量轮廓，去除默认黑色矩形底框。
+# 暖褐柔影保持低对比，让十二张卡从纸面抬起，不盖过原画线稿。
 func _configure_card_button(button: Button) -> void:
-	var empty := StyleBoxEmpty.new()
-	button.add_theme_stylebox_override("normal", empty)
-	var hover := StyleBoxFlat.new()
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = Color(0.26, 0.14, 0.09, 0.0)
+	normal.shadow_color = Color(0.22, 0.10, 0.06, 0.13)
+	normal.shadow_size = 5
+	normal.shadow_offset = Vector2(0, 3)
+	normal.set_corner_radius_all(4)
+	button.add_theme_stylebox_override("normal", normal)
+	var hover := normal.duplicate() as StyleBoxFlat
 	hover.bg_color = Color(1.0, 0.86, 0.55, 0.07)
 	hover.border_color = Color("#b2814b")
 	hover.set_border_width_all(2)
@@ -258,7 +263,7 @@ func _configure_card_button(button: Button) -> void:
 	focus_style.border_color = Color("#78543e")
 	focus_style.set_border_width_all(2)
 	button.add_theme_stylebox_override("focus", focus_style)
-	button.add_theme_stylebox_override("disabled", empty)
+	button.add_theme_stylebox_override("disabled", normal)
 
 
 # 按实际窗口像素排版，抵消固定逻辑视口的缩放，保证 1280 与 1920 同样可读。
@@ -307,15 +312,12 @@ func _fit_grid_columns() -> void:
 		_details_panel.custom_minimum_size.x = details_width
 	if _scroll.size.y <= 0.0:
 		return
-	# Fit the detail sheet and 2 square artwork buttons in the same right column.
+	# Detail sheet stays within the right column; footer actions use their own full-width row.
 	var canvas_scale_y := get_viewport().get_final_transform().get_scale().y
 	var compact := canvas_scale_y < 0.9
 	var vertical_spacing := 8 if compact else 16
 	if _details_content.get_theme_constant("separation") != vertical_spacing:
 		_details_content.add_theme_constant_override("separation", vertical_spacing)
-	var button_height := 90.0 if compact else 116.0
-	for b in [_reveal_all, _next]:
-		b.custom_minimum_size = Vector2(button_height * 1.09, button_height)
 	var details_height := 390.0 if compact else 525.0
 	if not is_equal_approx(_details_panel.custom_minimum_size.y, details_height):
 		_details_panel.custom_minimum_size.y = details_height

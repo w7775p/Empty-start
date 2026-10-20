@@ -1,7 +1,11 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://ui/identity_setup/identity_selection.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/ui/identity/identity_selection_background.png" id="2_identity_background"]
+[ext_resource type="Shader" path="res://ui/identity_setup/identity_backdrop_spotlight.gdshader" id="3_identity_spotlight"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_identity_spotlight"]
+shader = ExtResource("3_identity_spotlight")
 
 [node name="IdentitySelection" type="Control"]
 layout_mode = 3
@@ -23,12 +27,13 @@ mouse_filter = 2
 texture = ExtResource("2_identity_background")
 
 [node name="Background" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_identity_spotlight")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
-color = Color(0.12, 0.085, 0.06, 0.06)
+color = Color(1, 1, 1, 1)
 
 [node name="Margins" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -162,29 +167,39 @@ size_flags_horizontal = 3
 autowrap_mode = 3
 text = "聚焦或翻开身份卡查看完整说明。"
 
-[node name="Navigation" type="HBoxContainer" parent="Margins/Content/CardArea/DetailsHolder"]
-layout_mode = 2
-size_flags_horizontal = 3
-alignment = 1
-theme_override_constants/separation = 16
+[node name="Navigation" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = -130.0
+offset_right = -32.0
+offset_bottom = -20.0
+grow_horizontal = 2
+theme_override_constants/separation = 24
 
-[node name="BackButton" type="Button" parent="Margins/Content/CardArea/DetailsHolder/Navigation"]
+[node name="BackButton" type="Button" parent="Navigation"]
 unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 text = "返回主播取名"
 
-[node name="RevealAllButton" type="Button" parent="Margins/Content/CardArea/DetailsHolder/Navigation"]
+[node name="RevealAllButton" type="Button" parent="Navigation"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(138, 126)
+custom_minimum_size = Vector2(0, 110)
 layout_mode = 2
+size_flags_horizontal = 3
 text = "一键翻开"
 
-[node name="NextButton" type="Button" parent="Margins/Content/CardArea/DetailsHolder/Navigation"]
+[node name="NextButton" type="Button" parent="Navigation"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(138, 126)
+custom_minimum_size = Vector2(0, 110)
 layout_mode = 2
+size_flags_horizontal = 3
 theme_type_variation = &"PrimaryButton"
 disabled = true
 text = "下一步"
