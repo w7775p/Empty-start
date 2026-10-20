@@ -33,21 +33,45 @@ func set_current_level_order(level_order: int) -> bool:
 	_current_level = selected_level
 	return true
 
-## 从房间重新开播时恢复进度，完整校验后再修改当前状态。
-func restore_progress(next_level_order: int, completed_ids: Array[String]) -> bool:
+## 从房间恢复进度；终局标记只接受目录内所有稳定关卡均已完成的存档。
+func restore_progress(
+		next_level_order: int,
+		completed_ids: Array[String],
+		campaign_completed: bool = false
+	) -> bool:
 	if _catalog == null or _all_normal_levels_completed:
 		return false
+
+	var restored_ids: Dictionary = {}
+	for level_id: String in completed_ids:
+		var profile: LevelProfile = _find_level_by_id(level_id)
+		if profile == null or restored_ids.has(level_id):
+			return false
+		restored_ids[level_id] = true
+
+	if campaign_completed:
+		var final_profile: LevelProfile
+		for profile: LevelProfile in _catalog.profiles:
+			if profile == null:
+				continue
+			if final_profile == null or profile.level_order > final_profile.level_order:
+				final_profile = profile
+			if not restored_ids.has(profile.level_id):
+				return false
+		if final_profile == null or next_level_order != final_profile.level_order:
+			return false
+		_current_level = final_profile
+		_completed_level_ids = restored_ids
+		_all_normal_levels_completed = true
+		return true
+
 	var selected_level: LevelProfile = _find_level_by_order(next_level_order)
 	if selected_level == null:
 		return false
-	var restored_ids: Dictionary = {}
-	for level_id: String in completed_ids:
+	for level_id: String in restored_ids:
 		var prior_profile: LevelProfile = _find_level_by_id(level_id)
 		if prior_profile == null or prior_profile.level_order >= selected_level.level_order:
 			return false
-		if restored_ids.has(level_id):
-			return false
-		restored_ids[level_id] = true
 	# 所有前序关卡都应已完成，禁止缺少记录时直接跳入后关。
 	for profile: LevelProfile in _catalog.profiles:
 		if profile != null and profile.level_order < selected_level.level_order and not restored_ids.has(profile.level_id):

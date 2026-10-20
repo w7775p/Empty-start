@@ -159,7 +159,8 @@ func _ready() -> void:
 	# 房间开播使用已保存的下一关，场景重建保留周目进度。
 	if not _run_state.restore_progress(
 			SaveManager.data.next_normal_level_order,
-			SaveManager.data.completed_normal_level_ids):
+			SaveManager.data.completed_normal_level_ids,
+			SaveManager.data.normal_campaign_completed):
 		push_error("Campaign: invalid saved level order %d" % SaveManager.data.next_normal_level_order)
 		return
 	if use_plan_b_campaign and not _create_plan_b_runtime():
@@ -338,6 +339,9 @@ func _ready() -> void:
 	_setup_pb14_performance_tracker()
 	if not _battle_attempt_flow.start_first_attempt():
 		push_error("Sandbox: 无法启动首场普通战斗。")
+		return
+	if SaveManager.data.normal_campaign_completed and not _enter_divine_descent():
+		push_error("Campaign: 无法从已完成普通关卡的存档恢复神降临。")
 
 
 ## 默认不创建 Tracker；只有 PB14_PERF_TRACKER=1 时才向 B/D 注入观测器。

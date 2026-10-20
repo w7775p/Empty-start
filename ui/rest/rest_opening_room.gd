@@ -52,7 +52,10 @@ func _ready() -> void:
 		return
 	_names.text = "主播：%s\n粉丝团：%s" % [_run_data.streamer_name, _run_data.fan_group_name]
 	_environment.apply_tendency(_run_data.tendency_state.get_primary_tendency_id())
-	if _run_data.next_normal_level_order > 1:
+	if _run_data.normal_campaign_completed:
+		_status.text = "普通直播已结束，开始后进入神降临。"
+		_start_button.text = "进入神降临"
+	elif _run_data.next_normal_level_order > 1:
 		_status.text = "准备开始第 %d 场直播" % _run_data.next_normal_level_order
 	_laptop_button.grab_focus()
 	_room_music.start(_run_data.next_normal_level_order > 1)
@@ -119,7 +122,7 @@ func start_live() -> Error:
 		return ERR_UNCONFIGURED
 	_starting = true
 	_start_button.disabled = true
-	_status.text = "正在开始直播……"
+	_status.text = "正在进入神降临……" if _run_data.normal_campaign_completed else "正在开始直播……"
 	var error := SceneRouter.goto_game()
 	if error != OK:
 		_starting = false
