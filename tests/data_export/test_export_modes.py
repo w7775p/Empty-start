@@ -183,6 +183,24 @@ def main() -> None:
         assert tier_result.returncode == 1 and "pullback_mult" in tier_result.stderr, (tier_result.stdout, tier_result.stderr)
         print("PASS Tier1 zero pullback rejected")
 
+        # EN-10 regression: formal CSV import must preserve the approved ending card-back mapping.
+        approved_root = temp_root / "approved-csv-output"
+        approved_env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+        approved_result = subprocess.run(
+            [sys.executable, str(TOOL), "--approved-csv", "--output-root", str(approved_root)],
+            cwd=ROOT, capture_output=True, encoding="utf-8", env=approved_env, check=False,
+        )
+        assert approved_result.returncode == 0, (approved_result.stdout, approved_result.stderr)
+        generated_art = (approved_root / "data/ending/ending_main_art_config.tres").read_text(encoding="utf-8")
+        committed_art = (ROOT / "data/ending/ending_main_art_config.tres").read_text(encoding="utf-8")
+        card_back_ref = 'path="res://assets/ui/identity/cards/identity_card_back.png"'
+        assert generated_art == committed_art, "checked-in ending Resource drifted from formal CSV export"
+        assert generated_art.count(card_back_ref) == 3, generated_art
+        for tendency in ("orthodox", "heretical", "absurd"):
+            assert f'{tendency}_main_art = ExtResource("art_{tendency}")' in generated_art, generated_art
+        assert "_main_art = null" not in generated_art, generated_art
+        print("PASS EN-10 approved CSV re-export keeps all three ending art slots bound to the shared card back")
+
 
 if __name__ == "__main__":
     main()

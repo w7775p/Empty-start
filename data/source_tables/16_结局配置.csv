@@ -1,7 +1,7 @@
 config_type,primary_tendency,secondary_or_state,text_value,asset_id,notes
-main_art,orthodox,,,ending_art_orthodox,三张主图之一
-main_art,heresy,,,ending_art_heresy,
-main_art,absurd,,,ending_art_absurd,
+main_art,orthodox,,,assets/ui/identity/cards/identity_card_back.png,共用身份卡背面；页面按正统主导倾向染色
+main_art,heresy,,,assets/ui/identity/cards/identity_card_back.png,共用身份卡背面；导表映射到 heretical 后由页面染色
+main_art,absurd,,,assets/ui/identity/cards/identity_card_back.png,共用身份卡背面；页面按荒谬主导倾向染色
 religion_name,orthodox,orthodox,名称占位1,,纯正统
 religion_name,orthodox,heresy,名称占位2,,正统主导+异端次要
 religion_name,orthodox,absurd,名称占位3,,正统主导+荒谬次要
