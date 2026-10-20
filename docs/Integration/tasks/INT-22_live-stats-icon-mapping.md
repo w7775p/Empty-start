@@ -1,12 +1,12 @@
 # INT-22 · 八张直播统计图标正式接线
 
-状态：P1，Owner：A。直接依赖：已合并 LD-17-FIX PR #326。
+状态：已完成（PR #336 已合并至 main），Owner：A。直接依赖：已合并 LD-17-FIX PR #326。
 
 ## 开始前先阅读以下文档
 AGENTS.md、known_traps.md、docs/Original/任务卡模板.md、INT-21 审计复核、LD-17-FIX 任务与日志、ui/live_data/live_data_hud.gd、ui/plan_b/plan_b_streamer_panel.gd。
 
 ## 已经实现的功能
-左右主播直播间均有观看、点赞、评论、粉丝等统计行；8 张对应图标资源已在 assets/ui/live/stats/ 入库；现正式界面仍主要采用 Emoji 显示指标。#326 的小粉丝评论名牌已由用户授权合入 main。
+左右主播直播间均有观看、点赞、评论、粉丝等统计行；8 张对应图标资源已在 assets/ui/live/stats/ 入库，PR #336 已将其接入正式 HUD。PNG 正常加载时显示正式图标，资源缺失时才回退 Emoji；数值数据与增长逻辑保持原样。#326 的小粉丝评论名牌已由用户授权合入 main。
 
 ## 本次任务
 1. 核对正式 UI 各项数据与图标的实际含义，把 player_viewers/likes/comments/followers 与 opponent_viewers/likes/comments/followers 八张 png 正确接到左右主播实时统计行（顺序与资源语义匹配），取代原粗糙 Emoji；保留现有数据、增长逻辑和主播分侧。

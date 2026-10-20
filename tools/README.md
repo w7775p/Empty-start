@@ -144,3 +144,9 @@ Resource smoke：完成Godot导入后运行 `--headless --path <本Lane项目> -
 - 在界面中筛选教学配置，编辑每步提示文案、顺序、触发/完成事件和启用状态；支持新建、复制、删除、排序、保存前校验。
 - 点击保存或 Ctrl+S 写回正式 `data/source_tables/24_新手教学配置.csv`。详细用法见 `tools/tutorial_editor/README.md`。
 - 修改事件 ID 前务必核对代码发出的稳定事件；修改 step_id 会影响已完成教学的存档记录。
+
+## 全游戏对话与气泡工作台
+
+- 统一入口：res://tools/dialogue_studio/dialogue_studio.tscn，按 F6 运行。
+- 通过标签管理主播气泡、直播评论、观众昵称、神谕话语、矛盾话语，以及新手教学和开头/结尾漫画文案。
+- 使用说明：tools/dialogue_studio/README.md。每类数据仍写回原始 CSV 或 Resource。
