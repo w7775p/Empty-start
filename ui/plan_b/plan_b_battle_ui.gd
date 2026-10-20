@@ -169,6 +169,8 @@ var _hand_key_labels: Array[Label] = []
 var _hand_button_selected_state: Array[bool] = []
 var _hand_button_disabled_state: Array[bool] = []
 var _hand_button_tendency_state: Array[String] = []
+var _hand_button_tutorial_highlight_state: Array[bool] = []
+var _tutorial_highlighted_battle_types: Dictionary = {}
 var _hand_status_label: Label
 var _hand_count_label: Label
 var _counterattack_label: Label
@@ -345,6 +347,25 @@ func set_player_slot_states(states: Array) -> void:
 	_refresh_hand_view()
 	if _performance_tracker != null:
 		_performance_tracker.call("record_section", PB14_PERFORMANCE_TRACKER_SCRIPT.SECTION_UI_REFRESH, Time.get_ticks_usec() - tracker_start_usec, next_states.size())
+
+
+## 教程只声明要提示的真实 battle_type；卡槽文字与抽牌状态继续由 A/C 提供。
+func set_tutorial_highlighted_battle_types(battle_types: Array) -> void:
+	var next_types: Dictionary = {}
+	for value in battle_types:
+		var battle_type := str(value)
+		if battle_type in ["type_a", "type_b", "type_c"]:
+			next_types[battle_type] = true
+	if next_types.size() == _tutorial_highlighted_battle_types.size():
+		var unchanged := true
+		for battle_type in next_types:
+			if not _tutorial_highlighted_battle_types.has(battle_type):
+				unchanged = false
+				break
+		if unchanged:
+			return
+	_tutorial_highlighted_battle_types = next_types
+	_refresh_hand_view()
 
 
 func set_group_bubble_random_seed(seed_value: int) -> void:
@@ -1199,6 +1220,7 @@ func _build_word_hand(parent: Container) -> void:
 		_hand_button_selected_state.append(false)
 		_hand_button_disabled_state.append(false)
 		_hand_button_tendency_state.append("")
+		_hand_button_tutorial_highlight_state.append(false)
 
 	_hand_status_label = _label(_status_text, 14, COLOR_MUTED)
 	_hand_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -1279,15 +1301,31 @@ func _label(text_value: String, font_size: int, tint: Color) -> Label:
 	return label
 
 
-func _style_button(button: Button, selected: bool, tendency_id: String) -> void:
+func _style_button(button: Button, selected: bool, tendency_id: String, tutorial_highlight: bool = false) -> void:
 	# 卡面主色表达话语倾向；克制类型继续由独立徽标表达。
 	var tendency_color: Color = UnitFieldScript.get_tendency_color(tendency_id)
 	var base := Color("#19313d").lerp(tendency_color, 0.16) if selected else Color("#12232d").lerp(tendency_color, 0.09)
 	var edge := tendency_color if selected else tendency_color.lerp(Color("#2b424c"), 0.34)
-	button.add_theme_stylebox_override("normal", _panel_style(base, edge, 11))
-	button.add_theme_stylebox_override("hover", _panel_style(Color("#203c49").lerp(tendency_color, 0.15), tendency_color, 11))
-	button.add_theme_stylebox_override("pressed", _panel_style(Color("#244a5a").lerp(tendency_color, 0.22), tendency_color.lightened(0.2), 11))
-	button.add_theme_stylebox_override("disabled", _panel_style(Color("#141e25").lerp(tendency_color, 0.08), tendency_color.darkened(0.35), 11))
+	var normal_style := _panel_style(base, edge, 11)
+	var hover_edge := tendency_color
+	var pressed_edge := tendency_color.lightened(0.2)
+	var disabled_edge := tendency_color.darkened(0.35)
+	if tutorial_highlight:
+		# 金色外框和小幅底色提高教程目标可见性，仍保留各倾向卡片的主色。
+		base = base.lerp(Color("#554b2d"), 0.26)
+		var highlighted_style := _panel_style(base, Color("#ffe08a"), 11)
+		highlighted_style.border_width_left = 3
+		highlighted_style.border_width_top = 3
+		highlighted_style.border_width_right = 3
+		highlighted_style.border_width_bottom = 3
+		normal_style = highlighted_style
+		hover_edge = Color("#fff0b7")
+		pressed_edge = Color("#fff6d0")
+		disabled_edge = Color("#c8a950")
+	button.add_theme_stylebox_override("normal", normal_style)
+	button.add_theme_stylebox_override("hover", _panel_style(Color("#203c49").lerp(tendency_color, 0.15), hover_edge, 11))
+	button.add_theme_stylebox_override("pressed", _panel_style(Color("#244a5a").lerp(tendency_color, 0.22), pressed_edge, 11))
+	button.add_theme_stylebox_override("disabled", _panel_style(Color("#141e25").lerp(tendency_color, 0.08), disabled_edge, 11))
 	button.add_theme_color_override("font_color", COLOR_TEXT)
 	button.add_theme_color_override("font_disabled_color", Color("#829098"))
 	button.add_theme_color_override("font_hover_color", Color("#ffffff"))
@@ -1439,6 +1477,8 @@ func _refresh_hand_view() -> void:
 		var meta_label := _hand_meta_labels[index]
 		var key_label := _hand_key_labels[index]
 		var tendency_id := str(entry.get("tendency_id", entry.get("tendency", "neutral")))
+		var battle_type := str(entry.get("battle_type", ""))
+		var tutorial_highlight := not word_id.is_empty() and _tutorial_highlighted_battle_types.has(battle_type)
 		var tendency_color: Color = UnitFieldScript.get_tendency_color(tendency_id)
 		var next_disabled := true
 		if word_id.is_empty():
@@ -1456,7 +1496,6 @@ func _refresh_hand_view() -> void:
 			if phrase_label.text != shown_phrase:
 				phrase_label.text = shown_phrase
 			var strength := int(entry.get("strength", 1))
-			var battle_type := str(entry.get("battle_type", ""))
 			var battle_type_name: String = UnitFieldScript.get_battle_type_name(battle_type)
 			var battle_symbol := _battle_type_symbol(
 				str(entry.get("battle_type_emoji", "")), battle_type, key_label.get_theme_default_font()
@@ -1466,7 +1505,9 @@ func _refresh_hand_view() -> void:
 				key_label.text += " · %.1f秒" % remaining
 			elif used:
 				key_label.text += " · 已用"
-			key_label.add_theme_color_override("font_color", tendency_color)
+			if tutorial_highlight:
+				key_label.text = "教程 · " + key_label.text
+			key_label.add_theme_color_override("font_color", Color("#ffe08a") if tutorial_highlight else tendency_color)
 			var meta_text := _strength_presentation(strength)
 			if remaining > 0.0:
 				meta_text += " · 补牌中"
@@ -1488,13 +1529,15 @@ func _refresh_hand_view() -> void:
 		var disabled_changed := _hand_button_disabled_state[index] != next_disabled
 		var selection_changed := _hand_button_selected_state[index] != next_selected
 		var tendency_changed := _hand_button_tendency_state[index] != tendency_id
+		var tutorial_changed := _hand_button_tutorial_highlight_state[index] != tutorial_highlight
 		if button.disabled != next_disabled:
 			button.disabled = next_disabled
-		if disabled_changed or selection_changed or tendency_changed:
-			_style_button(button, next_selected, tendency_id)
+		if disabled_changed or selection_changed or tendency_changed or tutorial_changed:
+			_style_button(button, next_selected, tendency_id, tutorial_highlight)
 			_hand_button_disabled_state[index] = next_disabled
 			_hand_button_selected_state[index] = next_selected
 			_hand_button_tendency_state[index] = tendency_id
+			_hand_button_tutorial_highlight_state[index] = tutorial_highlight
 	if _hand_count_label != null:
 		var occupied_slots := 0
 		for entry in _hand_words:

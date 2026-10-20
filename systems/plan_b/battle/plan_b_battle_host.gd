@@ -53,6 +53,7 @@ var _player_slot_refresh_word_ids: Array[String] = ["", "", ""]
 var _player_slot_definitions: Array[Dictionary] = [{}, {}, {}]
 var _tutorial_type_c_s1_pending: bool = false
 var _tutorial_type_c_s1_draw_used: bool = false
+var _tutorial_initial_opponent_battle_type: StringName = &""
 var _simulation_uses_integer_unit_ids: bool = false
 
 
@@ -89,6 +90,8 @@ func configure_modules(simulation: Node, word_catalog: Object, opponent_director
 
 func start_battle(arena_size: Vector2, arena_origin: Vector2 = Vector2.ZERO) -> void:
 	# 新开和重开统一重置顺序、冷却、PK、Tier 与棋子人口。
+	var tutorial_seed_type: StringName = _tutorial_initial_opponent_battle_type
+	_tutorial_initial_opponent_battle_type = &""
 	if _simulation == null:
 		push_error("PlanBBattleHost 缺少 Simulation 模块。")
 		return
@@ -112,7 +115,7 @@ func start_battle(arena_size: Vector2, arena_origin: Vector2 = Vector2.ZERO) -> 
 	_configure_counterattack_effect_handler()
 	var created_ids: Array = _create_population(arena_size, arena_origin)
 	_update_simulation_unit_id_kind()
-	if not _seed_initial_opponents(created_ids):
+	if not _seed_initial_opponents(created_ids, tutorial_seed_type):
 		_simulation.call("clear_battle")
 		_used_word_ids.clear()
 		_next_word_order = 1
@@ -182,6 +185,19 @@ func get_unit_snapshots() -> Array[Dictionary]:
 	return [] if _simulation == null else _simulation.call("get_unit_snapshots")
 
 
+## 教程兜底感染仍经 Simulation 的合法克制裁决和原有单位变化信号。
+func apply_tutorial_conversion(source_unit_id: Variant, target_unit_id: Variant) -> Dictionary:
+	if _battle_state != BattleState.RUNNING or _simulation == null:
+		return {"ok": false, "reason": &"battle_not_running"}
+	if not _simulation.has_method("apply_tutorial_conversion"):
+		return {"ok": false, "reason": &"tutorial_conversion_unavailable"}
+	var source_id: int = int(_normalize_unit_id(source_unit_id))
+	var target_id: int = int(_normalize_unit_id(target_unit_id))
+	if source_id < 0 or target_id < 0:
+		return {"ok": false, "reason": &"invalid_unit_id"}
+	return _simulation.call("apply_tutorial_conversion", source_id, target_id)
+
+
 func get_neutral_unit_at(scene_position: Vector2) -> Variant:
 	# B 以实际场景坐标命中；无目标时统一转换为空 ID 供输入层提示。
 	if _simulation == null:
@@ -217,6 +233,14 @@ func set_counterattack_paused(paused: bool) -> bool:
 	if _opponent_director == null or not _opponent_director.has_method("set_counterattack_paused"):
 		return false
 	return bool(_opponent_director.call("set_counterattack_paused", paused))
+
+
+## PB-25 缓存下一次正式开局的初始对手类型；进行中调用也只影响下次 start_battle。
+func set_tutorial_initial_opponent_battle_type(battle_type: StringName) -> bool:
+	if str(battle_type) not in ["type_a", "type_b", "type_c"]:
+		return false
+	_tutorial_initial_opponent_battle_type = battle_type
+	return true
 
 
 func get_battle_state() -> StringName:
@@ -734,13 +758,20 @@ func _create_population(arena_size: Vector2, arena_origin: Vector2) -> Array:
 	return created_ids if created_ids is Array else []
 
 
-func _seed_initial_opponents(created_ids: Array) -> bool:
+func _seed_initial_opponents(created_ids: Array, battle_type_override: StringName = &"") -> bool:
 	# 开局播种消耗两条话和两个顺序号，不启动对手主动发言冷却。
 	if initial_opponent_seed_count <= 0:
 		return true
 	if created_ids.size() < initial_opponent_seed_count:
 		return false
 	var candidate_word_ids: Array[String] = get_available_word_ids("opponent")
+	if not str(battle_type_override).is_empty():
+		var matching_word_ids: Array[String] = []
+		for word_id: String in candidate_word_ids:
+			var definition: Dictionary = get_word_definition(word_id)
+			if StringName(str(definition.get("battle_type", ""))) == battle_type_override:
+				matching_word_ids.append(word_id)
+		candidate_word_ids = matching_word_ids
 	if candidate_word_ids.size() < initial_opponent_seed_count:
 		return false
 	var committed_seeds: Array[Dictionary] = []

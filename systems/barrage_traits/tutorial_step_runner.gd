@@ -118,7 +118,8 @@ func on_shot_resolved(_snapshot: AttackTargetSnapshot, submission: Dictionary, _
 func get_current_hint() -> Dictionary:
 	if _finished or not _active_triggered or _active_index < 0 or _active_index >= _steps.size():
 		return {}
-	return {"step_id": get_active_step_id(), "hint_text": str(_steps[_active_index].get("hint_text", ""))}
+	var hint_text := str(_steps[_active_index].get("hint_text", "")).replace("\\n", "\n")
+	return {"step_id": get_active_step_id(), "hint_text": hint_text}
 
 
 ## 交给周目拥有者保存；外部修改返回值不会回写步骤。
@@ -137,7 +138,9 @@ func get_active_step_id() -> String:
 func _show_active_hint() -> void:
 	_active_triggered = true
 	var step: Dictionary = _steps[_active_index]
-	hint_requested.emit(str(step.get("step_id", "")), str(step.get("hint_text", "")))
+	# CSV 用可见的转义换行保存多段提示，统一在显示接口转换成真实换行。
+	var hint_text := str(step.get("hint_text", "")).replace("\\n", "\n")
+	hint_requested.emit(str(step.get("step_id", "")), hint_text)
 
 
 ## 完成事实在本次 begin 中只发布一次。

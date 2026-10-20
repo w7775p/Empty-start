@@ -231,6 +231,35 @@ func seed_unit(neutral_unit_id: int, team_value: StringName, word_definition: Di
 	return true
 
 
+## PB-25 只在首关教程兜底时，按真实battle_type克制关系完成一次剧情感染并发出原事件。
+func apply_tutorial_conversion(infecting_unit_id: int, receiving_unit_id: int) -> Dictionary:
+	if not _is_running:
+		return {"ok": false, "reason": &"simulation_not_running"}
+	var infecting_unit := _units_by_id.get(infecting_unit_id) as PlanBUnit
+	var receiving_unit := _units_by_id.get(receiving_unit_id) as PlanBUnit
+	if infecting_unit == null or receiving_unit == null:
+		return {"ok": false, "reason": &"target_unavailable"}
+	if (infecting_unit.team != PLAYER_TEAM or receiving_unit.team != OPPONENT_TEAM
+			or not infecting_unit.has_word() or not receiving_unit.has_word()):
+		return {"ok": false, "reason": &"invalid_factions"}
+	if not _counters(infecting_unit, receiving_unit):
+		return {"ok": false, "reason": &"no_type_advantage"}
+	var source_word_order := infecting_unit.word_order
+	receiving_unit.apply_word_snapshot(
+		PLAYER_TEAM, infecting_unit.get_word_snapshot(), source_word_order
+	)
+	unit_changed.emit(receiving_unit.unit_id, &"convert")
+	_record_player_batch_infection(source_word_order)
+	contact_resolved.emit(infecting_unit.unit_id, receiving_unit.unit_id, &"converted")
+	return {
+		"ok": true,
+		"source_unit_id": infecting_unit.unit_id,
+		"target_unit_id": receiving_unit.unit_id,
+		"battle_type": str(infecting_unit.get_battle_type()),
+		"word_order": source_word_order,
+	}
+
+
 ## 按 strength 一次提交完整2/4/8颗批次；校验或容量失败时不创建节点、不占用 ID。
 func spawn_word_batch(
 	scene_position: Vector2,

@@ -1,4 +1,5 @@
 tutorial_config_id,step_id,step_order,trigger_event,hint_text,completion_event,enabled,notes
-tutorial_level_001,tutorial_001_aim,1,tutorial_target_available,移动准心，对准一条飘过的话！,tutorial_aim_acquired,true,V0：level_001第一场T0出现可攻击普通话语时展示；准心真实命中范围与普通话语重叠后完成；使用已有AimReticle位置，不新增输入方式。PC/Android共用；事件ID由LC-13接线。
-tutorial_level_001,tutorial_001_charge,2,tutorial_aim_acquired,按住攻击，等准心外圈亮满！,tutorial_charge_full,true,V0：瞄准完成后开始；读取AttackChargeInput.get_charge_progress()/is_fully_charged()真实满蓄事实；提前松开继续本步骤；PC/Android读取各自现有输入抽象。
-tutorial_level_001,tutorial_001_fire,3,tutorial_charge_full,松开攻击，把这句话打回去！,tutorial_normal_hit,true,V0：真实满蓄后展示；通过BattleAttemptFlow.shot_resolved确认至少一条实际命中的普通非复读话语后结束；若射空或抬早保持指引，可重新蓄力。当前周目完成记录复用LC-13。
+tutorial_level_001,pb25_intro_publish,1,pb25_tutorial_begin,"噢快看呐，这里有一群失去了信仰的迷途之物！\n\n让我们的话语来拯救它们！",pb25_first_player_publish,true,PB-25：正式Plan B第一关开场；高亮三张固定卡；玩家首次成功发表后推进。
+tutorial_level_001,pb25_paper_s1_invasion,2,pb25_first_player_publish,"什么！有异端正在尝试污染我们的信仰！\n\n赶紧发表✋神谕，让自己的信徒改口！",pb25_paper_type_c_conversion,true,PB-25：高亮 type_c；请求A的指定type_c/S1抽牌；等待真实改口与✋克✊转换。
+tutorial_level_001,pb25_paper_conversion_success,3,pb25_paper_type_c_conversion,"太好了！\n\n我们的✋信徒开始压制敌人的✊信徒啦~",pb25_fermi_scissors_published,true,PB-25：真实转换后显示成功反馈；随后A剧情发表一条合法type_b话语。
+tutorial_level_001,pb25_fermi_scissors,4,pb25_fermi_scissors_published,"但敌人又发表了✌️神谕！\n\n那么！请帮帮鼠吧！",pb25_final_hint_finished,true,PB-25：剧情type_b发表成功后显示；短时阅读后结束教程并恢复费米普通AI。
