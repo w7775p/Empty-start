@@ -28,7 +28,7 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
-color = Color(0.09, 0.098, 0.114, 0.68)
+color = Color(0.12, 0.085, 0.06, 0.06)
 
 [node name="Margins" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -39,12 +39,17 @@ theme_override_constants/margin_bottom = 24
 
 [node name="Content" type="VBoxContainer" parent="Margins"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 10
 
 [node name="Title" type="Label" parent="Margins/Content"]
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
 text = "选择你的身份"
+horizontal_alignment = 1
+
+[node name="Instructions" type="Label" parent="Margins/Content"]
+layout_mode = 2
+text = "点击身份牌翻开，再次点击选择身份"
 horizontal_alignment = 1
 
 [node name="CardArea" type="HBoxContainer" parent="Margins/Content"]
@@ -86,38 +91,46 @@ layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
 
-[node name="IdentityDetailsPanel" type="PanelContainer" parent="Margins/Content/CardArea"]
+[node name="DetailsHolder" type="Control" parent="Margins/Content/CardArea"]
 unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(240, 0)
+custom_minimum_size = Vector2(255, 420)
 size_flags_vertical = 3
+mouse_filter = 2
 
-[node name="DetailsContent" type="VBoxContainer" parent="Margins/Content/CardArea/IdentityDetailsPanel"]
+[node name="IdentityDetailsPanel" type="PanelContainer" parent="Margins/Content/CardArea/DetailsHolder"]
+unique_name_in_owner = true
+layout_mode = 1
+anchor_right = 1.0
+offset_bottom = 420.0
+custom_minimum_size = Vector2(255, 420)
+
+[node name="DetailsContent" type="VBoxContainer" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 12
 
-[node name="IdentityDetailsTitle" type="Label" parent="Margins/Content/CardArea/IdentityDetailsPanel/DetailsContent"]
+[node name="IdentityDetailsTitle" type="Label" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/DetailsContent"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
 text = "身份详情"
 
-[node name="IdentityDetailsName" type="Label" parent="Margins/Content/CardArea/IdentityDetailsPanel/DetailsContent"]
+[node name="IdentityDetailsName" type="Label" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/DetailsContent"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HeadingLabel"
 autowrap_mode = 3
 text = "聚焦卡片查看完整名称"
 
-[node name="SelectionStatus" type="Label" parent="Margins/Content/CardArea/IdentityDetailsPanel/DetailsContent"]
+[node name="SelectionStatus" type="Label" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/DetailsContent"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
 autowrap_mode = 3
 text = "尚未选择身份"
 
-[node name="IdentityDetailsDescription" type="Label" parent="Margins/Content/CardArea/IdentityDetailsPanel/DetailsContent"]
+[node name="IdentityDetailsDescription" type="Label" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/DetailsContent"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
@@ -126,13 +139,14 @@ text = "聚焦或翻开身份卡查看完整说明。"
 
 [node name="Navigation" type="HBoxContainer" parent="."]
 layout_mode = 1
+alignment = 1
 anchors_preset = 12
 anchor_left = 0.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 32.0
-offset_top = -88.0
+offset_top = -104.0
 offset_right = -32.0
 offset_bottom = -24.0
 grow_horizontal = 2
@@ -147,15 +161,14 @@ text = "返回主播取名"
 
 [node name="RevealAllButton" type="Button" parent="Navigation"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(240, 64)
+custom_minimum_size = Vector2(220, 80)
 layout_mode = 2
 text = "一键翻开"
 
 [node name="NextButton" type="Button" parent="Navigation"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 64)
+custom_minimum_size = Vector2(220, 80)
 layout_mode = 2
-size_flags_horizontal = 3
 theme_type_variation = &"PrimaryButton"
 disabled = true
 text = "下一步"
