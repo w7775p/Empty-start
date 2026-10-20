@@ -200,6 +200,7 @@ func _ready() -> void:
 	# 创建时注入一次准心，休息及历史页面统一冻结输入，隐藏时恢复。
 	_rest_result_view.configure_battle_aim(_aim_reticle)
 	_rest_result_view.continue_requested.connect(_on_rest_continue_requested)
+	_rest_result_view.stop_streaming_requested.connect(_on_rest_stop_streaming_requested)
 	_battle_attempt_flow = BattleAttemptFlow.new()
 	_battle_attempt_flow.name = "BattleAttemptFlow"
 	add_child(_battle_attempt_flow)
@@ -1267,14 +1268,22 @@ func _show_rest_result(result: RestSession) -> void:
 	rest_opened.emit(result)
 
 
-# 继续请求使用本场结果 ID 推进；仅下一普通关路线重建当前场景的尝试。
+# 继续直播与暂时下播共用本场稳定结果 ID，只在路由目标上分流。
 func _on_rest_continue_requested() -> void:
+	_complete_rest_result(true)
+
+
+func _on_rest_stop_streaming_requested() -> void:
+	_complete_rest_result(false)
+
+
+func _complete_rest_result(continue_live: bool) -> void:
 	if _rest_session == null or not _rest_session.is_open():
 		return
 	var finished_session: RestSession = _rest_session
 	var completion: LevelRunState.CompletionResult = finished_session.continue_to_next_level(_run_state)
 	if completion == LevelRunState.CompletionResult.ADVANCED:
-		# 结算后先保存下一关并回房间，由玩家主动再次开播。
+		# 结算只按本场关卡 ID 记录一次；回房与即时续播共用相同进度快照。
 		var finished_level_id := str(finished_session.get_result_snapshot().get("level_id", ""))
 		SaveManager.data.scripture_data.rollback_uncommitted(StringName(finished_level_id))
 		_battle_attempt_flow.complete_current_level()
@@ -1287,16 +1296,32 @@ func _on_rest_continue_requested() -> void:
 		if not SaveManager.data.completed_normal_level_ids.has(finished_level_id):
 			SaveManager.data.completed_normal_level_ids.append(finished_level_id)
 		if SaveManager.save_game() != OK:
-			push_error("Campaign: failed to save progress before returning to room.")
+			push_error("Campaign: failed to save progress after Rest choice.")
 			return
-		var route_error: Error = SceneRouter.goto_opening_room()
-		if route_error != OK:
-			push_error("Campaign: cannot return to room: %s" % error_string(route_error))
+		if continue_live:
+			restart_current_attempt()
+			rest_continue_requested.emit(finished_session)
+			return
+		var room_error: Error = SceneRouter.goto_opening_room()
+		if room_error != OK:
+			push_error("Campaign: cannot return to room: %s" % error_string(room_error))
+			return
 	elif completion == LevelRunState.CompletionResult.ALL_NORMAL_LEVELS_COMPLETED:
-		_enter_divine_descent()
+		if continue_live:
+			_enter_divine_descent()
+			rest_continue_requested.emit(finished_session)
+			return
+		# 末关下播沿用现有未结束普通阶段的存档进度，只返回真实休息室。
+		SaveManager.data.current_scene = SceneRouter.OPENING_ROOM_SCENE_PATH
+		if SaveManager.save_game() != OK:
+			push_error("Campaign: failed to save final Rest choice.")
+			return
+		var final_room_error: Error = SceneRouter.goto_opening_room()
+		if final_room_error != OK:
+			push_error("Campaign: cannot return to room after final Rest choice: %s" % error_string(final_room_error))
+			return
 	else:
 		return
-	rest_continue_requested.emit(finished_session)
 
 
 # 末关只发起独立终局流程，战斗事实和演出由组件持有。
