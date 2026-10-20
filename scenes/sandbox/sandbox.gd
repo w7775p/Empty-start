@@ -211,6 +211,7 @@ func _ready() -> void:
 	_rest_result_view.configure_battle_aim(_aim_reticle)
 	_rest_result_view.continue_requested.connect(_on_rest_continue_requested)
 	_rest_result_view.stop_streaming_requested.connect(_on_rest_stop_streaming_requested)
+	SceneRouter.transition_finished.connect(_on_rest_scene_transition_finished)
 	SceneRouter.transition_failed.connect(_on_rest_scene_transition_failed)
 	_battle_attempt_flow = BattleAttemptFlow.new()
 	_battle_attempt_flow.name = "BattleAttemptFlow"
@@ -1426,6 +1427,14 @@ func _on_rest_scene_transition_failed(scene_path: String, error: Error) -> void:
 		"场景切换失败（%s：%s），可以重新选择路线重试。"
 		% [scene_path, error_string(error)]
 	)
+
+
+func _on_rest_scene_transition_finished(scene_path: String) -> void:
+	# 当前 Sandbox 内续播完成后清除等待态，后续失败重开不能误认成本场重试。
+	if not _rest_route_in_flight or scene_path != _rest_route_target_path:
+		return
+	_rest_route_in_flight = false
+	_rest_route_target_path = ""
 
 
 func _release_rest_route_choice(message: String) -> void:
