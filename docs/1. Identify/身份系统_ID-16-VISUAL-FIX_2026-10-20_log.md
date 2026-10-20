@@ -53,3 +53,8 @@
 - 保留 `option.description` 作为翻开后的唯一配表文案、长文滚动、身份名居中、详情左对齐、卡背提示与翻牌/选择流程。
 - Godot 4.7.2 / Windows / OpenGL 3 实际验收：1280×720 的 `PR327_TYPE_PASS height=720 body=16 name=24`，较大 Windows 窗口受桌面工作区限制为 1055px，回执 `PR327_TYPE_PASS height=1055 body=22 name=33`；两档均确认 12 卡、卡背提示、配表详情、长文滚动、两次点击选择；退出码均为 0。
 - 本次新增截图在 `evidence/ID-16-VISUAL-FIX_2026-10-20/pr327_typography_720.png` 与 `pr327_typography_1055.png`，替代之前固定字号的预览供视觉验收。保持 Draft。
+
+## 2026-10-20 · 移除详情状态提示（第七轮）
+- 右侧身份预览的 `SelectionStatus` 节点设置为 `visible = false`，统一隐藏「等待翻牌」「当前选择／未确认」等状态文案，避免额外占用正文空间。
+- 保留节点和既有脚本赋值，避免影响选择状态计算；卡背独立提示「请点击身份卡翻开」及翻开后配表 `option.description`、滚动能力保持。
+- 使用 GitHub PR 最新脚本与场景在 Godot 4.7.2 / Windows 进行运行验收，`PR327_STATUS_PASS hidden in both states / configured details preserved`，退出码 0。测试后恢复 D 盘工作树原文件，保持 PR Draft。
