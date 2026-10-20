@@ -71,17 +71,3 @@ offset_top = 150.0
 offset_right = -56.0
 offset_bottom = 820.0
 mouse_filter = 2
-
-[node name="RoomSigil" type="Label" parent="."]
-unique_name_in_owner = true
-visible = false
-layout_mode = 1
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -80.0
-offset_top = 24.0
-offset_right = 80.0
-offset_bottom = 144.0
-mouse_filter = 2
-theme_override_font_sizes/font_size = 96
-horizontal_alignment = 1
