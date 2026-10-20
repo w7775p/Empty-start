@@ -42,10 +42,16 @@ layout_mode = 1
 
 [node name="LaptopButton" type="TextureButton" parent="."]
 layout_mode = 1
-offset_left = 480.0
-offset_top = 590.0
-offset_right = 830.0
-offset_bottom = 825.0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -290.0
+offset_top = -310.0
+offset_right = 474.0
+offset_bottom = 202.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_default_cursor_shape = 2
 material = SubResource("LaptopOutlineMaterial")
 texture_normal = ExtResource("3_laptop")
