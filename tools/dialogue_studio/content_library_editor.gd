@@ -449,7 +449,8 @@ func _validate_rows() -> Array[String]:
 		for numeric_key_value in config["numeric"]:
 			var numeric_key := str(numeric_key_value)
 			var numeric_value := str(row.get(numeric_key, "")).strip_edges()
-			if numeric_value.is_empty() and (numeric_key in ["trigger_time_s", "line_order"] or not enabled):
+			var weight_not_applicable := numeric_key == "random_weight" and str(row.get("trigger_type", "")) != "random_idle"
+			if numeric_value.is_empty() and (numeric_key in ["trigger_time_s", "line_order"] or not enabled or weight_not_applicable):
 				continue
 			if numeric_value.is_empty() or not numeric_value.is_valid_float():
 				errors.append("%s 的 %s 必须是数字。" % [row_id, numeric_key])
