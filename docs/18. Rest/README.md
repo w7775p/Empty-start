@@ -129,6 +129,18 @@ ID-09 页面在 `_ready()` 连接自身 `opening_saved(run_data)` 到 `_on_openi
 
 实际 Godot 4.7.2 GUI smoke 已覆盖三倾向各一张正式身份、三步输入保存及磁盘读回、点击前零战斗节点、主动开播、同帧重复请求、房间/开播失败重试、战斗蓄力恢复，以及 TEST_ONLY 双关未击破 Rest → 下一关 → 神降临入口。证据与环境权限日志见 `休息时刻系统_RS-12_2026-10-09_log.md`。未新增永久纯逻辑单测；Android 和正式美术仍待验收。
 
+## RS-13 战后继续直播 / 暂时下播（2026-10-20 · Draft）
+
+`RestResultView` 增加“是否继续直播？”提示与“继续直播”“暂时下播”两个选项。两按钮共用展示完成后的输入开锁与一次性选择边界；`continue_requested` 保留现有接线，新增 `stop_streaming_requested` 作为下播选择事实。`RestSession` 冻结的 `level_id` / 结果快照和只读奖励入口保持不变，关卡去重继续由 `LevelRunState` 持有。
+
+当前分支只完成结算 UI 组件，Sandbox 选择分流尚待接线。`scenes/sandbox/sandbox.gd` 仍由 PB-25 PR #324 修改；待其更新并合流后，A/D 从最新 `main` 重放 Sandbox 路由：继续直播进入下一关或末关神降临，下播进入 `SceneRouter.goto_opening_room()`。Draft 期间不宣称 RS-13 全流程完成。
+
+## RS-13 战后继续直播 / 暂时下播（2026-10-20 · Draft）
+
+`RestResultView` 现显示“是否继续直播？”及“继续直播”“暂时下播”两个选项。展示完成后才解锁；任一选项被选择后两个按钮一起锁定。现有 `continue_requested` 保留，新增 `stop_streaming_requested`。
+
+结算 Session 仍只冻结本场 `level_id` / 结果快照，并通过已有只读入口展示已提交奖励；关卡去重仍由 `LevelRunState.complete_level()` 按稳定 ID 负责。当前 Sandbox 继续请求尚未区分两种路线，新增下播信号也尚未接线。PB-25 PR #324 仍在修改 `scenes/sandbox/sandbox.gd`；该 PR 合入后，RS-13 继续由 Sandbox 一次性提交进度，再按选择进入下一直播/末关神降临或回到 `RestOpeningRoom`。当前 Draft 不代表两个路由验收完成。详见 [RS-13 日志](休息时刻系统_RS-13_2026-10-20_log.md)。
+
 ## LD-10：本场直播结果展示
 
 结果页面新增 `LiveResult` 文本标签，展示真实观看、点赞、评论、本场粉丝增量和总粉丝。`show_result()` 首次调用 `RestSession.capture_live_result(run_data)` 从直播数据公开 getter 冻结数值，随后 `get_live_result_snapshot()` 只返回副本。冻结值属于当前 RestSession；重复查看及重新创建页面均读取同一场结果，跨关也保持原值。页面没有粉丝入账入口，缺数据 / 缺历史增量明确提示。
