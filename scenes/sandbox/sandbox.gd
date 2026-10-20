@@ -74,6 +74,15 @@ var _plan_b_level_ready: bool = false
 var _plan_b_slot_state_sync_elapsed: float = 0.0
 var _rest_session: RestSession
 var _rest_result_view: RestResultView
+# RS-13：同一场结果只提交一次；保存/路由失败后可安全重试。
+var _rest_progress_committed: bool = false
+var _rest_committed_session: RestSession
+var _rest_completion_result: LevelRunState.CompletionResult = LevelRunState.CompletionResult.INVALID_LEVEL
+var _rest_completed_level_id: String = ""
+var _rest_battle_level_closed: bool = false
+var _rest_route_in_flight: bool = false
+var _rest_route_target_path: String = ""
+var _rest_continue_signal_emitted: bool = false
 var _ending_music: EndingMusicPresenter
 var _contradiction_oracle_flow: ContradictionOracleFlow
 var _divine_descent_flow: DivineDescentFlow
@@ -201,6 +210,7 @@ func _ready() -> void:
 	_rest_result_view.configure_battle_aim(_aim_reticle)
 	_rest_result_view.continue_requested.connect(_on_rest_continue_requested)
 	_rest_result_view.stop_streaming_requested.connect(_on_rest_stop_streaming_requested)
+	SceneRouter.transition_failed.connect(_on_rest_scene_transition_failed)
 	_battle_attempt_flow = BattleAttemptFlow.new()
 	_battle_attempt_flow.name = "BattleAttemptFlow"
 	add_child(_battle_attempt_flow)
@@ -505,15 +515,16 @@ func _restart_current_attempt_under_cover() -> bool:
 	AudioManager.stop_dialogue_voice()
 	_contradiction_oracle_flow.stop()
 	_reset_paradox_presentation()
-	_rest_session = null
-	_rest_result_view.hide_result()
 	if use_plan_b_campaign:
 		%FailureOverlay.hide()
 	_attack_charge_input.set_contradiction_mode(false)
 	%PauseMenu.resume_game()
 	if not _battle_attempt_flow.restart_current_attempt():
 		push_error("Sandbox: 无法重建当前战斗尝试。")
+		# 结果页必须保持可见，SceneRouter 会恢复遮幕并发出 transition_failed。
 		return false
+	_rest_session = null
+	_rest_result_view.hide_result()
 	_refresh_mobile_touch_phase()
 	return true
 
@@ -1258,6 +1269,14 @@ func _show_rest_result(result: RestSession) -> void:
 		_barrage_area.visible = false
 		_oracle_candidate_display.visible = false
 	%PauseMenu.set_restart_available(false)
+	_rest_progress_committed = false
+	_rest_committed_session = null
+	_rest_completion_result = LevelRunState.CompletionResult.INVALID_LEVEL
+	_rest_completed_level_id = ""
+	_rest_battle_level_closed = false
+	_rest_route_in_flight = false
+	_rest_route_target_path = ""
+	_rest_continue_signal_emitted = false
 	_rest_session = result
 	_battle_hud.set_paradox_stage_active(false, _battle_attempt_flow.get_current_tier())
 	if use_plan_b_campaign:
@@ -1268,7 +1287,7 @@ func _show_rest_result(result: RestSession) -> void:
 	rest_opened.emit(result)
 
 
-# 继续直播与暂时下播共用本场稳定结果 ID，只在路由目标上分流。
+# Continue / Stop 共用一次进度提交；按钮只决定提交后的目标路由。
 func _on_rest_continue_requested() -> void:
 	_complete_rest_result(true)
 
@@ -1278,56 +1297,147 @@ func _on_rest_stop_streaming_requested() -> void:
 
 
 func _complete_rest_result(continue_live: bool) -> void:
-	if _rest_session == null or not _rest_session.is_open():
+	if _rest_route_in_flight:
 		return
-	var finished_session: RestSession = _rest_session
-	var completion: LevelRunState.CompletionResult = finished_session.continue_to_next_level(_run_state)
-	if completion == LevelRunState.CompletionResult.ADVANCED:
-		# 结算只按本场关卡 ID 记录一次；回房与即时续播共用相同进度快照。
-		var finished_level_id := str(finished_session.get_result_snapshot().get("level_id", ""))
-		SaveManager.data.scripture_data.rollback_uncommitted(StringName(finished_level_id))
-		_battle_attempt_flow.complete_current_level()
-		var next_profile: LevelProfile = _run_state.get_current_level_profile()
-		if next_profile == null:
-			push_error("Campaign: advanced but next level is missing.")
-			return
-		SaveManager.data.next_normal_level_order = next_profile.level_order
-		SaveManager.data.current_scene = SceneRouter.OPENING_ROOM_SCENE_PATH
-		if not SaveManager.data.completed_normal_level_ids.has(finished_level_id):
-			SaveManager.data.completed_normal_level_ids.append(finished_level_id)
-		if SaveManager.save_game() != OK:
-			push_error("Campaign: failed to save progress after Rest choice.")
-			return
-		if continue_live:
-			restart_current_attempt()
-			rest_continue_requested.emit(finished_session)
-			return
-		var room_error: Error = SceneRouter.goto_opening_room()
-		if room_error != OK:
-			push_error("Campaign: cannot return to room: %s" % error_string(room_error))
-			return
-	elif completion == LevelRunState.CompletionResult.ALL_NORMAL_LEVELS_COMPLETED:
-		if continue_live:
-			_enter_divine_descent()
-			rest_continue_requested.emit(finished_session)
-			return
-		# 末关下播沿用现有未结束普通阶段的存档进度，只返回真实休息室。
-		SaveManager.data.current_scene = SceneRouter.OPENING_ROOM_SCENE_PATH
-		if SaveManager.save_game() != OK:
-			push_error("Campaign: failed to save final Rest choice.")
-			return
-		var final_room_error: Error = SceneRouter.goto_opening_room()
-		if final_room_error != OK:
-			push_error("Campaign: cannot return to room after final Rest choice: %s" % error_string(final_room_error))
+	if SaveManager.data == null or _run_state == null:
+		_release_rest_route_choice("无法读取当前周目存档，请重试。")
+		return
+
+	var finished_session: RestSession
+	var completion: LevelRunState.CompletionResult
+	if _rest_progress_committed:
+		finished_session = _rest_committed_session
+		completion = _rest_completion_result
+		if finished_session == null or not finished_session.is_open():
+			_release_rest_route_choice("本场结算状态已失效，请返回主菜单重开。")
 			return
 	else:
+		finished_session = _rest_session
+		if finished_session == null or not finished_session.is_open():
+			_release_rest_route_choice("当前没有可提交的结算结果，请重试。")
+			return
+		_rest_completed_level_id = str(
+			finished_session.get_result_snapshot().get("level_id", "")
+		).strip_edges()
+		if _rest_completed_level_id.is_empty():
+			_release_rest_route_choice("结算缺少关卡 ID，无法保存进度。")
+			return
+
+		completion = finished_session.continue_to_next_level(_run_state)
+		if completion not in [
+			LevelRunState.CompletionResult.ADVANCED,
+			LevelRunState.CompletionResult.ALL_NORMAL_LEVELS_COMPLETED,
+		]:
+			_rest_completed_level_id = ""
+			_release_rest_route_choice("关卡进度提交失败（%s）。" % str(completion))
+			return
+
+		# 结算一旦接受就缓存结果；后续存档或路由失败时不再重复推进关卡。
+		_rest_progress_committed = true
+		_rest_committed_session = finished_session
+		_rest_completion_result = completion
+		if SaveManager.data.scripture_data != null:
+			SaveManager.data.scripture_data.rollback_uncommitted(
+				StringName(_rest_completed_level_id)
+			)
+		if not SaveManager.data.completed_normal_level_ids.has(_rest_completed_level_id):
+			SaveManager.data.completed_normal_level_ids.append(_rest_completed_level_id)
+
+	var target_path: String
+	if completion == LevelRunState.CompletionResult.ADVANCED:
+		var next_profile: LevelProfile = _run_state.get_current_level_profile()
+		if next_profile == null:
+			_release_rest_route_choice("下一关配置缺失，已保留本场结算，请检查关卡目录。")
+			return
+		SaveManager.data.normal_campaign_completed = false
+		SaveManager.data.next_normal_level_order = next_profile.level_order
+		target_path = (
+			SceneRouter.GAME_SCENE_PATH if continue_live
+			else SceneRouter.OPENING_ROOM_SCENE_PATH
+		)
+	elif completion == LevelRunState.CompletionResult.ALL_NORMAL_LEVELS_COMPLETED:
+		var final_profile: LevelProfile = _run_state.get_current_level_profile()
+		if final_profile == null:
+			_release_rest_route_choice("最后一关配置缺失，已保留本场结算，请检查关卡目录。")
+			return
+		SaveManager.data.normal_campaign_completed = true
+		SaveManager.data.next_normal_level_order = final_profile.level_order
+		target_path = (
+			SceneRouter.GAME_SCENE_PATH if continue_live
+			else SceneRouter.OPENING_ROOM_SCENE_PATH
+		)
+	else:
+		_release_rest_route_choice("当前关卡结算状态无效（%s）。" % str(completion))
 		return
+
+	SaveManager.data.current_scene = target_path
+	var save_error: Error = SaveManager.save_game()
+	if save_error != OK:
+		_release_rest_route_choice(
+			"进度保存失败（%s），可以重新选择或重试。" % error_string(save_error)
+		)
+		return
+
+	if not _rest_battle_level_closed:
+		_battle_attempt_flow.complete_current_level()
+		_rest_battle_level_closed = true
+
+	if completion == LevelRunState.CompletionResult.ALL_NORMAL_LEVELS_COMPLETED and continue_live:
+		if not _enter_divine_descent():
+			_release_rest_route_choice("神降临启动失败，可以重试或暂时下播。")
+			return
+		_emit_rest_continue_once(finished_session)
+		return
+
+	_rest_route_target_path = target_path
+	_rest_route_in_flight = true
+	var route_error: Error
+	if continue_live:
+		# 保留当前 Sandbox，只在遮幕下重建下一关，避免再绕回休息室。
+		route_error = SceneRouter.prepare_live_attempt(
+			Callable(self, "_restart_current_attempt_under_cover")
+		)
+	else:
+		route_error = SceneRouter.goto_opening_room()
+	if route_error != OK:
+		_release_rest_route_choice(
+			"场景切换请求失败（%s），可以重新选择路线重试。" % error_string(route_error)
+		)
+		return
+	if continue_live:
+		_emit_rest_continue_once(finished_session)
+
+
+func _emit_rest_continue_once(finished_session: RestSession) -> void:
+	if _rest_continue_signal_emitted:
+		return
+	_rest_continue_signal_emitted = true
+	rest_continue_requested.emit(finished_session)
+
+
+func _on_rest_scene_transition_failed(scene_path: String, error: Error) -> void:
+	if not _rest_route_in_flight or scene_path != _rest_route_target_path:
+		return
+	_release_rest_route_choice(
+		"场景切换失败（%s：%s），可以重新选择路线重试。"
+		% [scene_path, error_string(error)]
+	)
+
+
+func _release_rest_route_choice(message: String) -> void:
+	_rest_route_in_flight = false
+	_rest_route_target_path = ""
+	push_error("RS-13: " + message)
+	if is_instance_valid(_rest_result_view):
+		_rest_result_view.release_route_choice_for_retry(message)
 
 
 # 末关只发起独立终局流程，战斗事实和演出由组件持有。
-func _enter_divine_descent() -> void:
-	if _divine_descent_flow != null or not _run_state.is_all_normal_levels_completed():
-		return
+func _enter_divine_descent() -> bool:
+	if _divine_descent_flow != null:
+		return _divine_descent_flow.get_session() != null
+	if not _run_state.is_all_normal_levels_completed():
+		return false
 	_divine_descent_flow = DivineDescentFlow.new()
 	add_child(_divine_descent_flow)
 	_divine_descent_flow.entered.connect(_on_divine_descent_entered)
@@ -1341,7 +1451,9 @@ func _enter_divine_descent() -> void:
 			divine_decay_config.auto_repeat_interval_min_seconds, divine_decay_config.auto_repeat_interval_max_seconds,
 			divine_decay_config.converge_ratio, divine_decay_config.final_emphasis_duration_seconds):
 		push_error("Sandbox: 神降临正式参数无效。")
-		return
+		_divine_descent_flow.queue_free()
+		_divine_descent_flow = null
+		return false
 	var attempt_hit_resolution: HitResolution = _battle_attempt_flow.get_hit_resolution()
 	var attempt_stage: CombatStage = _battle_attempt_flow.get_combat_stage()
 	var attempt_opponent: OpponentPKBar = _battle_attempt_flow.get_opponent_pk_bar()
@@ -1358,6 +1470,8 @@ func _enter_divine_descent() -> void:
 		_divine_descent_flow.queue_free()
 		_divine_descent_flow = null
 		push_error("Sandbox: 无法启动神降临流程。")
+		return false
+	return true
 
 
 # 根场景收起普通、神谕和休息阶段，再通知外部终局已经进入。
