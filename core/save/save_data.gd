@@ -11,6 +11,8 @@ const CURRENT_VERSION: int = 1
 # 离开战斗回到独立房间时保留普通关卡进度。
 @export var next_normal_level_order: int = 1
 @export var completed_normal_level_ids: Array[String] = []
+# 末关选择下播后仍需从房间恢复到既有终局流程。
+@export var normal_campaign_completed: bool = false
 # 教学只保存稳定步骤 ID，观察与提示仍由现有运行器持有。
 @export var completed_tutorial_step_ids: Array[String] = []
 # 结局保存显示快照，读档回看不重新发奖或重跑终局。
