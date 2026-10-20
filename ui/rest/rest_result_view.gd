@@ -2,10 +2,12 @@ class_name RestResultView
 extends CanvasLayer
 
 signal continue_requested
+signal stop_streaming_requested
 signal result_performance_finished
 
 var _result_active: bool = false
 var _menu_input_enabled: bool = false
+var _route_choice_dispatched: bool = false
 var _presentation_id: int = 0
 var _battle_aim: AimReticle
 var _aim_input_was_enabled: bool = false
@@ -34,6 +36,7 @@ var _history_loser_card_catalog: LoserCardCatalog
 @onready var _loser_card_history_unavailable: Label = %LoserCardHistoryUnavailable
 @onready var _loser_card_history: LoserCardHistoryView = %LoserCardHistoryView
 @onready var _continue_button: Button = %ContinueButton
+@onready var _stop_streaming_button: Button = %StopStreamingButton
 
 
 # 隐藏结果及历史面板，连接查看、返回与继续请求。
@@ -48,6 +51,8 @@ func _ready() -> void:
 	_scripture_history.back_requested.connect(_on_scripture_history_back_requested)
 	_loser_card_history_button.pressed.connect(_on_loser_card_history_requested)
 	_loser_card_history.back_requested.connect(_on_loser_card_history_back_requested)
+	_stop_streaming_button.pressed.connect(_on_stop_streaming_pressed)
+	_set_menu_input_enabled(false)
 
 
 # 场景离树时只取消待完成展示；子控件已离树，不能再访问 Viewport 或抢焦点。
@@ -76,6 +81,7 @@ func show_result(
 	) -> bool:
 	if session == null or not session.is_open():
 		return false
+	_route_choice_dispatched = false
 	var result_kind: String = String(session.get_result_snapshot().get("result_kind", ""))
 	if run_data == null and result_kind != "pk_win_unbroken":
 		return false
@@ -153,6 +159,7 @@ func _render_live_result(result: Dictionary) -> void:
 func hide_result() -> void:
 	_room_music.stop()
 	_result_active = false
+	_route_choice_dispatched = false
 	_restore_battle_aim()
 	_presentation_id += 1
 	_set_menu_input_enabled(false)
@@ -215,9 +222,25 @@ func _on_loser_card_history_back_requested() -> void:
 
 # 继续流程由外层组合方决定；路由完成前保留结果提示。
 func _on_continue_pressed() -> void:
-	if not _menu_input_enabled:
+	if not _claim_route_choice():
 		return
 	continue_requested.emit()
+
+
+# 暂时下播沿用同一完成快照，只切换到房间路由。
+func _on_stop_streaming_pressed() -> void:
+	if not _claim_route_choice():
+		return
+	stop_streaming_requested.emit()
+
+
+# 两个选项共享一个一次性边界，连点不会重复请求进度提交。
+func _claim_route_choice() -> bool:
+	if not _menu_input_enabled or _route_choice_dispatched:
+		return false
+	_route_choice_dispatched = true
+	_set_menu_input_enabled(false)
+	return true
 
 
 # 等待静态展示布局完成；关闭或重开后旧等待不能解锁新页面。
@@ -240,6 +263,7 @@ func finish_result_performance() -> void:
 func _set_menu_input_enabled(enabled: bool) -> void:
 	_menu_input_enabled = enabled
 	_continue_button.disabled = not enabled
+	_stop_streaming_button.disabled = not enabled
 	_scripture_history_button.disabled = not enabled or _history_scripture == null or _history_level_catalog == null
 	_loser_card_history_button.disabled = not enabled or _history_loser_cards == null
 	if not enabled:

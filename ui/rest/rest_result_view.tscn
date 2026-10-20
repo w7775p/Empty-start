@@ -144,12 +144,32 @@ size_flags_horizontal = 3
 theme_type_variation = &"SecondaryButton"
 text = "查看历史败者卡"
 
-[node name="ContinueButton" type="Button" parent="Overlay/CenterContainer/PanelContainer/MarginContainer/Rows"]
+[node name="RouteChoicePrompt" type="Label" parent="Overlay/CenterContainer/PanelContainer/MarginContainer/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeadingLabel"
+text = "是否继续直播？"
+horizontal_alignment = 1
+
+[node name="RouteChoiceButtons" type="HBoxContainer" parent="Overlay/CenterContainer/PanelContainer/MarginContainer/Rows"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="ContinueButton" type="Button" parent="Overlay/CenterContainer/PanelContainer/MarginContainer/Rows/RouteChoiceButtons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
+size_flags_horizontal = 3
 theme_type_variation = &"PrimaryButton"
-text = "继续"
+text = "继续直播"
+
+[node name="StopStreamingButton" type="Button" parent="Overlay/CenterContainer/PanelContainer/MarginContainer/Rows/RouteChoiceButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"SecondaryButton"
+text = "暂时下播"
 
 [node name="ScriptureHistoryView" parent="." instance=ExtResource("2_scripture_history")]
 unique_name_in_owner = true
