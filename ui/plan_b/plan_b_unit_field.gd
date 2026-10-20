@@ -19,6 +19,9 @@ const TENDENCY_COLORS := {
 	"neutral": Color("#94a3b8"),
 }
 const UNIT_VISUAL_RADIUS: float = 32.0
+const TYPE_ICON_STONE: Texture2D = preload("res://assets/ui/plan_b/battle_type/ui_PK_shitou.png")
+const TYPE_ICON_SCISSORS: Texture2D = preload("res://assets/ui/plan_b/battle_type/ui_PK_jiandao.png")
+const TYPE_ICON_PAPER: Texture2D = preload("res://assets/ui/plan_b/battle_type/ui_PK_bu.png")
 
 var world_bounds := Rect2(Vector2.ZERO, Vector2(900.0, 490.0))
 
@@ -448,7 +451,7 @@ func _draw_unit(snapshot: Dictionary) -> void:
 			draw_arc(center, radius + 3.5, PI * 0.2, PI * 0.8, 16, Color(pulse_color.r, pulse_color.g, pulse_color.b, 1.0 - age), 1.5, true)
 
 
-## 64px头像内绘制独立 battle_type 徽标；线稿不依赖外部 Emoji 字体或新图片。
+## 64px头像内使用正式石头／剪刀／布图标，外圈继续标识克制类别。
 func _draw_battle_type_badge(center: Vector2, radius: float, battle_type: String) -> void:
 	if battle_type not in ["type_a", "type_b", "type_c"]:
 		return
@@ -456,14 +459,21 @@ func _draw_battle_type_badge(center: Vector2, radius: float, battle_type: String
 	var type_color := _battle_type_color(battle_type)
 	draw_circle(badge_center, 10.0, Color("#07141d", 0.94))
 	draw_arc(badge_center, 9.2, 0.0, TAU, 24, type_color, 1.5, true)
-	var icon_color := Color("#f3f8fa")
+	var icon_texture := _battle_type_icon_texture(battle_type)
+	if icon_texture != null:
+		draw_texture_rect(icon_texture, Rect2(badge_center - Vector2(7.0, 7.0), Vector2(14.0, 14.0)), false)
+
+
+func _battle_type_icon_texture(battle_type: String) -> Texture2D:
 	match battle_type:
 		"type_a":
-			_draw_fist_mark(badge_center, icon_color)
+			return TYPE_ICON_STONE
 		"type_b":
-			_draw_scissors_mark(badge_center, icon_color)
+			return TYPE_ICON_SCISSORS
 		"type_c":
-			_draw_paper_mark(badge_center, icon_color)
+			return TYPE_ICON_PAPER
+		_:
+			return null
 
 
 func _draw_fist_mark(center: Vector2, tint: Color) -> void:

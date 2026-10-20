@@ -1,4 +1,4 @@
 battle_type,emoji,mapping_status,notes
-type_a,✊,pb18_provisional_engineering_placeholder,总控暂定可替换工程映射；A克B且对应石头克剪刀；仅显示克制类别，不改变战斗关系。
-type_b,✌️,pb18_provisional_engineering_placeholder,总控暂定可替换工程映射；B克C且对应剪刀克布；仅显示克制类别，不改变战斗关系。
-type_c,✋,pb18_provisional_engineering_placeholder,总控暂定可替换工程映射；C克A且对应布克石头；仅显示克制类别，不改变战斗关系。
+type_a,✊,icon_asset,res://assets/ui/plan_b/battle_type/ui_PK_shitou.png；A克B且对应石头克剪刀；仅显示克制类别，不改变战斗关系。
+type_b,✌️,icon_asset,res://assets/ui/plan_b/battle_type/ui_PK_jiandao.png；B克C且对应剪刀克布；仅显示克制类别，不改变战斗关系。
+type_c,✋,icon_asset,res://assets/ui/plan_b/battle_type/ui_PK_bu.png；C克A且对应布克石头；仅显示克制类别，不改变战斗关系。

@@ -35,6 +35,9 @@ const DANMU_ALIEN: Texture2D = preload("res://assets/ui/plan_b/units/alien_unit.
 const DANMU_KIWI: Texture2D = preload("res://assets/ui/plan_b/units/kiwi_unit.png")
 const DANMU_FROG: Texture2D = preload("res://assets/ui/plan_b/units/frog_unit.png")
 const DANMU_FOX: Texture2D = preload("res://assets/ui/plan_b/units/fox_unit.png")
+const TYPE_ICON_STONE: Texture2D = preload("res://assets/ui/plan_b/battle_type/ui_PK_shitou.png")
+const TYPE_ICON_SCISSORS: Texture2D = preload("res://assets/ui/plan_b/battle_type/ui_PK_jiandao.png")
+const TYPE_ICON_PAPER: Texture2D = preload("res://assets/ui/plan_b/battle_type/ui_PK_bu.png")
 
 class CardCooldownFill:
 	# 按 A 的实际槽位进度绘制整卡遮罩，不在 UI 内启动第二套计时器。
@@ -166,6 +169,7 @@ var _hand_phrase_labels: Array[Label] = []
 var _hand_meta_labels: Array[Label] = []
 var _hand_cooldown_fills: Array[CardCooldownFill] = []
 var _hand_key_labels: Array[Label] = []
+var _hand_type_icons: Array[TextureRect] = []
 var _hand_button_selected_state: Array[bool] = []
 var _hand_button_disabled_state: Array[bool] = []
 var _hand_button_tendency_state: Array[String] = []
@@ -1161,8 +1165,19 @@ func _build_word_hand(parent: Container) -> void:
 	var heading := HBoxContainer.new()
 	heading.add_theme_constant_override("separation", 8)
 	content.add_child(heading)
-	var title := _label("选一句 · 按 1–3 选句 · " + _matchup_rule_legend(), 14, Color("#75d9f0"))
+	var title := _label("选一句 · 按 1–3 选句 · 克制：", 14, Color("#75d9f0"))
 	heading.add_child(title)
+	_add_type_legend_icon(heading, TYPE_ICON_STONE)
+	heading.add_child(_label("克", 13, Color("#a9c7d1")))
+	_add_type_legend_icon(heading, TYPE_ICON_SCISSORS)
+	heading.add_child(_label(" · ", 13, Color("#a9c7d1")))
+	_add_type_legend_icon(heading, TYPE_ICON_SCISSORS)
+	heading.add_child(_label("克", 13, Color("#a9c7d1")))
+	_add_type_legend_icon(heading, TYPE_ICON_PAPER)
+	heading.add_child(_label(" · ", 13, Color("#a9c7d1")))
+	_add_type_legend_icon(heading, TYPE_ICON_PAPER)
+	heading.add_child(_label("克", 13, Color("#a9c7d1")))
+	_add_type_legend_icon(heading, TYPE_ICON_STONE)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	heading.add_child(spacer)
@@ -1198,9 +1213,28 @@ func _build_word_hand(parent: Container) -> void:
 		card_content.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		button.add_child(card_content)
 
+		var type_row := HBoxContainer.new()
+		type_row.name = "TypeRow"
+		type_row.custom_minimum_size.y = 24.0
+		type_row.add_theme_constant_override("separation", 5)
+		type_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card_content.add_child(type_row)
+		var type_icon := TextureRect.new()
+		type_icon.name = "BattleTypeIcon"
+		type_icon.custom_minimum_size = Vector2(24.0, 24.0)
+		type_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		type_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		type_icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		type_icon.texture = _battle_type_icon(_battle_type_for_slot(index))
+		type_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		type_row.add_child(type_icon)
 		var key_label := _label("%d" % (index + 1), 12, Color("#7dd9ef"))
 		key_label.name = "KeyLabel"
-		card_content.add_child(key_label)
+		key_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		key_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		key_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		type_row.add_child(key_label)
+		_hand_type_icons.append(type_icon)
 		var phrase_label := _label("等待词池", 18, COLOR_TEXT)
 		phrase_label.name = "PhraseLabel"
 		phrase_label.custom_minimum_size.y = 42.0
@@ -1355,31 +1389,40 @@ func _entry_word_id(entry: Dictionary) -> String:
 	return str(entry.get("word_id", entry.get("id", entry.get("phrase_id", ""))))
 
 
-## Emoji 字形存在时使用策划映射；字体缺字时用易懂的石/剪/布文字回退。
-func _battle_type_symbol(configured_symbol: String, battle_type: String, font: Font) -> String:
-	var codepoint := 0
+func _battle_type_for_slot(slot_id: int) -> String:
+	match slot_id:
+		0:
+			return "type_a"
+		1:
+			return "type_b"
+		2:
+			return "type_c"
+		_:
+			return ""
+
+
+func _battle_type_icon(battle_type: String) -> Texture2D:
 	match battle_type:
 		"type_a":
-			codepoint = 0x270A
+			return TYPE_ICON_STONE
 		"type_b":
-			codepoint = 0x270C
+			return TYPE_ICON_SCISSORS
 		"type_c":
-			codepoint = 0x270B
-	if not configured_symbol.is_empty() and font != null and codepoint > 0 and font.has_char(codepoint):
-		return configured_symbol
-	return UnitFieldScript.get_battle_type_fallback_mark(battle_type)
+			return TYPE_ICON_PAPER
+		_:
+			return null
 
 
-func _matchup_rule_legend() -> String:
-	var font := get_theme_default_font()
-	if font == null:
-		font = ThemeDB.fallback_font
-	var icons_available := (
-		font.has_char(0x270A) and font.has_char(0x270C) and font.has_char(0x270B)
-	)
-	if icons_available:
-		return "✊克✌️ · ✌️克✋ · ✋克✊"
-	return "石克剪 · 剪克布 · 布克石"
+func _add_type_legend_icon(parent: Container, icon_texture: Texture2D) -> void:
+	var icon := TextureRect.new()
+	icon.custom_minimum_size = Vector2(18.0, 18.0)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	icon.texture = icon_texture
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	parent.add_child(icon)
 
 
 ## 力度名称和投放颗数共用正式强度档位，避免卡面只显示内部数字。
@@ -1476,8 +1519,15 @@ func _refresh_hand_view() -> void:
 		var phrase_label := _hand_phrase_labels[index]
 		var meta_label := _hand_meta_labels[index]
 		var key_label := _hand_key_labels[index]
+		var icon_battle_type := str(entry.get("battle_type", _battle_type_for_slot(index)))
+		if icon_battle_type.is_empty():
+			icon_battle_type = _battle_type_for_slot(index)
+		if index < _hand_type_icons.size():
+			_hand_type_icons[index].texture = _battle_type_icon(icon_battle_type)
 		var tendency_id := str(entry.get("tendency_id", entry.get("tendency", "neutral")))
-		var battle_type := str(entry.get("battle_type", ""))
+		var battle_type := str(entry.get("battle_type", _battle_type_for_slot(index)))
+		if battle_type.is_empty():
+			battle_type = _battle_type_for_slot(index)
 		var tutorial_highlight := not word_id.is_empty() and _tutorial_highlighted_battle_types.has(battle_type)
 		var tendency_color: Color = UnitFieldScript.get_tendency_color(tendency_id)
 		var next_disabled := true
@@ -1497,10 +1547,7 @@ func _refresh_hand_view() -> void:
 				phrase_label.text = shown_phrase
 			var strength := int(entry.get("strength", 1))
 			var battle_type_name: String = UnitFieldScript.get_battle_type_name(battle_type)
-			var battle_symbol := _battle_type_symbol(
-				str(entry.get("battle_type_emoji", "")), battle_type, key_label.get_theme_default_font()
-			)
-			key_label.text = "%d · %s %s" % [index + 1, battle_symbol, battle_type_name]
+			key_label.text = "%d · %s" % [index + 1, battle_type_name]
 			if remaining > 0.0:
 				key_label.text += " · %.1f秒" % remaining
 			elif used:
@@ -1515,7 +1562,7 @@ func _refresh_hand_view() -> void:
 				meta_text += " · 本局已发表"
 			if meta_label.text != meta_text:
 				meta_label.text = meta_text
-			var tooltip := "%s\n%s %s\n%s" % [phrase, battle_symbol, battle_type_name, _strength_presentation(strength)]
+			var tooltip := "%s\n%s\n%s" % [phrase, battle_type_name, _strength_presentation(strength)]
 			if remaining > 0.0:
 				tooltip += "\n%.1f 秒后补入新话语" % remaining
 			elif used:
