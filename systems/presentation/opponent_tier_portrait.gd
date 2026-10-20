@@ -2,8 +2,10 @@ class_name OpponentTierPortrait
 extends Control
 
 const TierFx = preload("res://systems/presentation/opponent_tier_fx.gd")
+const FrogSlicedPortraitScript = preload("res://systems/presentation/frog_sliced_portrait.gd")
 
 signal flip_finished(tier: int)
+signal frog_cockroach_dance_finished
 
 @export var flip_seconds: float = 0.32
 @export_range(0.02, 0.5) var narrow_scale: float = 0.08
@@ -39,6 +41,8 @@ var _pending_display_scale: float = 1.0
 var _visible_bounds: Dictionary = {}
 var _maximum_visible_size: Vector2 = Vector2.ONE
 var _result_textures: Array[Texture2D] = []
+var _result_defeat_texture: Texture2D
+var _frog_sliced_portrait: Control
 
 
 # 保留 PA-14 的 Idle 层级给射击/切图使用；循环呼吸动画已停用。
@@ -78,16 +82,19 @@ func configure_textures(idle: Texture2D, tier_01: Texture2D, tier_02: Texture2D,
 	_tier_02 = tier_02
 	_tier_03 = tier_03
 	_rebuild_visible_bounds()
+	_configure_frog_sliced_portrait()
 	reset_for_tier(current_tier)
 
 
 # 待机、阶段、过渡和击败共用同一尺寸基准，切图不随透明画布重新居中。
 func configure_result_bounds(transition: Texture2D, defeat: Texture2D) -> void:
+	_result_defeat_texture = defeat
 	_result_textures.clear()
 	for texture: Texture2D in [transition, defeat]:
 		if texture != null:
 			_result_textures.append(texture)
 	_rebuild_visible_bounds()
+	_configure_frog_sliced_portrait()
 	fit_current_texture()
 
 
@@ -148,11 +155,13 @@ func fit_current_texture() -> void:
 		visible_top - _portrait.pivot_offset.y
 			- (bounds.position.y * fit_scale - _portrait.pivot_offset.y) * _portrait.scale.y
 	)
-
+	if _frog_sliced_portrait != null and _character_id == "frog":
+		_frog_sliced_portrait.call("sync_reference", texture, current_tier)
 
 # 三名对手共用白色冲击条；Kiwi 的翻图节奏仍单独处理。
 func configure_character(character_id: String) -> void:
 	_character_id = character_id
+	_configure_frog_sliced_portrait()
 	fx.configure_character(character_id)
 	_display_scale = _scale_for_texture(_portrait.texture)
 	_portrait.scale = Vector2.ONE * _display_scale
@@ -308,3 +317,41 @@ func _scale_for_texture(texture: Texture2D) -> float:
 		if texture == _tier_01 or texture == _tier_02 or texture == _tier_03:
 			return alien_tier_scale
 	return 1.0
+
+# 青蛙分件只在真实 frog 资源组启用；整图继续作为PA-23锚点与回退来源。
+func _configure_frog_sliced_portrait() -> void:
+	if _portrait == null:
+		return
+	if _character_id != "frog" or not _is_frog_portrait_texture(_idle):
+		if _frog_sliced_portrait != null:
+			_frog_sliced_portrait.call("set_enabled", false)
+		return
+	if _frog_sliced_portrait == null:
+		_frog_sliced_portrait = FrogSlicedPortraitScript.new() as Control
+		_frog_sliced_portrait.name = "FrogSlicedPortrait"
+		_portrait.add_child(_frog_sliced_portrait)
+		_frog_sliced_portrait.call("bind_reference_rect", _portrait, Callable(self, "fit_current_texture"))
+		_frog_sliced_portrait.connect(
+			"dance_finished", Callable(self, "_on_frog_cockroach_dance_finished")
+		)
+	_frog_sliced_portrait.call(
+		"configure_references", _idle, _tier_01, _tier_02, _tier_03, _result_defeat_texture
+	)
+	_frog_sliced_portrait.call("set_enabled", true)
+	_frog_sliced_portrait.call("sync_reference", _portrait.texture, current_tier)
+
+
+# 只用稳定资源路径识别已装配的Frog组，防止切换角色间隙误绘制分件。
+func _is_frog_portrait_texture(texture: Texture2D) -> bool:
+	return texture != null and texture.resource_path.contains("/characters/opponents/frog/")
+
+
+# 供场景协调方绑定既有表现时机；不创建战斗技能或运行时战斗状态。
+func play_frog_cockroach_dance() -> bool:
+	if _character_id != "frog" or _frog_sliced_portrait == null:
+		return false
+	return bool(_frog_sliced_portrait.call("play_cockroach_dance"))
+
+
+func _on_frog_cockroach_dance_finished() -> void:
+	frog_cockroach_dance_finished.emit()

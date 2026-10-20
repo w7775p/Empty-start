@@ -75,6 +75,27 @@ Windows 验证入口为 `tests/presentation/pa14_portrait_motion_smoke.tscn`：�
 
 正式关卡集成方先调用原 `configure_streamer_assets()`，再调用 `configure_opponent_tier_textures(idle, tier_01, tier_02, tier_03)`；现有 CombatStage → Sandbox → `refresh_pk()` 的阶段通知继续驱动画面。四张图由关卡配置提供；当前 `LevelProfile` 尚未接入策划 02/23 表，因此示例关卡只有 idle 占位。三名角色的现成图片和映射见 `assets/README.md`。独立演示场景为 `scenes/demos/pa15_portrait_demo.tscn`，正式 HUD 冒烟为 `tests/presentation/pa15_hud_smoke.tscn`。详见 [PA-15 日志](表现资产_PA-15_2026-10-10_log.md)。
 
+## PA-22 青蛙分件挣扎与蟑螂舞（2026-10-20）
+
+`FrogSlicedPortrait` 以完整立绘维持 PA-23 锚点，只用 `FrogBodyMotionRoot` 变换整组分件。身体、金链、围裙/装饰和对应 Tier 分件相对站立基线统一上移 15 个 1920×1080 设计逻辑像素；1280×720 预览按 2/3 比例显示。T3/T4/T5 挣扎只影响青蛙分件，其他对手共用布局和尺寸规则不变。
+
+- T3/T4/T5/T6 的挣扎强度依次为 0.34/0.62/0.88/1.0。
+- 金链作为 `FrogBodyMotionRoot` 子层继承身体位移、压缩和旋转；局部位置与角度增加轻微滞后，缩放继承一次。
+- `OpponentTierPortrait.play_frog_cockroach_dance()` 手动启动蟑螂舞；`frog_cockroach_dance_finished` 表示本轮完成。演示场景按 `1` / `2` / `3` / `4` 切换 T1/T3/T4/T5，按 `D` 重播舞蹈，按 `R` 复位。
+- 正式演出触发继续由既有阶段/演出事件Owner接线；PA-22 不新增敌方技能或战斗状态。
+
+Godot 4.7.2 Movie Maker 实录为 1280×720、30 FPS、124 帧。实际 v2 MP4：[下载 PA-22 Frog Preview v2](https://github.com/w7775p/Empty-start/releases/download/pa22-frog-preview-20261020/pa22-frog-preview-v2.mp4)。SHA-256：`EED23B51B4743CF25148120860ADA897453BCAD39B2A432FD5754C0EC989D270`。
+
+真实录像帧：
+
+![PA-22 T3 挣扎帧](previews/pa22-frog-sliced-v2/t3-struggle.png)
+
+![PA-22 T5 挣扎帧](previews/pa22-frog-sliced-v2/t5-struggle.png)
+
+![PA-22 蟑螂舞帧](previews/pa22-frog-sliced-v2/cockroach-dance.png)
+
+实现、回放和交接限制见 [PA-22 任务日志](表现资产_PA-22_2026-10-20_log.md)。
+
 ## PA-23 主播立绘可见底边锚点（2026-10-20）
 
 原 PA-23 的 alpha 可见底部中点 `(0.5,1.0)` 锚点方案已经由 PA-23-FIX 替代，现有默认 `(0.5,1.0)`，并按**单张原图宽高**适配 432px 直播镜头。PA-14 的 `body_pivot=(0.5,0.65)`、翻牌、受击与 PA-17 击败时序保持原值。仓鼠仍采用坐姿及桌沿遮挡。原 PA-23 图仅作为历史对比，正式结果见 [PA-23-FIX 日志](表现资产_PA-23-FIX_2026-10-20_log.md)。

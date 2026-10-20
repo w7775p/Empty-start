@@ -1,6 +1,6 @@
 # PA-22 · 青蛙分件立绘的阶段挣扎与舞蹈动画
 
-状态：**2026-10-19 已定增量需求，待开发/视觉验收**；优先级：**P1｜依赖美术拆件**；负责：**程序美术Owner（D）＋资源集成Owner＋E**。
+状态：**2026-10-20 已完成真实 Godot 录像验收；见完成日志**；优先级：**P1｜依赖美术拆件**；负责：**程序美术Owner（D）＋资源集成Owner＋E**。
 
 ## 开始前先阅读以下文档
 - AGENTS.md、known_traps.md、project.godot、docs/Original/任务卡模板.md。
@@ -71,4 +71,14 @@
 检查不同素材尺寸、锚点、视口、动画节奏与效果清理。
 
 ## 最终汇报
-本卡每独立子任务提交commit；在系统目录写 PA-22 的2026-10-19完成日志，列出文件、Scene/Resource与参数修改、真实截图/录像和验收结果、未完成项及下一步交接。
+本卡每独立子任务提交commit；在系统目录写 PA-22 的2026-10-20完成日志，列出文件、Scene/Resource与参数修改、真实截图/录像和验收结果、未完成项及下一步交接。
+
+## PA-22 完成记录（2026-10-20）
+
+- `FrogBodyMotionRoot` 整组上移 15 个 1920×1080 设计逻辑像素；挣扎时保留站立偏移，金链继承身体变换并加入局部惯性。
+- 保留原蟑螂舞动作节奏和帧序列；新增 `OpponentTierPortrait.play_frog_cockroach_dance()` 手动入口与完成信号。
+- `scenes/demos/pa22_frog_sliced_demo.tscn` 使用正式 Sandbox/HUD 展示 T3/T4/T5 挣扎、舞蹈及复位。快捷键：1=T1、2=T3、3=T4、4=T5、D=重播舞蹈、R=复位。
+- Godot 4.7.2 Movie Maker 完整录制 124 帧、30 FPS、1280×720。v2 MP4：[直接下载](https://github.com/w7775p/Empty-start/releases/download/pa22-frog-preview-20261020/pa22-frog-preview-v2.mp4)。
+- 原 Release 两个视频附件均保留；本次只新增 v2。三张真实录像关键帧保存在 `../previews/pa22-frog-sliced-v2/`。
+- 独立分支：`codex/pa-22-frog-tier-dance-20261020`；目标 `main`；不自动合并。正式战斗事件的触发接线由原Owner负责。
+- 详细验证、SHA-256 与交接见 `../表现资产_PA-22_2026-10-20_log.md`。
