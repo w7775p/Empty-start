@@ -208,6 +208,27 @@ func _configure_detail_panel() -> void:
 	_status.add_theme_color_override("font_color", Color("#56321e"))
 
 
+# 固定逻辑分辨率下按实际窗口高度适配右侧字阶；每档连续变化，避免 720p 偏大、1080p 偏小。
+func _fit_detail_typography(physical_height: float) -> void:
+	var t := clampf((physical_height - 720.0) / 360.0, 0.0, 1.0)
+	var detail_sizes := [
+		{"label": _details_header, "size": roundi(lerpf(21.0, 28.0, t))},
+		{"label": _unknown_glyph, "size": roundi(lerpf(60.0, 76.0, t))},
+		{"label": _details_name_label, "size": roundi(lerpf(24.0, 34.0, t))},
+		{"label": _status, "size": roundi(lerpf(14.0, 18.0, t))},
+		{"label": _unrevealed_hint, "size": roundi(lerpf(16.0, 22.0, t))},
+		{"label": _details_description_label, "size": roundi(lerpf(16.0, 22.0, t))},
+	]
+	for entry in detail_sizes:
+		var label: Label = entry["label"]
+		var target_size: int = entry["size"]
+		if label.get_theme_font_size("font_size") != target_size:
+			label.add_theme_font_size_override("font_size", target_size)
+	var line_spacing := roundi(lerpf(3.0, 6.0, t))
+	if _details_description_label.get_theme_constant("line_spacing") != line_spacing:
+		_details_description_label.add_theme_constant_override("line_spacing", line_spacing)
+
+
 # 旧图 391x359 是正方形按钮；直接在 900px 横条上九宫格裁 88px 边会变成夸张胶囊。
 # 先等比缩小有效图，再切四角及边框；宽度仅由中段延展。
 func _button_patch(texture: Texture2D) -> ImageTexture:
@@ -332,6 +353,8 @@ func _fit_grid_columns() -> void:
 		return
 	# Detail sheet stays within the right column; footer actions use their own full-width row.
 	var canvas_scale_y := get_viewport().get_final_transform().get_scale().y
+	var physical_height := get_viewport().get_visible_rect().size.y * canvas_scale_y
+	_fit_detail_typography(physical_height)
 	var compact := canvas_scale_y < 0.9
 	var vertical_spacing := 8 if compact else 16
 	if _details_content.get_theme_constant("separation") != vertical_spacing:
