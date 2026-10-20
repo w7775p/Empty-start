@@ -16,6 +16,7 @@ var _filter := DEFAULT_CONFIG_ID
 var _selected := -1
 var _syncing := false
 var _dirty := false
+var _table_loaded := false
 
 var _config_picker: OptionButton
 var _step_list: ItemList
@@ -178,6 +179,7 @@ func _add_line(parent: Control, key: String, title: String) -> void:
 
 
 func _read_table() -> bool:
+	_table_loaded = false
 	var file := FileAccess.open(TABLE_PATH, FileAccess.READ)
 	if file == null:
 		push_error("TutorialEditor: 无法读取 24 表：" + error_string(FileAccess.get_open_error()))
@@ -205,6 +207,7 @@ func _read_table() -> bool:
 		_rows.append(row)
 	file.close()
 	_dirty = false
+	_table_loaded = true
 	return true
 
 
@@ -431,6 +434,9 @@ func _update_validation() -> void:
 
 
 func _save() -> void:
+	if not _table_loaded:
+		_status.text = "原始 24 表未成功读取，已禁止写入，避免覆盖数据。"
+		return
 	var errors := _errors()
 	if not errors.is_empty():
 		_update_validation()
