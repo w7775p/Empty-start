@@ -21,7 +21,7 @@ trait_stack_style,ui,traits,多特性叠加时的清晰排版,Godot程序绘制,
 aim_reticle,ui,combat,准心默认与瞄准状态,Godot程序绘制,assets/ui/,implemented_code,系统案5｜准心样式｜2026-10-15以GitHub main 103d49d核对：systems/combat_attack/aim_reticle.gd绘制准心与充能环；程序有入口，尚待真实画面终验。
 charge_indicator,ui,combat,蓄力过程与蓄满状态,Godot程序绘制,assets/ui/,implemented_code,系统案5｜蓄力提示｜2026-10-15以GitHub main 103d49d核对：systems/combat_attack/aim_reticle.gd绘制准心与充能环；程序有入口，尚待真实画面终验。
 projectile_word,vfx,combat,言弹主体与拖尾,Godot程序绘制,assets/effects/,implemented_code,系统案5｜言弹外观｜2026-10-15以GitHub main 103d49d核对：systems/combat_attack/attack_charge_input.gd、systems/presentation/barrage_impact_presenter.gd；程序有入口，尚待真实画面终验。
-hit_effect,vfx,combat,命中弹幕反馈,PNG,assets/effects/,in_repo,系统案5｜命中特效｜2026-10-15以GitHub main 103d49d核对：assets/ui/combat/impact_marks/四组漫画命中标记PNG/SVG；据入库证据标记，待LC-10/使用方接线。
+hit_effect,vfx,combat,PA-06可选漫画命中符号,PNG/SVG,assets/ui/combat/impact_marks/,in_repo,INT-23以main c7fec1a4复核：四组PNG/SVG由PA-06方案演示加载；常规BarrageImpactPresenter的漫画纹理默认为空且按定稿只播材质反馈。impact_01_razor.png另被CrtConnectionFx用于CRT连线闪击，属于不同反馈入口。PlanB碰撞/感染及矛盾结果均有各自视觉路径，本行不表示待接线缺口。
 combat_anomaly_effects,vfx,combat,落空/遮挡/反弹反馈,Godot程序绘制,assets/effects/,implemented_code,系统案5｜异常特效｜2026-10-15以GitHub main 103d49d核对：systems/combat_attack/attack_charge_input.gd、systems/presentation/barrage_impact_presenter.gd；程序有入口，尚待真实画面终验。
 pk_bar,ui,combat,双方PK拉锯条,PNG,assets/ui/,in_repo,系统案6｜PK条｜2026-10-15以GitHub main 103d49d核对：assets/ui/combat/pk_bar/PK段图、指示器共13张；pk_bar_skin.gd；据入库证据标记，待LC-10/使用方接线。
 pk_endpoint_avatars,ui,combat,双方头像端点框,PNG,assets/ui/,partial,系统案6｜双方头像｜2026-10-15以GitHub main 103d49d核对：已有角色立绘，独立端点头像框未明确交付；据入库证据标记，待LC-10/使用方接线。
