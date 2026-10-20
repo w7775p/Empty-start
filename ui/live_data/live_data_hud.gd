@@ -3,16 +3,33 @@ extends Control
 
 enum DisplaySide { PLAYER_LEFT, OPPONENT_RIGHT }
 
+const STAT_ICON_PATHS_BY_SIDE: Dictionary = {
+	"player": {
+		"viewer_count": "res://assets/ui/live/stats/player_viewers.png",
+		"like_count": "res://assets/ui/live/stats/player_likes.png",
+		"comment_count": "res://assets/ui/live/stats/player_comments.png",
+		"fan_count": "res://assets/ui/live/stats/player_followers.png",
+	},
+	"opponent": {
+		"viewer_count": "res://assets/ui/live/stats/opponent_viewers.png",
+		"like_count": "res://assets/ui/live/stats/opponent_likes.png",
+		"comment_count": "res://assets/ui/live/stats/opponent_comments.png",
+		"fan_count": "res://assets/ui/live/stats/opponent_followers.png",
+	},
+}
+
 # 展示方向只控制图标顺序和对齐。
 @export var display_side: DisplaySide = DisplaySide.PLAYER_LEFT:
 	set(value):
 		display_side = value
+		if is_node_ready():
+			_refresh_stat_icon_side()
 		_refresh_values()
 
 # 默认订阅玩家当前周目；其他数据来源由组合方关闭此项并显式注入。
 @export var auto_bind_player_session: bool = true
 
-# 正式 ICON 可替换为 BBCode [img]，继续沿用相同的数值刷新入口。
+# 正式PNG优先显示；资源缺失时使用对应Emoji安全回退，数值仍复用原刷新入口。
 @export_group("指标图标")
 @export var viewer_icon: String = "👤":
 	set(value):
@@ -36,6 +53,9 @@ enum DisplaySide { PLAYER_LEFT, OPPONENT_RIGHT }
 @onready var _comment_metric: RichTextLabel = %CommentMetric
 @onready var _fan_metric: RichTextLabel = %FanMetric
 @onready var _metrics: VBoxContainer = $Metrics
+
+var _metric_rows: Dictionary = {}
+var _metric_icon_rects: Dictionary = {}
 
 var _live_session: LiveSessionData = null
 # 仅缓存最近展示输入，避免图标或方向变化时从 k 文本反推并丢失整数。
@@ -76,6 +96,7 @@ func get_display_snapshot() -> Dictionary:
 
 # 编辑器只预览展示方向；运行时按独立绑定配置读取当前周目。
 func _ready() -> void:
+	_setup_metric_rows()
 	_create_comment_feed()
 	if Engine.is_editor_hint():
 		_refresh_values()
@@ -84,6 +105,85 @@ func _ready() -> void:
 		bind_live_session(SaveManager.data.live_session if SaveManager.data != null else null)
 	else:
 		_refresh_values()
+
+
+## 将四项原有数值标签放入左右镜像行，图标层与数值更新保持分离。
+func _setup_metric_rows() -> void:
+	var metric_specs: Array[Dictionary] = [
+		{"metric_id": "viewer_count", "metric": _viewer_metric},
+		{"metric_id": "like_count", "metric": _like_metric},
+		{"metric_id": "comment_count", "metric": _comment_metric},
+		{"metric_id": "fan_count", "metric": _fan_metric},
+	]
+	for spec: Dictionary in metric_specs:
+		var metric_id: String = str(spec.get("metric_id", ""))
+		var metric := spec.get("metric") as RichTextLabel
+		if metric == null or metric.get_parent() != _metrics:
+			continue
+		var original_index: int = metric.get_index()
+		_metrics.remove_child(metric)
+		var row := HBoxContainer.new()
+		row.name = "%sRow" % metric.name
+		row.custom_minimum_size.y = metric.custom_minimum_size.y
+		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_theme_constant_override("separation", 6)
+		var icon_rect := TextureRect.new()
+		icon_rect.name = "%sIcon" % metric_id
+		icon_rect.custom_minimum_size = Vector2(28.0, 28.0)
+		icon_rect.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon_rect.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		metric.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		metric.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		row.add_child(icon_rect)
+		row.add_child(metric)
+		_metrics.add_child(row)
+		_metrics.move_child(row, original_index)
+		_metric_rows[metric_id] = row
+		_metric_icon_rects[metric_id] = icon_rect
+	_refresh_stat_icon_side()
+
+
+## 依据主播侧加载同名正式PNG；缺图时隐藏TextureRect并保留原Emoji回退。
+func _refresh_stat_icon_side() -> void:
+	var side_key: String = "opponent" if display_side == DisplaySide.OPPONENT_RIGHT else "player"
+	var side_paths: Dictionary = STAT_ICON_PATHS_BY_SIDE.get(side_key, {})
+	for metric_id_value: Variant in _metric_icon_rects.keys():
+		var metric_id: String = str(metric_id_value)
+		var icon_rect := _metric_icon_rects[metric_id] as TextureRect
+		var path: String = str(side_paths.get(metric_id, ""))
+		var texture: Texture2D = load(path) as Texture2D if not path.is_empty() else null
+		icon_rect.texture = texture
+		icon_rect.visible = texture != null
+		var row := _metric_rows.get(metric_id) as HBoxContainer
+		var metric: RichTextLabel = _metric_label_for_id(metric_id)
+		if row == null or metric == null:
+			continue
+		row.alignment = BoxContainer.ALIGNMENT_END if side_key == "opponent" else BoxContainer.ALIGNMENT_BEGIN
+		if side_key == "opponent":
+			row.move_child(metric, 0)
+			row.move_child(icon_rect, 1)
+		else:
+			row.move_child(icon_rect, 0)
+			row.move_child(metric, 1)
+
+
+func _metric_label_for_id(metric_id: String) -> RichTextLabel:
+	match metric_id:
+		"viewer_count":
+			return _viewer_metric
+		"like_count":
+			return _like_metric
+		"comment_count":
+			return _comment_metric
+		"fan_count":
+			return _fan_metric
+		_:
+			return null
 
 
 ## 只展示正式评论，不修改直播统计中的真实 comment_count。
@@ -364,14 +464,20 @@ func _refresh_values() -> void:
 func _render_metric(metric: RichTextLabel, icon: String, value: int, metric_id: String = "") -> void:
 	# 千以下沿用整数；从 1000 起按千显示一位小数，只转换可见文字。
 	var number_text: String = "%.1fk" % (value / 1000.0) if value >= 1000 else str(value)
+	var icon_rect := _metric_icon_rects.get(metric_id) as TextureRect
+	var has_stat_texture: bool = icon_rect != null and icon_rect.texture != null
 	if _unknown_metrics.has(metric_id):
 		number_text = "—"
 		metric.tooltip_text = "暂无该项数据"
 	else:
 		metric.tooltip_text = ""
-	if display_side == DisplaySide.OPPONENT_RIGHT:
-		metric.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	metric.horizontal_alignment = (
+		HORIZONTAL_ALIGNMENT_RIGHT if display_side == DisplaySide.OPPONENT_RIGHT
+		else HORIZONTAL_ALIGNMENT_LEFT
+	)
+	if has_stat_texture:
+		metric.text = number_text
+	elif display_side == DisplaySide.OPPONENT_RIGHT:
 		metric.text = number_text + icon
 	else:
-		metric.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		metric.text = icon + number_text
