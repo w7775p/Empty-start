@@ -28,6 +28,7 @@ const PB14_PERFORMANCE_TRACKER_SCRIPT: Script = preload("res://systems/plan_b/pe
 const PLAN_B_CONTENT_CATALOG_SCRIPT: Script = preload("res://systems/plan_b/content/plan_b_content_catalog.gd")
 const PLAN_B_OPPONENT_DIRECTOR_SCRIPT: Script = preload("res://systems/plan_b/opponent/fermi_opponent_director.gd")
 const PB25_TUTORIAL_CONFIG_ID := "tutorial_level_001"
+const PB25_LEGACY_TUTORIAL_CONFIG_ID := "tutorial_legacy_level_001"
 const PB25_LEVEL_ID := "level_001"
 const PB25_STEP_INTRO := "pb25_intro_publish"
 const PB25_STEP_PAPER_S1 := "pb25_paper_s1_invasion"
@@ -117,6 +118,7 @@ var _pb25_tutorial_fermi_scissors_published: bool = false
 var _pb25_tutorial_fermi_story_pending: bool = false
 var _pb25_tutorial_bubble_sequence_id: StringName = &""
 var _pb25_tutorial_bubble_step_id: String = ""
+var _pb25_tutorial_bubble_pending: Array[Dictionary] = []
 var _pb25_tutorial_bubble_sequence_counter: int = 0
 var _result_feedback_system: ContradictionBreakSystem
 var _opponent_live: LiveSessionData
@@ -543,6 +545,13 @@ func _on_attempt_started(current_level: LevelProfile, _hit: HitResolution, stage
 	var tutorial_config_id := ""
 	if use_plan_b_campaign and current_level.level_id == PB25_LEVEL_ID:
 		tutorial_config_id = current_level.tutorial_config_id
+	elif not use_plan_b_campaign and not _battle_attempt_flow.uses_external_pk_source():
+		# 保持旧弹幕战的瞄准/蓄力/命中教学；24表为其保留单独配置。
+		tutorial_config_id = (
+			PB25_LEGACY_TUTORIAL_CONFIG_ID
+			if current_level.level_id == PB25_LEVEL_ID
+			else current_level.tutorial_config_id
+		)
 	_pb25_tutorial_active = (
 		use_plan_b_campaign and current_level.level_id == PB25_LEVEL_ID
 		and tutorial_config_id == PB25_TUTORIAL_CONFIG_ID
@@ -1562,7 +1571,15 @@ func _show_pb25_tutorial_bubble(step_id: String, text: String, duration_seconds:
 			or not _battle_hud.has_method("clear_dialogue_bubbles")):
 		push_error("Sandbox: Plan B HUD 缺少现有主播气泡队列接口。")
 		return false
-	# 新阶段替换本侧未完剧情与普通复读，避免多条提示叠在主播头像上。
+	# 真实步骤可以提前推进；上一句教程对白必须播完，再轮到下一句。
+	if not String(_pb25_tutorial_bubble_sequence_id).is_empty():
+		_pb25_tutorial_bubble_pending.append({
+			"step_id": step_id,
+			"text": text,
+			"duration_seconds": duration_seconds,
+		})
+		return true
+	# 本任务当前没有活跃对白时，才清理左侧普通复读并开始新阶段。
 	_pb25_tutorial_bubble_sequence_id = &""
 	_pb25_tutorial_bubble_step_id = ""
 	_battle_hud.call("clear_dialogue_bubbles", BubbleDialogueEntry.SpeakerSide.PLAYER)
@@ -1605,8 +1622,10 @@ func _pb25_tutorial_bubble_duration_seconds(step_id: String, text: String) -> fl
 	return text_reading_time
 
 
+
 ## 只在仍有本任务气泡时清理左侧队列；其他关卡沿用自己的对白生命周期。
 func _clear_pb25_tutorial_bubble() -> void:
+	_pb25_tutorial_bubble_pending.clear()
 	if String(_pb25_tutorial_bubble_sequence_id).is_empty():
 		return
 	_pb25_tutorial_bubble_sequence_id = &""
@@ -1626,6 +1645,13 @@ func _on_pb25_tutorial_dialogue_sequence_completed(sequence_id: StringName, side
 	if (completed_step_id == PB25_STEP_FERMI_SCISSORS and _pb25_tutorial_active
 			and _tutorial_runner.get_active_step_id() == PB25_STEP_FERMI_SCISSORS):
 		_tutorial_runner.notify_event("pb25_final_hint_finished")
+	if not _pb25_tutorial_bubble_pending.is_empty():
+		var next_hint: Dictionary = _pb25_tutorial_bubble_pending.pop_front()
+		_show_pb25_tutorial_bubble(
+			str(next_hint.get("step_id", "")),
+			str(next_hint.get("text", "")),
+			float(next_hint.get("duration_seconds", 8.0))
+		)
 
 
 ## 只发起一次合法的 type_c/S1 抽牌；开局前恢复提示时由正式开战入口重试。
