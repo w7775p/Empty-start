@@ -5,6 +5,7 @@ const CARD_BLANK_TEXTURE: Texture2D = preload("res://assets/ui/identity/cards/id
 const PRIMARY_BUTTON_TEXTURE: Texture2D = preload("res://assets/ui/buttons/button_primary.png")
 const SECONDARY_BUTTON_TEXTURE: Texture2D = preload("res://assets/ui/buttons/button_secondary.png")
 const BUTTON_FONT: Font = preload("res://assets/fonts/ZCOOLKuaiLe-Regular.ttf")
+const SYMBOL_INK_SHADER: Shader = preload("res://ui/identity_setup/identity_symbol_mask.gdshader")
 const CARD_ASPECT_RATIO: float = 0.80
 const CARD_MAX_WIDTH: float = 280.0
 const CARD_MIN_WIDTH: float = 108.0
@@ -12,7 +13,7 @@ const CARD_GRID_GAP: float = 12.0
 const CARD_GRID_COLUMNS: int = 6
 const DETAILS_PANEL_MIN_WIDTH: float = 255.0
 const DETAILS_PANEL_MAX_WIDTH: float = 330.0
-const NAVIGATION_RESERVED_HEIGHT: float = 96.0
+const NAVIGATION_RESERVED_HEIGHT: float = 28.0
 
 signal selection_changed(option: IdentityOption)
 signal next_requested(option: IdentityOption)
@@ -37,11 +38,16 @@ var _grid_layout_pending := false
 @onready var _details_holder: Control = %DetailsHolder
 @onready var _details_header: Label = %IdentityDetailsTitle
 @onready var _details_name_label: Label = %IdentityDetailsName
+@onready var _details_symbol: TextureRect = %DetailsSymbol
+@onready var _unknown_glyph: Label = %UnknownGlyph
 @onready var _details_description_label: Label = %IdentityDetailsDescription
+@onready var _description_scroll: ScrollContainer = %DescriptionScroll
+@onready var _details_content: VBoxContainer = $Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/DetailsContent
 @onready var _status: Label = %SelectionStatus
 @onready var _reveal_all: Button = %RevealAllButton
 @onready var _next: Button = %NextButton
 @onready var _margins: MarginContainer = $Margins
+@onready var _header_spacer: Control = $Margins/Content/HeaderToCardsSpacer
 
 
 # 临时选择、翻牌和详情只由此视图维护；正式确认与存档仍由 ID-09 调用方负责。
@@ -87,7 +93,7 @@ func _add_identity_card(option: IdentityOption) -> void:
 		selected_style.border_color = Color("#e9c76c")
 		button.add_theme_stylebox_override("pressed", selected_style)
 		button.add_theme_stylebox_override("hover_pressed", selected_style)
-		button.add_theme_stylebox_override("focus", selected_style)
+		# Keep the keyboard focus border independent of the selected state.
 
 	var card_art := TextureRect.new()
 	card_art.name = "CardArt"
@@ -163,20 +169,30 @@ func _configure_detail_panel() -> void:
 	panel_style.content_margin_left = 30.0
 	panel_style.content_margin_top = 32.0
 	panel_style.content_margin_right = 30.0
-	panel_style.content_margin_bottom = 34.0
+	panel_style.content_margin_bottom = 78.0
 	_details_panel.add_theme_stylebox_override("panel", panel_style)
+	_details_holder.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_details_panel.size_flags_horizontal = Control.SIZE_SHRINK_END
 	_details_panel.size_flags_vertical = Control.SIZE_FILL
-	_details_panel.custom_minimum_size.y = 0.0
+	_details_panel.custom_minimum_size.y = 420.0
 	_details_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_details_header.add_theme_font_size_override("font_size", 24)
-	_details_header.add_theme_color_override("font_color", Color("#54311e"))
+	_details_header.add_theme_color_override("font_color", Color("#795036"))
+	var symbol_material := ShaderMaterial.new()
+	symbol_material.shader = SYMBOL_INK_SHADER
+	_details_symbol.material = symbol_material
+	_unknown_glyph.add_theme_font_size_override("font_size", 76)
+	_unknown_glyph.add_theme_color_override("font_color", Color("#946e52"))
+	_unknown_glyph.add_theme_font_override("font", BUTTON_FONT)
 	_details_name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_details_name_label.add_theme_font_size_override("font_size", 30)
 	_details_name_label.add_theme_color_override("font_color", Color("#321c13"))
 	_details_description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_details_description_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-	_details_description_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_details_description_label.size_flags_vertical = Control.SIZE_FILL
+	_description_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_description_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	_description_scroll.get_v_scroll_bar().modulate = Color(0.5, 0.33, 0.19, 0.85)
 	_details_description_label.add_theme_font_size_override("font_size", 19)
 	_details_description_label.add_theme_color_override("font_color", Color("#362119"))
 	_status.add_theme_font_size_override("font_size", 17)
@@ -219,7 +235,7 @@ func _configure_navigation_buttons() -> void:
 		button.add_theme_color_override("font_hover_color", Color("#fff9e8") if is_secondary else Color("#382012"))
 		button.add_theme_color_override("font_pressed_color", Color("#fff0d7") if is_secondary else Color("#382012"))
 		button.add_theme_color_override("font_disabled_color", Color("#cfb59c") if is_secondary else Color("#655346"))
-		button.add_theme_font_size_override("font_size", 26)
+		button.add_theme_font_size_override("font_size", 24)
 		button.add_theme_font_override("font", BUTTON_FONT)
 		button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 
@@ -238,7 +254,10 @@ func _configure_card_button(button: Button) -> void:
 	selected.set_border_width_all(3)
 	button.add_theme_stylebox_override("pressed", selected)
 	button.add_theme_stylebox_override("hover_pressed", selected)
-	button.add_theme_stylebox_override("focus", selected)
+	var focus_style := hover.duplicate() as StyleBoxFlat
+	focus_style.border_color = Color("#78543e")
+	focus_style.set_border_width_all(2)
+	button.add_theme_stylebox_override("focus", focus_style)
 	button.add_theme_stylebox_override("disabled", empty)
 
 
@@ -249,6 +268,7 @@ func _fit_layout() -> void:
 	var canvas_scale := get_viewport().get_final_transform().get_scale()
 	if is_zero_approx(canvas_scale.x) or is_zero_approx(canvas_scale.y):
 		return
+	_header_spacer.custom_minimum_size.y = 18.0 if canvas_scale.y < 0.9 else 85.0
 	_margins.scale = Vector2.ONE / canvas_scale
 	_margins.size = size * canvas_scale
 	_margins.size.y = maxf(0.0, _margins.size.y - NAVIGATION_RESERVED_HEIGHT)
@@ -266,6 +286,12 @@ func _queue_grid_layout() -> void:
 func _run_grid_layout() -> void:
 	_grid_layout_pending = false
 	_fit_grid_columns()
+	# Keep the margin container bounded even when a child changed its minimum size.
+	var canvas_scale := get_viewport().get_final_transform().get_scale()
+	var target_height := get_viewport().get_visible_rect().size.y * canvas_scale.y - NAVIGATION_RESERVED_HEIGHT
+	var bounded_height := maxf(target_height, _margins.get_combined_minimum_size().y)
+	if absf(_margins.size.y - bounded_height) > 0.5:
+		_margins.size.y = bounded_height
 
 
 # 按实际可用宽高分配缩略卡；空间不足时才减少列数并允许滚动。
@@ -281,10 +307,19 @@ func _fit_grid_columns() -> void:
 		_details_panel.custom_minimum_size.x = details_width
 	if _scroll.size.y <= 0.0:
 		return
-	# Details sheet tracks the row height, with an upper cap for 1920 and a safe 1280 lower bound.
-	var details_height := minf(620.0, maxf(330.0, _card_area.size.y - 10.0))
-	if not is_equal_approx(_details_panel.offset_bottom, details_height):
-		_details_panel.offset_bottom = details_height
+	# Fit the detail sheet and 2 square artwork buttons in the same right column.
+	var canvas_scale_y := get_viewport().get_final_transform().get_scale().y
+	var compact := canvas_scale_y < 0.9
+	var vertical_spacing := 8 if compact else 16
+	if _details_content.get_theme_constant("separation") != vertical_spacing:
+		_details_content.add_theme_constant_override("separation", vertical_spacing)
+	var button_height := 90.0 if compact else 116.0
+	for b in [_reveal_all, _next]:
+		b.custom_minimum_size = Vector2(button_height * 1.09, button_height)
+	var details_height := 390.0 if compact else 525.0
+	if not is_equal_approx(_details_panel.custom_minimum_size.y, details_height):
+		_details_panel.custom_minimum_size.y = details_height
+	_details_symbol.custom_minimum_size.y = 72.0 if compact else 110.0
 	var available_card_width := maxf(CARD_MIN_WIDTH, content_width_limit - details_width - 12.0)
 	var fitting_columns := int(floor((available_card_width + CARD_GRID_GAP) / (CARD_MIN_WIDTH + CARD_GRID_GAP)))
 	var next_columns := clampi(fitting_columns, 1, CARD_GRID_COLUMNS)
@@ -306,7 +341,7 @@ func _fit_grid_columns() -> void:
 	for index in range(_buttons.size()):
 		_buttons[index].custom_minimum_size = Vector2(card_width, card_height)
 		_card_title_panels[index].custom_minimum_size.y = clampf(card_width * 0.15, 26.0, 34.0)
-		_card_title_labels[index].add_theme_font_size_override("font_size", clampi(roundi(card_width * 0.105), 16, 23))
+		_card_title_labels[index].add_theme_font_size_override("font_size", clampi(roundi(card_width * 0.108), 18, 23))
 
 	var content_width := card_width * cards_per_column + CARD_GRID_GAP * float(next_columns - 1)
 	var content_height := card_height * float(row_count) + CARD_GRID_GAP * float(row_count - 1)
@@ -367,6 +402,7 @@ func _on_card_focus_entered(option: IdentityOption, button: Button) -> void:
 # 详情区显示当前浏览身份的完整配置文案和它相对选择状态的关系。
 func _set_detail_option(option: IdentityOption) -> void:
 	_detail_option = option
+	_description_scroll.scroll_vertical = 0
 	_refresh_detail_panel()
 
 
@@ -455,7 +491,7 @@ func _refresh_selection() -> void:
 		_buttons[index].set_pressed_no_signal(_selected_option == IdentityOptions.CARDS[index])
 		_buttons[index].disabled = _locked
 	_reveal_all.disabled = _locked or all_revealed
-	_reveal_all.text = "已全部翻开" if all_revealed else "一键翻开"
+	_reveal_all.text = "已翻开" if all_revealed else "全部翻开"
 	_next.disabled = _selected_option == null
 	if _detail_option == null:
 		_detail_option = _selected_option if _selected_option != null else IdentityOptions.CARDS[0]
@@ -472,10 +508,22 @@ func _refresh_detail_panel() -> void:
 		return
 	# 卡背阶段只给出翻牌提示，防止焦点在卡背上时提前泄漏身份内容。
 	if not _revealed_ids.has(option.identity_id):
+		_details_symbol.visible = false
+		_unknown_glyph.visible = true
 		_details_name_label.text = "尚未揭示"
 		_details_description_label.text = "点击左侧身份牌，揭开你的身份。再次点击已翻开的卡牌，即可选择。"
 		_status.text = "等待翻牌"
 		return
+	_unknown_glyph.visible = false
+	_details_symbol.visible = option.icon != null
+	if option.icon != null:
+		var symbol_atlas := AtlasTexture.new()
+		symbol_atlas.atlas = option.icon
+		var full_size := option.icon.get_size()
+		symbol_atlas.region = Rect2(
+			Vector2(full_size.x * 0.18, full_size.y * 0.12),
+			Vector2(full_size.x * 0.64, full_size.y * 0.41))
+		_details_symbol.texture = symbol_atlas
 	_details_name_label.text = option.display_name
 	_details_description_label.text = option.description
 	if _locked:

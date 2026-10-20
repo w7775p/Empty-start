@@ -54,7 +54,7 @@ horizontal_alignment = 1
 
 [node name="HeaderToCardsSpacer" type="Control" parent="Margins/Content"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 50)
+custom_minimum_size = Vector2(0, 18)
 mouse_filter = 2
 
 [node name="CardArea" type="HBoxContainer" parent="Margins/Content"]
@@ -96,19 +96,19 @@ layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
 
-[node name="DetailsHolder" type="Control" parent="Margins/Content/CardArea"]
+[node name="DetailsHolder" type="VBoxContainer" parent="Margins/Content/CardArea"]
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(255, 0)
-size_flags_vertical = 3
+size_flags_vertical = 4
 mouse_filter = 2
+theme_override_constants/separation = 10
 
 [node name="IdentityDetailsPanel" type="PanelContainer" parent="Margins/Content/CardArea/DetailsHolder"]
 unique_name_in_owner = true
-layout_mode = 1
-anchor_right = 1.0
-offset_bottom = 420.0
-custom_minimum_size = Vector2(255, 0)
+layout_mode = 2
+custom_minimum_size = Vector2(255, 420)
+size_flags_horizontal = 3
 
 [node name="DetailsContent" type="VBoxContainer" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel"]
 layout_mode = 2
@@ -119,7 +119,22 @@ theme_override_constants/separation = 16
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
-text = "身 份 档 案"
+text = "身 份 预 览"
+
+[node name="DetailsSymbol" type="TextureRect" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/DetailsContent"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 126)
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="UnknownGlyph" type="Label" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/DetailsContent"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "?"
+horizontal_alignment = 1
 
 [node name="IdentityDetailsName" type="Label" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/DetailsContent"]
 unique_name_in_owner = true
@@ -135,44 +150,40 @@ theme_type_variation = &"MutedLabel"
 autowrap_mode = 3
 text = "尚未选择身份"
 
-[node name="IdentityDetailsDescription" type="Label" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/DetailsContent"]
+[node name="DescriptionScroll" type="ScrollContainer" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/DetailsContent"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
+
+[node name="IdentityDetailsDescription" type="Label" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/DetailsContent/DescriptionScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
 autowrap_mode = 3
 text = "聚焦或翻开身份卡查看完整说明。"
 
-[node name="Navigation" type="HBoxContainer" parent="."]
-layout_mode = 1
+[node name="Navigation" type="HBoxContainer" parent="Margins/Content/CardArea/DetailsHolder"]
+layout_mode = 2
+size_flags_horizontal = 3
 alignment = 1
-anchors_preset = 12
-anchor_left = 0.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 32.0
-offset_top = -186.0
-offset_right = -32.0
-offset_bottom = -46.0
-grow_horizontal = 2
 theme_override_constants/separation = 16
 
-[node name="BackButton" type="Button" parent="Navigation"]
+[node name="BackButton" type="Button" parent="Margins/Content/CardArea/DetailsHolder/Navigation"]
 unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 text = "返回主播取名"
 
-[node name="RevealAllButton" type="Button" parent="Navigation"]
+[node name="RevealAllButton" type="Button" parent="Margins/Content/CardArea/DetailsHolder/Navigation"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(154, 140)
+custom_minimum_size = Vector2(138, 126)
 layout_mode = 2
 text = "一键翻开"
 
-[node name="NextButton" type="Button" parent="Navigation"]
+[node name="NextButton" type="Button" parent="Margins/Content/CardArea/DetailsHolder/Navigation"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(154, 140)
+custom_minimum_size = Vector2(138, 126)
 layout_mode = 2
 theme_type_variation = &"PrimaryButton"
 disabled = true
