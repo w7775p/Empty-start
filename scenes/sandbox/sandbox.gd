@@ -16,7 +16,6 @@ const SPECIFIC_SENTENCE_REPLY_PRESENTER_SCRIPT: Script = preload("res://ui/strea
 const COMBAT_STATE_DIALOGUE_PRESENTER_SCRIPT: Script = preload("res://ui/streamer_bubble_dialogue/streamer_bubble_combat_state_presenter.gd")
 const TIMED_OPPONENT_DIALOGUE_PRESENTER_SCRIPT: Script = preload("res://ui/streamer_bubble_dialogue/streamer_bubble_timed_opponent_dialogue_presenter.gd")
 const REST_RESULT_VIEW_SCENE: PackedScene = preload("res://ui/rest/rest_result_view.tscn")
-const TUTORIAL_HINT_SCENE: PackedScene = preload("res://ui/tutorial/tutorial_hint_view.tscn")
 const BARRAGE_IMPACT_SCRIPT: Script = preload("res://systems/presentation/barrage_impact_presenter.gd")
 const PA09_FEEDBACK_SCRIPT: Script = preload("res://systems/presentation/combat_hit_feedback.gd")
 const BATTLE_AUDIO_SCRIPT: Script = preload("res://core/audio/battle_audio_presenter.gd")
@@ -101,7 +100,6 @@ var _active_dialogue_config: BubbleDialogueConfig
 var _trait_catalog: BarrageTraitCatalog
 var _trait_runtime: BarrageTraitRuntime
 var _tutorial_runner: TutorialStepRunner
-var _tutorial_hint: Control
 var _pb25_tutorial_active: bool = false
 var _pb25_tutorial_ai_paused: bool = false
 var _pb25_saved_opponent_auto_publish_enabled: bool = true
@@ -114,10 +112,12 @@ var _pb25_tutorial_rewrite_unit_ids: Array[String] = []
 var _pb25_tutorial_initial_stone_unit_ids: Dictionary = {}
 var _pb25_tutorial_force_conversion_remaining: float = 0.0
 var _pb25_tutorial_fermi_story_remaining: float = 0.0
-var _pb25_tutorial_final_hint_remaining: float = 0.0
 var _pb25_tutorial_fermi_scissors_word_id: String = ""
 var _pb25_tutorial_fermi_scissors_published: bool = false
 var _pb25_tutorial_fermi_story_pending: bool = false
+var _pb25_tutorial_bubble_sequence_id: StringName = &""
+var _pb25_tutorial_bubble_step_id: String = ""
+var _pb25_tutorial_bubble_sequence_counter: int = 0
 var _result_feedback_system: ContradictionBreakSystem
 var _opponent_live: LiveSessionData
 var _mobile_touch: Control
@@ -226,13 +226,9 @@ func _ready() -> void:
 	_tutorial_runner.tutorial_completed.connect(_on_tutorial_completed)
 	_battle_attempt_flow.shot_resolved.connect(_tutorial_runner.on_shot_resolved)
 	if use_plan_b_campaign:
-		_tutorial_hint = TUTORIAL_HINT_SCENE.instantiate() as Control
-		_tutorial_hint.name = "TutorialHintView"
-		var paradox_overlay: Control = _battle_hud.call("get_paradox_overlay_layer")
-		paradox_overlay.add_child(_tutorial_hint)
-		_tutorial_hint.position = Vector2(30.0, 90.0)
-		_tutorial_hint.size = Vector2(paradox_overlay.size.x - 60.0, 128.0)
-		_tutorial_hint.call("bind_runner", _tutorial_runner)
+		_battle_hud.dialogue_sequence_completed.connect(
+			_on_pb25_tutorial_dialogue_sequence_completed
+		)
 	else:
 		_battle_hud.bind_tutorial_runner(_tutorial_runner)
 	_battle_hud.opponent_result_presentation_finished.connect(_on_opponent_result_finished)
@@ -539,8 +535,6 @@ func _on_attempt_started(current_level: LevelProfile, _hit: HitResolution, stage
 		_battle_hud.set_final_oracle_stage_active(false)
 		_barrage_area.visible = false
 		_oracle_candidate_display.visible = false
-	if _tutorial_hint != null:
-		_tutorial_hint.call("clear_hint")
 	# 表现表按稳定 level_id 解析，并在同一尝试入口刷新主播、立绘、对白与评论。
 	var presentation: Dictionary = _formal_sheet_consumer.get_level_presentation(current_level.level_id)
 	_battle_hud.configure_opponent_result(current_level, presentation)
@@ -642,7 +636,6 @@ func _start_plan_b_battle(level: LevelProfile) -> bool:
 		elif active_step == PB25_STEP_CONVERSION:
 			_schedule_pb25_fermi_scissors()
 		elif active_step == PB25_STEP_FERMI_SCISSORS:
-			_pb25_tutorial_final_hint_remaining = 3.5
 			if not _pb25_tutorial_fermi_scissors_published:
 				_pb25_tutorial_fermi_story_pending = true
 	return true
@@ -705,6 +698,17 @@ func _on_plan_b_publish_result(team: String, word_id: String, result: Dictionary
 		_pb25_tutorial_fermi_story_pending = false
 		_pb25_tutorial_fermi_story_remaining = 0.0
 		_tutorial_runner.notify_event("pb25_fermi_scissors_published")
+		# 重开恢复到最后一步时，Runner 已显示过触发状态；故事回执到达后补放同一正式提示。
+		if (_pb25_tutorial_active
+				and _tutorial_runner.get_active_step_id() == PB25_STEP_FERMI_SCISSORS
+				and String(_pb25_tutorial_bubble_sequence_id).is_empty()):
+			var current_hint: Dictionary = _tutorial_runner.get_current_hint()
+			var current_hint_text := str(current_hint.get("hint_text", ""))
+			_show_pb25_tutorial_bubble(
+				PB25_STEP_FERMI_SCISSORS,
+				current_hint_text,
+				_pb25_tutorial_bubble_duration_seconds(PB25_STEP_FERMI_SCISSORS, current_hint_text)
+			)
 
 
 func _on_plan_b_publish_requested(slot_id: int, word_id: String, spawn_position: Vector2) -> void:
@@ -841,7 +845,14 @@ func _on_contradiction_stage_entered(_system: ContradictionBreakSystem) -> void:
 		_barrage_area.visible = true
 		var current_level: LevelProfile = _battle_attempt_flow.get_current_level_profile()
 		if (use_plan_b_campaign and current_level != null
-				and current_level.level_id == PB25_LEVEL_ID and _tutorial_hint != null):
+				and current_level.level_id == PB25_LEVEL_ID):
+			# 普通棋子战结束后，未完成提示保留存档进度并交还AI，再播放矛盾蓄力提示。
+			if _pb25_tutorial_active:
+				_pb25_tutorial_active = false
+				_pb25_tutorial_fermi_story_pending = false
+				_pb25_tutorial_force_conversion_remaining = 0.0
+				_set_pb25_tutorial_ai_paused(false)
+				_battle_hud.call("set_tutorial_highlighted_battle_types", [])
 			_show_pb25_paradox_prompt()
 		elif current_level != null:
 			# 旧准心教程只在恢复射击的矛盾阶段出现。
@@ -870,8 +881,7 @@ func _on_final_oracle_opened(session: FinalOracleSession) -> void:
 	_battle_hud.set_paradox_stage_active(false, _battle_attempt_flow.get_current_tier())
 	if use_plan_b_campaign:
 		_battle_hud.set_final_oracle_stage_active(true)
-		if _tutorial_hint != null:
-			_tutorial_hint.call("clear_hint")
+		_clear_pb25_tutorial_bubble()
 	final_oracle_opened.emit(session)
 	_refresh_mobile_touch_phase()
 
@@ -1495,14 +1505,12 @@ func _reset_pb25_tutorial_attempt_state() -> void:
 	_pb25_tutorial_initial_stone_unit_ids.clear()
 	_pb25_tutorial_force_conversion_remaining = 0.0
 	_pb25_tutorial_fermi_story_remaining = 0.0
-	_pb25_tutorial_final_hint_remaining = 0.0
 	_pb25_tutorial_fermi_scissors_word_id = ""
 	_pb25_tutorial_fermi_scissors_published = false
 	_pb25_tutorial_fermi_story_pending = false
+	_clear_pb25_tutorial_bubble()
 	if _battle_hud != null and _battle_hud.has_method("set_tutorial_highlighted_battle_types"):
 		_battle_hud.call("set_tutorial_highlighted_battle_types", [])
-	if is_instance_valid(_tutorial_hint):
-		_tutorial_hint.call("clear_hint")
 
 
 ## 教学期只暂停普通自动发话与一般反击；恢复时回到本局原始开关状态。
@@ -1525,12 +1533,17 @@ func _set_pb25_tutorial_ai_paused(paused: bool) -> void:
 	_pb25_tutorial_ai_paused = false
 
 
-## 三类卡牌与阶段提示由 24 表 Runner 驱动；未进入的步骤不会抢先高亮。
-func _on_pb25_tutorial_hint_requested(step_id: String, _hint_text: String) -> void:
+## 24表仍拥有提示文案与事件顺序；正式 Plan B 将当前步骤送入煲煲主播气泡。
+func _on_pb25_tutorial_hint_requested(step_id: String, hint_text: String) -> void:
 	if not _pb25_tutorial_active:
 		return
-	if is_instance_valid(_tutorial_hint):
-		_tutorial_hint.size.y = 128.0
+	if step_id == PB25_STEP_FERMI_SCISSORS and not _pb25_tutorial_fermi_scissors_published:
+		# 已完成的剪刀发表在重开后重新执行；先等成功回执再显示鼠的求助文案。
+		_pb25_tutorial_fermi_story_pending = true
+		return
+	_show_pb25_tutorial_bubble(
+		step_id, hint_text, _pb25_tutorial_bubble_duration_seconds(step_id, hint_text)
+	)
 	match step_id:
 		PB25_STEP_INTRO:
 			_battle_hud.call("set_tutorial_highlighted_battle_types", ["type_a", "type_b", "type_c"])
@@ -1541,9 +1554,78 @@ func _on_pb25_tutorial_hint_requested(step_id: String, _hint_text: String) -> vo
 			_schedule_pb25_fermi_scissors()
 		PB25_STEP_FERMI_SCISSORS:
 			_battle_hud.call("set_tutorial_highlighted_battle_types", [])
-			_pb25_tutorial_final_hint_remaining = 3.5
-			if not _pb25_tutorial_fermi_scissors_published:
-				_pb25_tutorial_fermi_story_pending = true
+
+
+## 正式提示保持一条剧情序列，排版、尾巴、动画与寿命均沿用左侧主播气泡。
+func _show_pb25_tutorial_bubble(step_id: String, text: String, duration_seconds: float) -> bool:
+	if (_battle_hud == null or not _battle_hud.has_method("enqueue_dialogue_sequence")
+			or not _battle_hud.has_method("clear_dialogue_bubbles")):
+		push_error("Sandbox: Plan B HUD 缺少现有主播气泡队列接口。")
+		return false
+	# 新阶段替换本侧未完剧情与普通复读，避免多条提示叠在主播头像上。
+	_pb25_tutorial_bubble_sequence_id = &""
+	_pb25_tutorial_bubble_step_id = ""
+	_battle_hud.call("clear_dialogue_bubbles", BubbleDialogueEntry.SpeakerSide.PLAYER)
+	_pb25_tutorial_bubble_sequence_counter += 1
+	var sequence_id := StringName(
+		"pb25_tutorial_%s_%d" % [step_id, _pb25_tutorial_bubble_sequence_counter]
+	)
+	var entry := BubbleDialogueEntry.new()
+	entry.side = BubbleDialogueEntry.SpeakerSide.PLAYER
+	entry.text = text
+	entry.event_id = &"pb25_tutorial_hint"
+	entry.priority = BubbleDialogueEntry.Priority.PLOT
+	entry.display_duration_seconds = maxf(duration_seconds, 0.1)
+	var entries: Array[BubbleDialogueEntry] = [entry]
+	_pb25_tutorial_bubble_sequence_id = sequence_id
+	_pb25_tutorial_bubble_step_id = step_id
+	var queued_id: Variant = _battle_hud.call("enqueue_dialogue_sequence", entries, sequence_id)
+	if str(queued_id) != str(sequence_id):
+		_pb25_tutorial_bubble_sequence_id = &""
+		_pb25_tutorial_bubble_step_id = ""
+		push_error("Sandbox: PB-25 引导文案未进入仓鼠主播气泡队列：%s" % step_id)
+		return false
+	return true
+
+
+## 中文正文按实际字符数留出阅读时间，RichTextLabel 负责气泡内折行与滚动。
+func _pb25_tutorial_bubble_duration_seconds(step_id: String, text: String) -> float:
+	var text_reading_time := clampf(4.0 + float(text.length()) / 8.0, 6.5, 10.0)
+	match step_id:
+		PB25_STEP_INTRO:
+			return maxf(text_reading_time, 8.0)
+		PB25_STEP_PAPER_S1:
+			return maxf(text_reading_time, 12.0)
+		PB25_STEP_CONVERSION:
+			return maxf(text_reading_time, 6.5)
+		PB25_STEP_FERMI_SCISSORS:
+			return maxf(text_reading_time, 9.0)
+		"pb25_paradox_prompt":
+			return maxf(text_reading_time, 9.0)
+	return text_reading_time
+
+
+## 只在仍有本任务气泡时清理左侧队列；其他关卡沿用自己的对白生命周期。
+func _clear_pb25_tutorial_bubble() -> void:
+	if String(_pb25_tutorial_bubble_sequence_id).is_empty():
+		return
+	_pb25_tutorial_bubble_sequence_id = &""
+	_pb25_tutorial_bubble_step_id = ""
+	if _battle_hud != null and _battle_hud.has_method("clear_dialogue_bubbles"):
+		_battle_hud.call("clear_dialogue_bubbles", BubbleDialogueEntry.SpeakerSide.PLAYER)
+
+
+## 最终教程只在左主播剧情气泡完整播放并渐隐后完成。
+func _on_pb25_tutorial_dialogue_sequence_completed(sequence_id: StringName, side: int) -> void:
+	if (side != BubbleDialogueEntry.SpeakerSide.PLAYER
+			or sequence_id != _pb25_tutorial_bubble_sequence_id):
+		return
+	var completed_step_id := _pb25_tutorial_bubble_step_id
+	_pb25_tutorial_bubble_sequence_id = &""
+	_pb25_tutorial_bubble_step_id = ""
+	if (completed_step_id == PB25_STEP_FERMI_SCISSORS and _pb25_tutorial_active
+			and _tutorial_runner.get_active_step_id() == PB25_STEP_FERMI_SCISSORS):
+		_tutorial_runner.notify_event("pb25_final_hint_finished")
 
 
 ## 只发起一次合法的 type_c/S1 抽牌；开局前恢复提示时由正式开战入口重试。
@@ -1657,7 +1739,10 @@ func _pb25_get_unit_snapshot(unit_id: String) -> Dictionary:
 ## 反馈先展示一小段时间，再由 Fermi 通过正常发表接口讲出指定✌️神谕。
 func _schedule_pb25_fermi_scissors() -> void:
 	_pb25_tutorial_fermi_story_pending = true
-	_pb25_tutorial_fermi_story_remaining = 1.5
+	var current_hint: Dictionary = _tutorial_runner.get_current_hint()
+	_pb25_tutorial_fermi_story_remaining = _pb25_tutorial_bubble_duration_seconds(
+		PB25_STEP_CONVERSION, str(current_hint.get("hint_text", ""))
+	) + 0.25
 
 
 ## 找一条当前关卡可用的 type_b 词句，用真实 Host 批次发表来完成剧情动作。
@@ -1705,16 +1790,6 @@ func _advance_pb25_tutorial(delta: float) -> void:
 			if _pb25_tutorial_fermi_story_remaining <= 0.0:
 				if not _publish_pb25_fermi_scissors():
 					_pb25_tutorial_fermi_story_remaining = 0.5
-	if (active_step == PB25_STEP_FERMI_SCISSORS
-			and _pb25_tutorial_fermi_scissors_published
-			and _pb25_tutorial_final_hint_remaining > 0.0):
-		_pb25_tutorial_final_hint_remaining = maxf(
-			0.0, _pb25_tutorial_final_hint_remaining - delta
-		)
-		if _pb25_tutorial_final_hint_remaining <= 0.0:
-			_tutorial_runner.notify_event("pb25_final_hint_finished")
-
-
 ## 故事教学完播后关闭高亮并恢复本局对手原始 AI 状态。
 func _on_tutorial_completed(config_id: String) -> void:
 	if config_id != PB25_TUTORIAL_CONFIG_ID or not _pb25_tutorial_active:
@@ -1722,25 +1797,19 @@ func _on_tutorial_completed(config_id: String) -> void:
 	_pb25_tutorial_active = false
 	_pb25_tutorial_force_conversion_remaining = 0.0
 	_pb25_tutorial_fermi_story_remaining = 0.0
-	_pb25_tutorial_final_hint_remaining = 0.0
 	_pb25_tutorial_fermi_story_pending = false
+	_clear_pb25_tutorial_bubble()
 	_set_pb25_tutorial_ai_paused(false)
 	if _battle_hud != null and _battle_hud.has_method("set_tutorial_highlighted_battle_types"):
 		_battle_hud.call("set_tutorial_highlighted_battle_types", [])
-	if _contradiction_oracle_flow != null and _contradiction_oracle_flow.is_contradiction_active():
-		# TutorialHintView 也监听 tutorial_completed；延后重显，保留矛盾阶段独立指引。
-		call_deferred("_show_pb25_paradox_prompt")
 
 
 ## 矛盾阶段沿用既有攻击输入，只替换当前教程面板里的提示文字。
 func _show_pb25_paradox_prompt() -> void:
-	if not is_instance_valid(_tutorial_hint):
-		return
-	# 三段原文含两个空行；扩高面板保证 26px 正文字号能完整显示。
-	_tutorial_hint.size.y = 190.0
-	_tutorial_hint.call(
-		"show_hint", "pb25_paradox_prompt",
-		"它的身上藏着秘密！\n\n真相只有一个！\n\n长按蓄力射击！"
+	_show_pb25_tutorial_bubble(
+		"pb25_paradox_prompt",
+		"它的身上藏着秘密！\n\n真相只有一个！\n\n长按蓄力射击！",
+		8.0
 	)
 
 

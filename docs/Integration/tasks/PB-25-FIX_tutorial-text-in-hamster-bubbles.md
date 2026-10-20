@@ -1,6 +1,6 @@
 # PB-25-FIX · 费米教学文案改用仓鼠主播现有气泡
 
-状态：P0、修复中；Owner：B，沿用 PB-25 / PR #324 的同一 Agent。
+状态：P0、已实现；PR #324 保持 Draft，等待用户视觉验收；Owner：B，沿用 PB-25 / PR #324 的同一 Agent。
 
 ## 开始前先阅读以下文档
 AGENTS.md、known_traps.md、docs/Original/任务卡模板.md、PB-25 原任务卡、PR #324、ui/streamer_bubble_dialogue/ 和 scenes/sandbox/sandbox_battle_hud.gd。
@@ -23,6 +23,8 @@ Godot 4.7.2 / GDScript / 1920×1080、1280×720；工作树、导入缓存、日
 
 ## 最小执行流程
 按最小补丁修复，更新 PB-25 log，做一次 Sandbox 起步及完整四阶段事件 smoke，附仓鼠气泡关键帧截图；PR #324 保持 Draft 供用户视觉验收。
+
+截图：`docs/Integration/evidence/PB-25-FIX_2026-10-20/`，开场、type_c/S1 和矛盾提示各含 1280×720 与 1920×1080。
 
 ## 最终汇报
 提交 SHA、PR #324、引导气泡入口与现有面板移除结果、可查看的 D 盘截图及剩余视觉问题。

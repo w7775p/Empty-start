@@ -88,7 +88,7 @@
 - `PlanBBattleHost.set_tutorial_initial_opponent_battle_type(type_a)` 将一次性类型覆写缓存到下一次 `start_battle()`，正式教学初始两名费米因此都使用 type_a。Sandbox 在第二阶段调用 PB-22 的 `request_tutorial_type_c_s1_draw()` 请求一次合法 type_c/S1；只有正式发表回执中 `rewrite_count >= 1` 才算玩家完成旧信徒改口。
 - 自然接触优先完成 type_c 克制 type_a 感染。无自然成功时，Sandbox 等待2秒，再调用 `PlanBBattleHost.apply_tutorial_conversion(source_id, target_id)`；Host 只在战斗运行时转发给 Simulation，Simulation 再验证玩家/对手阵营、话语有效和真实 `_counters()` 关系，成功后发出原 `unit_changed("convert")` 与 `contact_resolved("converted")` 事实。
 - 费米剪刀话语通过正式 `publish_word("opponent", type_b_word_id, position)` 成功发表，沿用正常词池、批次、显示与发表事件，不经过特殊技能次数结算。教学进行时 Sandbox 关闭普通自动发话并暂停通用反击，完播后恢复暂停前的开关状态。
-- `PlanBBattleUI.set_tutorial_highlighted_battle_types([...])` 仅突出指定属性卡片，不替代固定卡槽和抽牌状态。矛盾阶段由现有 `AttackChargeInput` 接收蓄力/释放，提示面板展示三句剧情原文；进入 Final Oracle 时清除提示。
+- `PlanBBattleUI.set_tutorial_highlighted_battle_types([...])` 仅突出指定属性卡片，不替代固定卡槽和抽牌状态。PB-25 引导经现有 `enqueue_dialogue_sequence()` / `BubbleDialogueEntry` 以 PLOT 优先级呈现在左侧煲煲 `StreamerBubbleStack`；最终步骤等真实 `dialogue_sequence_completed` 后完成。矛盾阶段的三句蓄力提示沿用同一左侧主播气泡，进入 Final Oracle 时清除当前引导。
 
 ### PB-27 四主播专属反击效果
 - `PlanBUnitSimulation.apply_counterattack_effect(request) -> Dictionary` 是四种反击效果的权威执行入口，返回 `ok/reason/effect_id/affected_count/affected_unit_ids` 与必要效果数据；A 将实际结果回传 C，C 仅在 `ok=true` 时消耗 PB-26 对应轮次。
