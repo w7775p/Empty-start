@@ -45,3 +45,11 @@
 - `IdentityDetailsName` 水平居中，翻开后身份名称例如「随侍」居中，配表描述继续左对齐。保留 `SelectionStatus` 和其余选择逻辑。
 - Godot 4.7.2 / Windows OpenGL 3 真实运行：验证 12 卡、卡背提示无滚动、翻开后 `description == option.description`、切换到卡背再切回、长文本产生滚动条、第二次点击选择；1280×720 与 1920×1080 截图已输出，均返回 `PR327_CORRECTED_PASS` / exit 0。
 - 修改范围：`ui/identity_setup/identity_selection.gd`、`.tscn`；后续界面美术仍等人工确认，保持 Draft。
+
+## 2026-10-20 · 右侧预览字阶适配（第六轮）
+- 症状：1280×720 下固定 19/30px 的描述/身份名显得偏大，1920×1080 下显得偏小。
+- 在 `identity_selection.gd` 新增 `_fit_detail_typography(physical_height)`，按实际窗口高度在 720–1080px 之间连续插值，并限制上下界；视口变化时更新右侧标题、问号、身份名、状态、未翻牌提示、配表正文与行距。只在字号变化时覆写主题，避免布局反复振荡。
+- 720px 时：正文及未翻牌提示 16、身份名 24、状态 14；1080px 时：正文 22、身份名 34、状态 18；中间分辨率线性过渡。
+- 保留 `option.description` 作为翻开后的唯一配表文案、长文滚动、身份名居中、详情左对齐、卡背提示与翻牌/选择流程。
+- Godot 4.7.2 / Windows / OpenGL 3 实际验收：1280×720 的 `PR327_TYPE_PASS height=720 body=16 name=24`，较大 Windows 窗口受桌面工作区限制为 1055px，回执 `PR327_TYPE_PASS height=1055 body=22 name=33`；两档均确认 12 卡、卡背提示、配表详情、长文滚动、两次点击选择；退出码均为 0。
+- 本次新增截图在 `evidence/ID-16-VISUAL-FIX_2026-10-20/pr327_typography_720.png` 与 `pr327_typography_1055.png`，替代之前固定字号的预览供视觉验收。保持 Draft。
