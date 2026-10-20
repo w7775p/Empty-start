@@ -42,6 +42,7 @@ var _button_patch_cache: Dictionary[int, ImageTexture] = {}
 @onready var _details_symbol: TextureRect = %DetailsSymbol
 @onready var _unknown_glyph: Label = %UnknownGlyph
 @onready var _details_description_label: Label = %IdentityDetailsDescription
+@onready var _unrevealed_hint: Label = %UnrevealedHint
 @onready var _description_scroll: ScrollContainer = %DescriptionScroll
 @onready var _details_content: VBoxContainer = $Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/InnerPadding/DetailsContent
 @onready var _status: Label = %SelectionStatus
@@ -185,9 +186,14 @@ func _configure_detail_panel() -> void:
 	_unknown_glyph.add_theme_font_size_override("font_size", 76)
 	_unknown_glyph.add_theme_color_override("font_color", Color("#946e52"))
 	_unknown_glyph.add_theme_font_override("font", BUTTON_FONT)
+	_details_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_details_name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_details_name_label.add_theme_font_size_override("font_size", 30)
 	_details_name_label.add_theme_color_override("font_color", Color("#321c13"))
+	_details_description_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_unrevealed_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_unrevealed_hint.add_theme_font_size_override("font_size", 19)
+	_unrevealed_hint.add_theme_color_override("font_color", Color("#362119"))
 	_details_description_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_details_description_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	_details_description_label.size_flags_vertical = Control.SIZE_FILL
@@ -515,17 +521,19 @@ func _refresh_selection() -> void:
 # 显示焦点卡全文，并明确指出当前卡与已选择/已确认身份的关系。
 func _refresh_detail_panel() -> void:
 	var option := _detail_option
+	var revealed := option != null and _revealed_ids.has(option.identity_id)
+	# 卡背只显示纯文本提示；翻开后恢复配表描述及长文滚动。
+	_unrevealed_hint.visible = not revealed
+	_description_scroll.visible = revealed
 	if option == null:
 		_details_name_label.text = "身份详情"
-		_details_description_label.text = "移动焦点或点击身份卡查看完整说明。"
 		_status.text = "尚未选择身份"
 		return
 	# 卡背阶段只给出翻牌提示，防止焦点在卡背上时提前泄漏身份内容。
-	if not _revealed_ids.has(option.identity_id):
+	if not revealed:
 		_details_symbol.visible = false
 		_unknown_glyph.visible = true
 		_details_name_label.text = "尚未揭示"
-		_details_description_label.text = "点击左侧身份牌，揭开你的身份。再次点击已翻开的卡牌，即可选择。"
 		_status.text = "等待翻牌"
 		return
 	_unknown_glyph.visible = false
