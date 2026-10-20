@@ -3,10 +3,10 @@ extends Control
 const TABLE_PATH := "res://data/source_tables/24_新手教学配置.csv"
 const LEVEL_TABLE_PATH := "res://data/source_tables/02_主播关卡.csv"
 const DEFAULT_CONFIG_ID := "tutorial_level_001"
-const REQUIRED_HEADERS := PackedStringArray([
+const REQUIRED_HEADERS: Array[String] = [
 	"tutorial_config_id", "step_id", "step_order", "trigger_event",
 	"hint_text", "completion_event", "enabled", "notes"
-])
+]
 
 var _headers := PackedStringArray()
 var _rows: Array[Dictionary] = []
@@ -54,7 +54,7 @@ func _build_ui() -> void:
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	toolbar.add_child(title)
 	_config_picker = OptionButton.new()
-	_config_picker.custom_minimum_size.x = 290
+	_config_picker.custom_minimum_size = Vector2(290, 0)
 	_config_picker.item_selected.connect(_on_filter_changed)
 	toolbar.add_child(_config_picker)
 	_button(toolbar, "＋ 新建步骤", _add_step)
@@ -68,7 +68,7 @@ func _build_ui() -> void:
 	root.add_child(split)
 
 	var left := VBoxContainer.new()
-	left.custom_minimum_size.x = 340
+	left.custom_minimum_size = Vector2(340, 0)
 	left.add_child(_label("步骤列表（按执行顺序）"))
 	_step_list = ItemList.new()
 	_step_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -84,7 +84,7 @@ func _build_ui() -> void:
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.custom_minimum_size.x = 500
+	scroll.custom_minimum_size = Vector2(500, 0)
 	split.add_child(scroll)
 	var form := VBoxContainer.new()
 	form.size_flags_horizontal = Control.SIZE_EXPAND_FILL
