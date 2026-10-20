@@ -154,6 +154,10 @@ LD-10 等 18. Rest。
 Godot 双分辨率截图和验证限制见 [LD-17 日志](直播数据表现系统_LD-17_2026-10-20_log.md)。
 返工的实际 UI 截图、运行 SHA 与五条评论密度验证见 [LD-17-FIX 完成日志](直播数据表现系统_LD-17-FIX_2026-10-20_log.md)。
 
+## INT-22 直播统计图标接线
+
+`LiveDataHud` 按 `display_side` 为观看、点赞、评论、粉丝四项分别加载 `assets/ui/live/stats/player_*.png` 或 `opponent_*.png`。TextureRect 固定最大显示框并保持原图比例；数值继续由原 `LiveSessionData` / `set_values()` 刷新。资源未加载时保留对应Emoji文本回退。左右侧的图标/数值顺序镜像，统计行的48px最小高度、垂直间距和评论区均沿用原布局。
+
 ## INT-14 正式评论展示接线（2026-10-15）
 
 Sandbox 的 `FormalSheetRuntimeConsumer` 按 `viewer_id` 关联 19_直播评论词库与25_直播观众账号，并按 `side_scope`、主播 ID 和启用状态生成评论项。两侧 `LiveDataHud.configure_formal_comments(rows, parameters)` 只负责显示；配置 22 表的随机间隔、同屏上限、滚速、行距、粉丝展示概率、暂停行为和字号。展示评论不会增加 `LiveSessionData.comment_count`；该计数继续只接收实际成功生成的弹幕实例。
