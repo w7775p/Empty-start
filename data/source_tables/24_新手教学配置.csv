@@ -3,3 +3,6 @@ tutorial_level_001,pb25_intro_publish,1,pb25_tutorial_begin,"噢快看呐，这�
 tutorial_level_001,pb25_paper_s1_invasion,2,pb25_first_player_publish,"什么！有异端正在尝试污染我们的信仰！\n\n赶紧发表✋神谕，让自己的信徒改口！",pb25_paper_type_c_conversion,true,PB-25：高亮 type_c；请求A的指定type_c/S1抽牌；等待真实改口与✋克✊转换。
 tutorial_level_001,pb25_paper_conversion_success,3,pb25_paper_type_c_conversion,"太好了！\n\n我们的✋信徒开始压制敌人的✊信徒啦~",pb25_fermi_scissors_published,true,PB-25：真实转换后显示成功反馈；随后A剧情发表一条合法type_b话语。
 tutorial_level_001,pb25_fermi_scissors,4,pb25_fermi_scissors_published,"但敌人又发表了✌️神谕！\n\n那么！请帮帮鼠吧！",pb25_final_hint_finished,true,PB-25：剧情type_b发表成功后显示；短时阅读后结束教程并恢复费米普通AI。
+tutorial_legacy_level_001,tutorial_001_aim,1,tutorial_target_available,移动准心，对准一条飘过的话！,tutorial_aim_acquired,true,旧弹幕战：准心对准普通话语后完成；继续复用原准心与输入逻辑。
+tutorial_legacy_level_001,tutorial_001_charge,2,tutorial_aim_acquired,按住攻击，等准心外圈亮满！,tutorial_charge_full,true,旧弹幕战：读取实际蓄满事件；提前松开可重新蓄力。
+tutorial_legacy_level_001,tutorial_001_fire,3,tutorial_charge_full,松开攻击，把这句话打回去！,tutorial_normal_hit,true,旧弹幕战：只有正式有效普通命中完成此步骤。
