@@ -1,7 +1,8 @@
-[gd_resource type="Theme" load_steps=20 format=3]
+[gd_resource type="Theme" load_steps=22 format=3]
 
 [ext_resource type="FontFile" path="res://assets/fonts/NotoSansSC-VF.ttf" id="1_noto"]
 [ext_resource type="FontFile" path="res://assets/fonts/ZCOOLKuaiLe-Regular.ttf" id="2_zcool"]
+[ext_resource type="Texture2D" path="res://assets/ui/identity/cards/identity_card_front_00_blank.png" id="3_blank_card"]
 
 [sub_resource type="StyleBoxFlat" id="ButtonNormal"]
 bg_color = Color(0.172549, 0.188235, 0.219608, 1)
@@ -211,6 +212,17 @@ content_margin_top = 24.0
 content_margin_right = 24.0
 content_margin_bottom = 24.0
 
+[sub_resource type="StyleBoxTexture" id="PanelCardTexture"]
+texture = ExtResource("3_blank_card")
+texture_margin_left = 36.0
+texture_margin_top = 36.0
+texture_margin_right = 36.0
+texture_margin_bottom = 36.0
+content_margin_left = 24.0
+content_margin_top = 24.0
+content_margin_right = 24.0
+content_margin_bottom = 24.0
+
 [sub_resource type="StyleBoxFlat" id="PanelDialog"]
 bg_color = Color(0.137255, 0.14902, 0.176471, 1)
 border_width_left = 1
@@ -327,7 +339,7 @@ MutedLabel/colors/font_color = Color(0.662745, 0.686275, 0.721569, 1)
 MutedLabel/font_sizes/font_size = 20
 
 CardPanel/base_type = &"PanelContainer"
-CardPanel/styles/panel = SubResource("PanelCard")
+CardPanel/styles/panel = SubResource("PanelCardTexture")
 
 DialogPanel/base_type = &"PanelContainer"
 DialogPanel/styles/panel = SubResource("PanelDialog")
