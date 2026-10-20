@@ -32,3 +32,10 @@
 - Godot 4.7.2 正式 `IdentitySelection` 场景以真实窗口 1280×720 / 1920×1080 渲染：每档 12 卡完整显示、整行按钮无裁切，图像见同目录 evidence。
 - 行为验证通过：`ID16_VISUAL_REWORK_FUNCTION_PASS 12 cards / flip / select / next / reveal-all / long-description-scroll`。
 - 本轮仍保持 PR #327 Draft，待人工视觉确认；无身份系统存档或战斗逻辑修改。
+
+## 2026-10-20 · 第四轮返工：按钮边框比例及详情文字安全区
+- 根因：旧九宫格直接对 391×359 原始按钮图片取边距（左右各 88px），在超过 900px 的通栏宽度下角部变成夸张胶囊；正文和空白卡美术边框仅相隔约十几像素，滚动文本触碰装饰线。
+- 按钮：仍引用 `button_primary.png`、`button_secondary.png`；运行时先裁切正式按钮美术有效区域 (27,66,391,359)，缩放成 112×103 小尺寸九宫格素材，四边切分 23px 后仅水平延展中段，修复巨大圆角和扁平化变形。主/次按钮继续各占底部一半，间距与按键状态保持。
+- 详情：`IdentityDetailsPanel` 的纸张安全边距提高为左右 36px、顶部 38px，新增 `InnerPadding` 独立 MarginContainer（左右 18px、上 10px、下 12px），避免描述文字压到纸边。保留原图边框与滚动行为；略微扩大详情宽度到 280–365px，高度 425px（紧凑）／565px（常规），缩短图案预览高度让正文有更多实际空间。
+- 本次恢复原有 Shader 暗角与中心暖色提亮、卡牌轻投影不变。正式 Godot 4.7.2 实际窗口 1280×720 与 1920×1080 再次截图比对，按钮、卡面、详情全部可见。行为测试打印 `ID16_VISUAL_REWORK_FUNCTION_PASS 12 cards / flip / select / next / reveal-all / long-description-scroll`。
+- 修改范围仅 `ui/identity_setup/identity_selection.gd` 与 `ui/identity_setup/identity_selection.tscn`；本 PR 继续 Draft，等待人工美术验收。

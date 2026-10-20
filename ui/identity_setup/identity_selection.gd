@@ -11,9 +11,9 @@ const CARD_MAX_WIDTH: float = 280.0
 const CARD_MIN_WIDTH: float = 108.0
 const CARD_GRID_GAP: float = 12.0
 const CARD_GRID_COLUMNS: int = 6
-const DETAILS_PANEL_MIN_WIDTH: float = 255.0
-const DETAILS_PANEL_MAX_WIDTH: float = 330.0
-const NAVIGATION_RESERVED_HEIGHT: float = 126.0
+const DETAILS_PANEL_MIN_WIDTH: float = 280.0
+const DETAILS_PANEL_MAX_WIDTH: float = 365.0
+const NAVIGATION_RESERVED_HEIGHT: float = 119.0
 
 signal selection_changed(option: IdentityOption)
 signal next_requested(option: IdentityOption)
@@ -27,6 +27,7 @@ var _card_title_labels: Array[Label] = []
 var _revealed_ids: Dictionary[StringName, bool] = {}
 var _card_caption_style: StyleBoxFlat
 var _grid_layout_pending := false
+var _button_patch_cache: Dictionary[int, ImageTexture] = {}
 
 @onready var _grid: GridContainer = %IdentityCards
 @onready var _row_center: HBoxContainer = %CardRowCenter
@@ -42,7 +43,7 @@ var _grid_layout_pending := false
 @onready var _unknown_glyph: Label = %UnknownGlyph
 @onready var _details_description_label: Label = %IdentityDetailsDescription
 @onready var _description_scroll: ScrollContainer = %DescriptionScroll
-@onready var _details_content: VBoxContainer = $Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/DetailsContent
+@onready var _details_content: VBoxContainer = $Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/InnerPadding/DetailsContent
 @onready var _status: Label = %SelectionStatus
 @onready var _reveal_all: Button = %RevealAllButton
 @onready var _next: Button = %NextButton
@@ -166,10 +167,10 @@ func _configure_detail_panel() -> void:
 	panel_style.texture_margin_top = 52.0
 	panel_style.texture_margin_right = 38.0
 	panel_style.texture_margin_bottom = 56.0
-	panel_style.content_margin_left = 30.0
-	panel_style.content_margin_top = 32.0
-	panel_style.content_margin_right = 30.0
-	panel_style.content_margin_bottom = 78.0
+	panel_style.content_margin_left = 36.0
+	panel_style.content_margin_top = 38.0
+	panel_style.content_margin_right = 36.0
+	panel_style.content_margin_bottom = 72.0
 	_details_panel.add_theme_stylebox_override("panel", panel_style)
 	_details_holder.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_details_panel.size_flags_horizontal = Control.SIZE_SHRINK_END
@@ -194,29 +195,40 @@ func _configure_detail_panel() -> void:
 	_description_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	_description_scroll.get_v_scroll_bar().modulate = Color(0.5, 0.33, 0.19, 0.85)
 	_details_description_label.add_theme_font_size_override("font_size", 19)
+	_details_description_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0))
+	_details_description_label.add_theme_constant_override("line_spacing", 5)
 	_details_description_label.add_theme_color_override("font_color", Color("#362119"))
 	_status.add_theme_font_size_override("font_size", 17)
 	_status.add_theme_color_override("font_color", Color("#56321e"))
 
 
-# 底部通栏保留原按钮边角：九宫格只延展中段，避免横向拉长时压扁轮廓。
+# 旧图 391x359 是正方形按钮；直接在 900px 横条上九宫格裁 88px 边会变成夸张胶囊。
+# 先等比缩小有效图，再切四角及边框；宽度仅由中段延展。
+func _button_patch(texture: Texture2D) -> ImageTexture:
+	var id := texture.get_instance_id()
+	if _button_patch_cache.has(id):
+		return _button_patch_cache[id]
+	var image: Image = texture.get_image()
+	var region := image.get_region(Rect2i(27, 66, 391, 359))
+	region.resize(112, 103, Image.INTERPOLATE_LANCZOS)
+	var result := ImageTexture.create_from_image(region)
+	_button_patch_cache[id] = result
+	return result
+
+
 func _button_style(texture: Texture2D, shade: Color) -> StyleBoxTexture:
-	var atlas := AtlasTexture.new()
-	atlas.atlas = texture
-	atlas.region = Rect2(27.0, 66.0, 391.0, 359.0)
 	var style := StyleBoxTexture.new()
-	style.texture = atlas
-	style.texture_margin_left = 88.0
-	style.texture_margin_top = 46.0
-	style.texture_margin_right = 88.0
-	style.texture_margin_bottom = 46.0
-	style.content_margin_left = 12.0
-	style.content_margin_top = 12.0
-	style.content_margin_right = 12.0
-	style.content_margin_bottom = 12.0
+	style.texture = _button_patch(texture)
+	style.texture_margin_left = 23.0
+	style.texture_margin_top = 23.0
+	style.texture_margin_right = 23.0
+	style.texture_margin_bottom = 23.0
+	style.content_margin_left = 26.0
+	style.content_margin_top = 16.0
+	style.content_margin_right = 26.0
+	style.content_margin_bottom = 16.0
 	style.modulate_color = shade
 	return style
-
 
 func _configure_navigation_buttons() -> void:
 	for entry in [
@@ -318,10 +330,10 @@ func _fit_grid_columns() -> void:
 	var vertical_spacing := 8 if compact else 16
 	if _details_content.get_theme_constant("separation") != vertical_spacing:
 		_details_content.add_theme_constant_override("separation", vertical_spacing)
-	var details_height := 390.0 if compact else 525.0
+	var details_height := 425.0 if compact else 565.0
 	if not is_equal_approx(_details_panel.custom_minimum_size.y, details_height):
 		_details_panel.custom_minimum_size.y = details_height
-	_details_symbol.custom_minimum_size.y = 72.0 if compact else 110.0
+	_details_symbol.custom_minimum_size.y = 64.0 if compact else 104.0
 	var available_card_width := maxf(CARD_MIN_WIDTH, content_width_limit - details_width - 12.0)
 	var fitting_columns := int(floor((available_card_width + CARD_GRID_GAP) / (CARD_MIN_WIDTH + CARD_GRID_GAP)))
 	var next_columns := clampi(fitting_columns, 1, CARD_GRID_COLUMNS)

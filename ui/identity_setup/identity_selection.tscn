@@ -115,18 +115,26 @@ layout_mode = 2
 custom_minimum_size = Vector2(255, 420)
 size_flags_horizontal = 3
 
-[node name="DetailsContent" type="VBoxContainer" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel"]
+[node name="InnerPadding" type="MarginContainer" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 12
+
+[node name="DetailsContent" type="VBoxContainer" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/InnerPadding"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 16
 
-[node name="IdentityDetailsTitle" type="Label" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/DetailsContent"]
+[node name="IdentityDetailsTitle" type="Label" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/InnerPadding/DetailsContent"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
 text = "身 份 预 览"
 
-[node name="DetailsSymbol" type="TextureRect" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/DetailsContent"]
+[node name="DetailsSymbol" type="TextureRect" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/InnerPadding/DetailsContent"]
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(0, 126)
@@ -134,33 +142,33 @@ expand_mode = 1
 stretch_mode = 5
 mouse_filter = 2
 
-[node name="UnknownGlyph" type="Label" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/DetailsContent"]
+[node name="UnknownGlyph" type="Label" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/InnerPadding/DetailsContent"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 text = "?"
 horizontal_alignment = 1
 
-[node name="IdentityDetailsName" type="Label" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/DetailsContent"]
+[node name="IdentityDetailsName" type="Label" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/InnerPadding/DetailsContent"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HeadingLabel"
 autowrap_mode = 3
 text = "聚焦卡片查看完整名称"
 
-[node name="SelectionStatus" type="Label" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/DetailsContent"]
+[node name="SelectionStatus" type="Label" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/InnerPadding/DetailsContent"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
 autowrap_mode = 3
 text = "尚未选择身份"
 
-[node name="DescriptionScroll" type="ScrollContainer" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/DetailsContent"]
+[node name="DescriptionScroll" type="ScrollContainer" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/InnerPadding/DetailsContent"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="IdentityDetailsDescription" type="Label" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/DetailsContent/DescriptionScroll"]
+[node name="IdentityDetailsDescription" type="Label" parent="Margins/Content/CardArea/DetailsHolder/IdentityDetailsPanel/InnerPadding/DetailsContent/DescriptionScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -175,9 +183,9 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 32.0
-offset_top = -130.0
+offset_top = -125.0
 offset_right = -32.0
-offset_bottom = -20.0
+offset_bottom = -24.0
 grow_horizontal = 2
 theme_override_constants/separation = 24
 
@@ -190,14 +198,14 @@ text = "返回主播取名"
 
 [node name="RevealAllButton" type="Button" parent="Navigation"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 110)
+custom_minimum_size = Vector2(0, 101)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "一键翻开"
 
 [node name="NextButton" type="Button" parent="Navigation"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 110)
+custom_minimum_size = Vector2(0, 101)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"PrimaryButton"
