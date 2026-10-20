@@ -196,8 +196,9 @@ func _read_table() -> bool:
 		if values.size() == 1 and values[0].is_empty():
 			continue
 		if values.size() != _headers.size():
-			push_warning("TutorialEditor: 第 %d 行字段数不匹配，已跳过。" % line_number)
-			continue
+			push_error("TutorialEditor: 第 %d 行字段数不匹配；为避免漏写数据，已中止读取。" % line_number)
+			file.close()
+			return false
 		var row: Dictionary = {}
 		for i in _headers.size():
 			row[_headers[i]] = values[i]
@@ -416,9 +417,11 @@ func _update_validation() -> void:
 				warnings.append(warning)
 	if not errors.is_empty():
 		_validation.add_theme_color_override("font_color", Color("#ff7777"))
-		_validation.text = "❌ 保存阻断（%d 项）：\n%s" % [errors.size(), "\n".join(errors.slice(0, 8))]
+		_validation.text = "❌ 保存阻断（%d 项）：\n" % errors.size()
+		for index in mini(errors.size(), 8):
+			_validation.text += "• " + errors[index] + "\n"
 		if errors.size() > 8:
-			_validation.text += "\n……还有 %d 项。" % (errors.size() - 8)
+			_validation.text += "……还有 %d 项。" % (errors.size() - 8)
 	elif not warnings.is_empty():
 		_validation.add_theme_color_override("font_color", Color("#e8c477"))
 		_validation.text = "✓ 字段检查通过。\n⚠ " + "\n".join(warnings)
