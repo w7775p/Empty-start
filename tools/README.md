@@ -137,3 +137,10 @@ python tools/export_game_data.py --audit-csv
 审计复用相同生成函数，对比现存Resource文本列出旧值覆盖/未复导文件，并逐行逐字段记录源值与消费者证据。输出 `docs/Integration/R26-E_01-04-13-14-18-23_importer_audit.md`；源码读取证据与真实玩家联调状态分开记录。18台账状态字符串不会加载为路径，16占位文本过滤为空，独立通关漫画已有帧由人工配置保留。
 
 Resource smoke：完成Godot导入后运行 `--headless --path <本Lane项目> --script res://tests/data_export/r26_e_importer_audit.gd`。2026-10-16已通过Godot4.7.2及两个既有Python导表回归。Windows PATH上的uv Python启动器失效时，本机可直接用 `C:\Users\lvy\AppData\Local\Python\pythoncore-3.14-64\python.exe`；验证日志见INT-17E完成日志。
+
+## 新手教学可视化编辑器（24 表）
+
+- 打开 `res://tools/tutorial_editor/tutorial_editor.tscn`，按 Godot **F6** 运行。
+- 在界面中筛选教学配置，编辑每步提示文案、顺序、触发/完成事件和启用状态；支持新建、复制、删除、排序、保存前校验。
+- 点击保存或 Ctrl+S 写回正式 `data/source_tables/24_新手教学配置.csv`。详细用法见 `tools/tutorial_editor/README.md`。
+- 修改事件 ID 前务必核对代码发出的稳定事件；修改 step_id 会影响已完成教学的存档记录。
