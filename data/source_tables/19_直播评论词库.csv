@@ -158,7 +158,7 @@ comment_alien_provocation_04,viewer_alien_neta_35,别拿UFO当万能借口,alien
 comment_alien_provocation_05,viewer_alien_neta_38,这科技树点歪了吧,alien,1,true,新增挑衅｜待策划审查
 comment_alien_smear_01,viewer_alien_neta_23,听说你的坐标是编的,alien,1,true,新增抹黑｜待策划审查
 comment_alien_smear_02,viewer_alien_neta_26,有人说这段影像是P的,alien,1,true,新增抹黑｜待策划审查
-comment_alien_smear_03,viewer_alien_neta_31,你那观测数据对不上,alien,1,true,新增抹黑｜待策划审查
+comment_alien_smear_03,viewer_alien_neta_31,你那地图对不上,alien,1,true,新增抹黑｜待策划审查
 comment_alien_smear_04,viewer_alien_neta_36,不会又拿猫毛当证据吧,alien,1,true,新增抹黑｜待策划审查
 comment_alien_smear_05,viewer_alien_neta_40,这外星身份越看越像营销,alien,1,true,新增抹黑｜待策划审查
 comment_kiwi_idle_01,viewer_kiwi_neta_22,今天咨询几点下班,kiwi,1,true,新增闲聊｜待策划审查
@@ -169,7 +169,7 @@ comment_kiwi_idle_05,viewer_kiwi_neta_38,树洞还收新用户吗,kiwi,1,true,�
 comment_kiwi_provocation_01,viewer_kiwi_neta_21,这也能算情感建议,kiwi,1,true,新增挑衅｜待策划审查
 comment_kiwi_provocation_02,viewer_kiwi_neta_24,教皇先解决自己的感情吧,kiwi,1,true,新增挑衅｜待策划审查
 comment_kiwi_provocation_03,viewer_kiwi_neta_26,敢不敢回答不带鸡汤,kiwi,1,true,新增挑衅｜待策划审查
-comment_kiwi_provocation_04,viewer_kiwi_neta_33,你这神谕有售后吗,kiwi,1,true,新增挑衅｜待策划审查
+comment_kiwi_provocation_04,viewer_kiwi_neta_33,你这有售后吗,kiwi,1,true,新增挑衅｜待策划审查
 comment_kiwi_provocation_05,viewer_kiwi_neta_39,别把已读不回都说成缘分,kiwi,1,true,新增挑衅｜待策划审查
 comment_kiwi_smear_01,viewer_kiwi_neta_27,听说你把来信当素材,kiwi,1,true,新增抹黑｜待策划审查
 comment_kiwi_smear_02,viewer_kiwi_neta_30,有人说你的案例是编的,kiwi,1,true,新增抹黑｜待策划审查
@@ -184,7 +184,7 @@ comment_frog_idle_05,viewer_frog_neta_32,有人给我递个碗吗,frog,1,true,�
 comment_frog_provocation_01,viewer_frog_neta_23,这也敢叫法餐,frog,1,true,新增挑衅｜待策划审查
 comment_frog_provocation_02,viewer_frog_neta_25,先把锅刷干净吧,frog,1,true,新增挑衅｜待策划审查
 comment_frog_provocation_03,viewer_frog_neta_26,米其林看了都摇头,frog,1,true,新增挑衅｜待策划审查
-comment_frog_provocation_04,viewer_frog_neta_29,敢不敢不放香菜做一锅,frog,1,true,新增挑衅｜待策划审查
+comment_frog_provocation_04,viewer_frog_neta_29,敢不敢不放香料做一锅,frog,1,true,新增挑衅｜待策划审查
 comment_frog_provocation_05,viewer_frog_neta_31,别把失败品叫创新菜,frog,1,true,新增挑衅｜待策划审查
 comment_frog_smear_01,viewer_frog_neta_27,听说这锅是隔夜的,frog,1,true,新增抹黑｜待策划审查
 comment_frog_smear_02,viewer_frog_neta_30,有人说配方抄来的,frog,1,true,新增抹黑｜待策划审查
@@ -193,14 +193,14 @@ comment_frog_smear_04,viewer_frog_neta_36,上次试吃的人去哪了,frog,1,tru
 comment_frog_smear_05,viewer_frog_neta_39,这五星评价像是自己刷的,frog,1,true,新增抹黑｜待策划审查
 comment_fox_idle_01,viewer_fox_neta_21,今天直播几点结束,fox,1,true,新增闲聊｜待策划审查
 comment_fox_idle_02,viewer_fox_neta_22,镜头是不是又歪了,fox,1,true,新增闲聊｜待策划审查
-comment_fox_idle_03,viewer_fox_neta_23,弹幕怎么突然安静了,fox,1,true,新增闲聊｜待策划审查
+comment_fox_idle_03,viewer_fox_neta_23,怎么突然安静了,fox,1,true,新增闲聊｜待策划审查
 comment_fox_idle_04,viewer_fox_neta_24,这灯光谁调的,fox,1,true,新增闲聊｜待策划审查
 comment_fox_idle_05,viewer_fox_neta_25,刚进来就要下播了吗,fox,1,true,新增闲聊｜待策划审查
 comment_fox_provocation_01,viewer_fox_neta_26,敢不敢把滤镜关了,fox,1,true,新增挑衅｜待策划审查
 comment_fox_provocation_02,viewer_fox_neta_27,别只会对镜头眨眼,fox,1,true,新增挑衅｜待策划审查
 comment_fox_provocation_03,viewer_fox_neta_36,这套路上次就见过,fox,1,true,新增挑衅｜待策划审查
 comment_fox_provocation_04,viewer_fox_neta_29,你敢不敢正面回答问题,fox,1,true,新增挑衅｜待策划审查
-comment_fox_provocation_05,viewer_fox_neta_30,今天又靠衣领营业吗,fox,1,true,新增挑衅｜待策划审查
+comment_fox_provocation_05,viewer_fox_neta_30,今天又靠肚子营业吗,fox,1,true,新增挑衅｜待策划审查
 comment_fox_smear_01,viewer_fox_neta_31,听说你删了负面弹幕,fox,1,true,新增抹黑｜待策划审查
 comment_fox_smear_02,viewer_fox_neta_32,有人说回放剪过头了,fox,1,true,新增抹黑｜待策划审查
 comment_fox_smear_03,viewer_fox_neta_33,这热度不会买来的吧,fox,1,true,新增抹黑｜待策划审查
