@@ -71,6 +71,14 @@ theme_type_variation = &"TitleLabel"
 horizontal_alignment = 1
 autowrap_mode = 3
 
+[node name="ReligionDescription" type="Label" parent="Margin/PageScroll/Content"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+horizontal_alignment = 1
+autowrap_mode = 3
+
 [node name="ScriptureHeading" type="Label" parent="Margin/PageScroll/Content"]
 layout_mode = 2
 theme_type_variation = &"HeadingLabel"

@@ -23,6 +23,7 @@ var _credits_heading_font: FontVariation
 
 @onready var _main_art: TextureRect = %MainArt
 @onready var _religion_name: Label = %ReligionName
+@onready var _religion_description: Label = %ReligionDescription
 @onready var _scripture_rows: VBoxContainer = %ScriptureRows
 @onready var _empty_scripture: Label = %EmptyScripture
 @onready var _judgement_section: PanelContainer = %JudgementSection
@@ -62,6 +63,8 @@ func _apply_display_data() -> void:
 			_main_art.modulate = Color(0.55, 1.0, 0.85)
 	_religion_name.text = str(_display_data.get("religion_name", ""))
 	_religion_name.visible = not _religion_name.text.is_empty()
+	_religion_description.text = str(_display_data.get("religion_description", ""))
+	_religion_description.visible = not _religion_description.text.is_empty()
 	_judgement_text.text = str(_display_data.get("judgement_text", ""))
 	_judgement_section.visible = not _judgement_text.text.is_empty()
 	# 重复呈现先移除旧行，避免同一帧显示新旧两份经文。

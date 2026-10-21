@@ -14,6 +14,17 @@ extends Resource
 @export var absurd_orthodox_name: String = ""
 @export var absurd_heretical_name: String = ""
 
+## 九种主次倾向组合的结局描述；对应第16表 religion_name 的 notes 列。
+@export var orthodox_description: String = ""
+@export var orthodox_heretical_description: String = ""
+@export var orthodox_absurd_description: String = ""
+@export var heretical_orthodox_description: String = ""
+@export var heretical_description: String = ""
+@export var heretical_absurd_description: String = ""
+@export var absurd_orthodox_description: String = ""
+@export var absurd_heretical_description: String = ""
+@export var absurd_description: String = ""
+
 const _TENDENCY_IDS: Array[String] = ["orthodox", "heretical", "absurd"]
 
 
@@ -38,6 +49,31 @@ func get_religion_name(primary_tendency_id: String, secondary_tendency_id: Strin
 			return absurd_orthodox_name
 		"absurd/heretical":
 			return absurd_heretical_name
+		_:
+			return ""
+
+
+# 使用与教名相同的主次倾向映射，保证标题与结局描述来自同一组合。
+func get_religion_description(primary_tendency_id: String, secondary_tendency_id: String) -> String:
+	match _build_combination_key(primary_tendency_id, secondary_tendency_id):
+		"orthodox/orthodox":
+			return orthodox_description
+		"orthodox/heretical":
+			return orthodox_heretical_description
+		"orthodox/absurd":
+			return orthodox_absurd_description
+		"heretical/orthodox":
+			return heretical_orthodox_description
+		"heretical/heretical":
+			return heretical_description
+		"heretical/absurd":
+			return heretical_absurd_description
+		"absurd/orthodox":
+			return absurd_orthodox_description
+		"absurd/heretical":
+			return absurd_heretical_description
+		"absurd/absurd":
+			return absurd_description
 		_:
 			return ""
 

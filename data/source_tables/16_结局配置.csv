@@ -1,17 +1,33 @@
 config_type,primary_tendency,secondary_or_state,text_value,asset_id,notes
-main_art,orthodox,,,assets/ui/identity/cards/identity_card_back.png,共用身份卡背面；页面按正统主导倾向染色
-main_art,heresy,,,assets/ui/identity/cards/identity_card_back.png,共用身份卡背面；导表映射到 heretical 后由页面染色
-main_art,absurd,,,assets/ui/identity/cards/identity_card_back.png,共用身份卡背面；页面按荒谬主导倾向染色
-religion_name,orthodox,orthodox,金瓜子圣国,,纯正统；候选描述：信仰被统一换算成金瓜子，出生、婚配、升迁和死后去处都由功德榜结算。
-religion_name,orthodox,heresy,圣典勘误委员会,,正统主导+异端次要；候选描述：每当有人发现神谕自相矛盾，教廷就发布新版圣典并将旧版列为异端，直到全世界都忘了神最初说过什么。
-religion_name,orthodox,absurd,永恒星期一,,正统主导+荒谬次要；候选描述：为终结历法纷争，教廷宣布宇宙永远处于星期一，婚礼、生日和世界末日都得按周一流程办理。
-religion_name,heresy,orthodox,弑神运动会,,异端主导+正统次要；候选描述：弑神成为年度体育赛事，挑战者必须遵守神殿制定的规则，冠军将获颁「最合规的弑神者」奖章。
-religion_name,heresy,heresy,地球猫猫教,,纯异端；候选描述：全世界逐渐相信地球是一只正在熟睡的巨猫，地震是翻身、潮汐是呼噜，文明的最高使命变成让它继续睡下去。
-religion_name,heresy,absurd,真理热搜榜,,异端主导+荒谬次要；候选描述：神谕每天按照热搜排名改写，昨天的救世主今天因过气遭到除名，连反抗神明都必须争夺流量。
-religion_name,absurd,orthodox,天堂彩票局,,荒谬主导+正统次要；候选描述：命运被装进神圣摇号机，每个人都必须相信开奖结果绝对公正，直到神明自己抽中了「下凡补班」。
-religion_name,absurd,heresy,末日退订中心,,荒谬主导+异端次要；候选描述：人类发现末日预言默认自动续费，于是集体投诉并要求退订，整个世界永远卡在客服转接的最后一分钟。
-religion_name,absurd,absurd,河神,,纯荒谬；候选描述：世间万物都被扔进河里等待金银铜判定，最后河神把整个人类文明列为「无人认领的失物」。
-judgement,,no_behavior,描述占位1,,无有效行为，优先级最高
-judgement,,tie,描述占位2,,最高分并列
-judgement,,consistent,描述占位3,,开局身份对应倾向与最终主导一致
-judgement,,shifted,描述占位4,,其余情况
+main_art,orthodox,,,assets/ui/identity/cards/identity_card_back.png,共用身份卡背面；页面按正统主导倾向染色。EN-10 已接入 main。
+main_art,heresy,,,assets/ui/identity/cards/identity_card_back.png,共用身份卡背面；导出映射到 heretical 后由页面染色。EN-10 已接入 main。
+main_art,absurd,,,assets/ui/identity/cards/identity_card_back.png,共用身份卡背面；页面按荒谬主导倾向染色。EN-10 已接入 main。
+religion_name,orthodox,orthodox,新鼠路撒冷,,"鼠承诺！
+天堂的道路由金瓜子铺成，美酒在河中流淌
+每一位虔诚信徒都将享受永恒的富足"
+religion_name,orthodox,heresy,版本发布会,,"鼠每说一句话
+就会诞生一本新的圣典
+每场直播回放都是圣典订正记录"
+religion_name,orthodox,absurd,永恒星期日,,为终结历法纷争，鼠来宣布宇宙永远处于休息日
+religion_name,heresy,orthodox,神明下岗再就业中心,,"神话已经过时啦！
+众神重新学习直播、剪辑和带货
+昔日的创世神，如今在鼠的直播间负责场控"
+religion_name,heresy,heresy,地球猫猫教,,"全世界逐渐相信地球是一只正在熟睡的巨猫！
+地震是翻身、潮汐是呼噜
+文明的最高使命变成——让它继续睡下去"
+religion_name,heresy,absurd,真理热搜榜,,"神谕每天按照热搜排名改写
+昨天的救世主今天因过气遭到除名
+连反抗神明都必须争夺流量"
+religion_name,absurd,orthodox,河神水务局,,"丢失的东西请一律交给河神
+金斧头、银斧头、丢掉的爱情和昨天的记忆，统统排队鉴定
+河神终于考上了编制"
+religion_name,absurd,heresy,酪兹鼠到三,,"鼠数到一，天使罢工
+数到二，圣徒集体退教
+数到三，于是众生终于获得自由"
+religion_name,absurd,absurd,中福袋能上天堂,,"向上天堂吗？
+来，点点关注，点点粉丝牌！
+开奖结果绝对公正！"
+judgement,,no_behavior,,,判词文案待主策填写；无有效行为，优先级最高。main CSV 尚保留旧占位，待正式导表同步。
+judgement,,tie,,,判词文案待主策填写；最高分并列。main CSV 尚保留旧占位，待正式导表同步。
+judgement,,consistent,,,判词文案待主策填写；开局身份对应倾向与最终主导一致。main CSV 尚保留旧占位，待正式导表同步。
+judgement,,shifted,,,判词文案待主策填写；其余情况。main CSV 尚保留旧占位，待正式导表同步。
