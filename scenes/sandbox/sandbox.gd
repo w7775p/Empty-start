@@ -1780,10 +1780,10 @@ func _show_pb25_tutorial_bubble(step_id: String, text: String, duration_seconds:
 			"duration_seconds": duration_seconds,
 		})
 		return true
-	# 本任务当前没有活跃对白时，才清理左侧普通复读并开始新阶段。
+	# 教程提示沿用正式优先级排队；整侧清空会取消全局脚本正在等待的气泡，
+	# 使串行器永远收不到结束回调，后续 T1 连线也无法恢复战斗。
 	_pb25_tutorial_bubble_sequence_id = &""
 	_pb25_tutorial_bubble_step_id = ""
-	_battle_hud.call("clear_dialogue_bubbles", BubbleDialogueEntry.SpeakerSide.PLAYER)
 	_pb25_tutorial_bubble_sequence_counter += 1
 	var sequence_id := StringName(
 		"pb25_tutorial_%s_%d" % [step_id, _pb25_tutorial_bubble_sequence_counter]
