@@ -233,7 +233,7 @@ def make_identity_resources(records: list, report: Report) -> dict[str, str]:
 
 def make_ending_resources(tables: dict, report: Report) -> dict[str, str]:
     """16 表进入现有结局配置；策划占位文案与缺图明确保留为空。"""
-    names, judgements, art_fields, art_resources = [], [], [], []
+    names, descriptions, judgements, art_fields, art_resources = [], [], [], [], []
     judgement_fields = {"no_behavior": "no_effective_behavior_text", "tie": "primary_tied_text",
                         "consistent": "consistent_text", "shifted": "shifted_text"}
     for line, row in tables["16_结局配置"][1]:
@@ -247,6 +247,9 @@ def make_ending_resources(tables: dict, report: Report) -> dict[str, str]:
         if kind == "religion_name":
             target = primary + ("" if primary == secondary else "_" + secondary) + "_name"
             names.append(f'{target} = {gd_string(text)}')
+            # 策划在16表 religion_name.notes 中填写的多行结局描述也是正式运行时数据。
+            desc_target = target.removesuffix("_name") + "_description"
+            descriptions.append(f'{desc_target} = {gd_string(row.get("notes", ""))}')
         elif kind == "judgement" and secondary in judgement_fields:
             judgements.append(f'{judgement_fields[secondary]} = {gd_string(text)}')
         elif kind == "main_art":
@@ -259,7 +262,7 @@ def make_ending_resources(tables: dict, report: Report) -> dict[str, str]:
                 art_fields.append(f'{primary}_main_art = null')
     outputs = {}
     for suffix, class_name, fields, resources in (
-        ("religion_name", "EndingReligionNameConfig", names, []),
+        ("religion_name", "EndingReligionNameConfig", names + descriptions, []),
         ("judgement_text", "EndingJudgementTextConfig", judgements, []),
         ("main_art", "EndingMainArtConfig", art_fields, art_resources),
     ):
@@ -1065,7 +1068,7 @@ def build_field_audit(tables: dict, source_root: Path, output_root: Path) -> str
         "11_矛盾参数": set(tables["11_矛盾参数"][0]) - {"notes", "配置状态"},
         "13_吞并奖励": set(tables["13_吞并奖励"][0]) - {"notes"},
         "14_败者卡": {"streamer_id", "description", "enabled"},
-        "16_结局配置": set(tables["16_结局配置"][0]) - {"notes"},
+        "16_结局配置": set(tables["16_结局配置"][0]),
         "23_对手立绘配置": set(tables["23_对手立绘配置"][0]) - {"notes"},
     }
     targets = {
