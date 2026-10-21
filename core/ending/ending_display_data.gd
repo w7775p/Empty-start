@@ -53,6 +53,7 @@ func build_from_frozen_tendency(
 		"opening_identity_tendency_id": str(tendency_result.get("opening_identity_tendency_id", "")),
 		"main_art": main_art_config.get_main_art_for_tendency(primary_tendency_id),
 		"religion_name": religion_name_config.get_religion_name(primary_tendency_id, secondary_tendency_id),
+		"religion_description": religion_name_config.get_religion_description(primary_tendency_id, secondary_tendency_id),
 		"identity_result_class": result_class,
 		"judgement_text": judgement_text_config.get_judgement_text(result_class),
 		"scripture": {
